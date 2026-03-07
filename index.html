@@ -1,26 +1,1150 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>AstroNetix Futures</title>
-<style>
-body{
-background:#050914;
-color:white;
-font-family:Arial;
-display:flex;
-align-items:center;
-justify-content:center;
-height:100vh;
-text-align:center;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AstroNetix Futures | Mission Interface</title>
+  <style>
+    :root {
+      --bg: #05080f;
+      --bg-2: #0a1220;
+      --panel: rgba(10, 18, 32, 0.88);
+      --panel-2: rgba(7, 14, 24, 0.92);
+      --line: rgba(105, 160, 255, 0.2);
+      --line-strong: rgba(105, 160, 255, 0.45);
+      --text: #e7eefc;
+      --muted: #8ea4c9;
+      --blue: #4da3ff;
+      --cyan: #63f2ff;
+      --green: #41d38a;
+      --amber: #ffb84d;
+      --red: #ff647c;
+      --shadow: 0 16px 60px rgba(0, 0, 0, 0.45);
+      --radius: 18px;
+      --header-h: 72px;
+      --bottom-h: 190px;
+      --inspector-w: 360px;
+      --grid-gap: 16px;
+      --font: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(43, 91, 171, 0.18), transparent 28%),
+        linear-gradient(180deg, #04070d 0%, #07101d 100%);
+      color: var(--text);
+      font-family: var(--font);
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity: 0.22;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(99, 242, 255, 0.07), transparent 22%),
+        radial-gradient(circle at 82% 18%, rgba(77, 163, 255, 0.08), transparent 20%),
+        radial-gradient(circle at 50% 80%, rgba(65, 211, 138, 0.05), transparent 28%);
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .app-shell {
+      height: 100vh;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: var(--header-h) 1fr var(--bottom-h);
+      gap: var(--grid-gap);
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(12, 20, 34, 0.92) 0%, rgba(8, 14, 24, 0.95) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(99,242,255,0.22), rgba(77,163,255,0.08), transparent 48%);
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 420px) 1fr minmax(280px, 420px);
+      align-items: center;
+      gap: 14px;
+      padding: 0 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 30% 30%, rgba(99,242,255,0.28), rgba(77,163,255,0.14));
+      border: 1px solid var(--line-strong);
+      color: var(--cyan);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-cluster,
+    .mission-cluster {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-cluster {
+      justify-content: center;
+    }
+
+    .mission-cluster {
+      justify-content: flex-end;
+    }
+
+    .pill {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .pill strong {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(65, 211, 138, 0.75);
+      flex: 0 0 auto;
+    }
+
+    .dot.warn {
+      background: var(--amber);
+      box-shadow: 0 0 12px rgba(255, 184, 77, 0.75);
+    }
+
+    .dot.alert {
+      background: var(--red);
+      box-shadow: 0 0 12px rgba(255, 100, 124, 0.75);
+    }
+
+    .main-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--inspector-w);
+      gap: var(--grid-gap);
+    }
+
+    .globe-stage {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 0;
+    }
+
+    .stage-top,
+    .stage-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+      z-index: 2;
+    }
+
+    .stage-bottom {
+      border-bottom: 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .stage-title-wrap h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .stage-title-wrap p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tool-btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .tool-btn:hover,
+    .tool-btn.active {
+      border-color: rgba(99,242,255,0.45);
+      color: #fff;
+      background: rgba(77,163,255,0.12);
+      box-shadow: inset 0 0 0 1px rgba(99,242,255,0.12), 0 0 18px rgba(77,163,255,0.12);
+    }
+
+    .stage-canvas {
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(27, 79, 155, 0.18), transparent 20%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03), transparent 45%),
+        linear-gradient(180deg, rgba(3, 7, 12, 0.4), rgba(3, 7, 12, 0.1));
+    }
+
+    .stage-canvas .starfield,
+    .stage-canvas .hud-rings,
+    .stage-canvas .earth-placeholder,
+    .stage-canvas .target-corners,
+    .stage-canvas .scanline {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .starfield {
+      background-image:
+        radial-gradient(circle at 12% 22%, rgba(255,255,255,0.7) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 74% 31%, rgba(255,255,255,0.7) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 58% 18%, rgba(255,255,255,0.55) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 82% 72%, rgba(255,255,255,0.55) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 22% 68%, rgba(255,255,255,0.5) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 40% 82%, rgba(255,255,255,0.6) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 90% 12%, rgba(255,255,255,0.55) 0 1px, transparent 1.2px);
+      opacity: 0.65;
+    }
+
+    .hud-rings {
+      display: grid;
+      place-items: center;
+    }
+
+    .earth-placeholder {
+      display: grid;
+      place-items: center;
+    }
+
+    .earth-core {
+      width: min(58vw, 680px);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      position: relative;
+      background:
+        radial-gradient(circle at 35% 28%, rgba(104, 205, 255, 0.75) 0%, rgba(27, 120, 212, 0.62) 20%, rgba(6, 42, 84, 0.96) 60%, rgba(2, 10, 22, 1) 78%),
+        radial-gradient(circle at 70% 65%, rgba(82, 255, 210, 0.18), transparent 30%);
+      box-shadow:
+        inset -60px -40px 100px rgba(0, 0, 0, 0.45),
+        inset 18px 18px 40px rgba(255, 255, 255, 0.08),
+        0 0 80px rgba(43, 134, 255, 0.22);
+      border: 1px solid rgba(108, 183, 255, 0.28);
+      animation: globePulse 8s ease-in-out infinite;
+    }
+
+    .earth-core::before,
+    .earth-core::after {
+      content: "";
+      position: absolute;
+      inset: 10%;
+      border-radius: 50%;
+      border: 1px solid rgba(99,242,255,0.11);
+    }
+
+    .earth-core::after {
+      inset: -8%;
+      border-color: rgba(77,163,255,0.12);
+      filter: blur(1px);
+    }
+
+    .earth-grid {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      opacity: 0.24;
+      background-image:
+        repeating-linear-gradient(0deg, transparent 0 24px, rgba(255,255,255,0.18) 24px 25px),
+        repeating-linear-gradient(90deg, transparent 0 24px, rgba(255,255,255,0.16) 24px 25px);
+      mask-image: radial-gradient(circle at center, black 64%, transparent 80%);
+    }
+
+    .orbit-shell {
+      position: absolute;
+      inset: 50%;
+      width: min(78vw, 900px);
+      aspect-ratio: 1 / 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px dashed rgba(99,242,255,0.18);
+    }
+
+    .orbit-shell.orbit-2 {
+      width: min(90vw, 1040px);
+      border-color: rgba(77,163,255,0.14);
+    }
+
+    .orbit-shell.orbit-3 {
+      width: min(68vw, 780px);
+      border-color: rgba(65,211,138,0.14);
+    }
+
+    .zone-legend,
+    .footprint-legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .legend-chip span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .target-corners::before,
+    .target-corners::after,
+    .target-corners span::before,
+    .target-corners span::after {
+      content: "";
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-color: rgba(99,242,255,0.22);
+      border-style: solid;
+    }
+
+    .target-corners::before {
+      top: 22px;
+      left: 22px;
+      border-width: 2px 0 0 2px;
+    }
+
+    .target-corners::after {
+      top: 22px;
+      right: 22px;
+      border-width: 2px 2px 0 0;
+    }
+
+    .target-corners span::before {
+      bottom: 22px;
+      left: 22px;
+      border-width: 0 0 2px 2px;
+    }
+
+    .target-corners span::after {
+      bottom: 22px;
+      right: 22px;
+      border-width: 0 2px 2px 0;
+    }
+
+    .scanline {
+      background: linear-gradient(180deg, transparent 0%, rgba(99,242,255,0.06) 49%, transparent 100%);
+      background-size: 100% 180px;
+      animation: scan 7s linear infinite;
+      opacity: 0.45;
+    }
+
+    .inspector {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      min-height: 0;
+    }
+
+    .panel-head {
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .panel-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .inspector-summary {
+      padding: 16px 18px;
+      display: grid;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .vehicle-name {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .vehicle-name h4 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+      letter-spacing: 0.05em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(65,211,138,0.28);
+      background: rgba(65,211,138,0.08);
+      color: #b8f3d3;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .metric-card {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.025);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .inspector-body {
+      min-height: 0;
+      overflow: auto;
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-block {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.025);
+    }
+
+    .section-block h5 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+    }
+
+    .section-block ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .section-block li {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .section-block li span:first-child {
+      color: var(--muted);
+      min-width: 108px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 11px;
+      padding-top: 2px;
+    }
+
+    .inspector-actions {
+      padding: 16px 18px 18px;
+      display: grid;
+      gap: 10px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, rgba(77,163,255,0.92), rgba(99,242,255,0.72));
+      color: #04101b;
+      box-shadow: 0 14px 28px rgba(77,163,255,0.22);
+    }
+
+    .secondary-btn {
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .primary-btn:hover,
+    .secondary-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .workflow-panel {
+      display: grid;
+      grid-template-columns: 320px 1fr 300px;
+      min-height: 0;
+    }
+
+    .workflow-left,
+    .workflow-center,
+    .workflow-right {
+      padding: 18px;
+    }
+
+    .workflow-left,
+    .workflow-center {
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .workflow-left h3,
+    .workflow-right h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .workflow-left p,
+    .workflow-right p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .scenario-clock {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .clock-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .clock-value {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .clock-bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .clock-bar > span {
+      display: block;
+      width: 48%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(77,163,255,0.92), rgba(99,242,255,0.76));
+      box-shadow: 0 0 24px rgba(77,163,255,0.2);
+    }
+
+    .workflow-center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .flow-track {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 96px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .flow-step.active {
+      border-color: rgba(99,242,255,0.35);
+      background: linear-gradient(180deg, rgba(77,163,255,0.12), rgba(255,255,255,0.03));
+      box-shadow: 0 0 22px rgba(77,163,255,0.12);
+    }
+
+    .flow-step .step-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .flow-step.active .step-index {
+      background: rgba(99,242,255,0.18);
+      border-color: rgba(99,242,255,0.35);
+      color: var(--cyan);
+    }
+
+    .flow-step strong {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .flow-step p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .workflow-note {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .queue-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .queue-item {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.025);
+      display: grid;
+      gap: 6px;
+    }
+
+    .queue-item strong {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .queue-item span {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .queue-tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(255,184,77,0.18);
+      background: rgba(255,184,77,0.08);
+      color: #ffd39a;
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+
+    @keyframes globePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.012); }
+    }
+
+    @media (max-width: 1320px) {
+      :root {
+        --inspector-w: 320px;
+        --bottom-h: 220px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        padding: 14px 18px;
+        align-items: start;
+      }
+
+      .status-cluster,
+      .mission-cluster {
+        justify-content: flex-start;
+      }
+
+      .workflow-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow-left,
+      .workflow-center {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
+    }
+
+    @media (max-width: 1080px) {
+      html, body {
+        overflow: auto;
+      }
+
+      .app-shell {
+        height: auto;
+        min-height: 100vh;
+        grid-template-rows: auto auto auto;
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .earth-core {
+        width: min(78vw, 560px);
+      }
+
+      .flow-track {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app-shell {
+        padding: 10px;
+        gap: 10px;
+      }
+
+      .panel,
+      .tool-btn,
+      .flow-step,
+      .metric-card,
+      .section-block,
+      .queue-item {
+        border-radius: 14px;
+      }
+
+      .stage-top,
+      .stage-bottom,
+      .workflow-left,
+      .workflow-center,
+      .workflow-right,
+      .panel-head,
+      .inspector-summary,
+      .inspector-body,
+      .inspector-actions {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .earth-core {
+        width: min(88vw, 460px);
+      }
+
+      .target-corners::before,
+      .target-corners::after,
+      .target-corners span::before,
+      .target-corners span::after {
+        width: 58px;
+        height: 58px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="app-shell">
+    <header class="topbar panel">
+      <div class="brand">
+        <div class="brand-mark">AX</div>
+        <div>
+          <div class="eyebrow">AstroNetix Futures</div>
+          <div class="title">Automated-Enabled Defense Space Operations Interface</div>
+        </div>
+      </div>
 
-<div>
-<h1>AstroNetix Futures</h1>
-<p>Cloudflare + GitHub deployment works.</p>
-</div>
+      <div class="status-cluster">
+        <div class="pill"><span class="dot"></span><strong>System:</strong> NOMINAL</div>
+        <div class="pill"><span class="dot"></span><strong>Links:</strong> 24 / 24</div>
+        <div class="pill"><span class="dot warn"></span><strong>Queue:</strong> 03 Pending</div>
+      </div>
 
+      <div class="mission-cluster">
+        <div class="pill"><strong>Scenario Clock</strong> 14:32:18 Z</div>
+        <div class="pill"><strong>Mode</strong> GEO / MEO / LEO</div>
+        <div class="pill"><strong>Ops State</strong> Shared Control</div>
+      </div>
+    </header>
+
+    <section class="main-grid">
+      <section class="globe-stage panel">
+        <div class="stage-top">
+          <div class="stage-title-wrap">
+            <h2>Global Mission Picture</h2>
+            <p>Earth visualization, command zones, orbital tracks, coverage footprints, and live asset overlays.</p>
+          </div>
+
+          <div class="toolbar">
+            <button class="tool-btn active">Earth View</button>
+            <button class="tool-btn">Command Zones</button>
+            <button class="tool-btn">Orbital Paths</button>
+            <button class="tool-btn">Coverage</button>
+          </div>
+        </div>
+
+        <div class="stage-canvas" id="globeStage">
+          <div class="starfield"></div>
+          <div class="hud-rings">
+            <div class="orbit-shell orbit-1"></div>
+            <div class="orbit-shell orbit-2"></div>
+            <div class="orbit-shell orbit-3"></div>
+          </div>
+          <div class="earth-placeholder">
+            <div class="earth-core">
+              <div class="earth-grid"></div>
+            </div>
+          </div>
+          <div class="target-corners"><span></span></div>
+          <div class="scanline"></div>
+        </div>
+
+        <div class="stage-bottom">
+          <div class="zone-legend">
+            <div class="legend-chip"><span style="background:#4da3ff"></span> INDOPACOM</div>
+            <div class="legend-chip"><span style="background:#63f2ff"></span> EUCOM</div>
+            <div class="legend-chip"><span style="background:#41d38a"></span> CENTCOM</div>
+            <div class="legend-chip"><span style="background:#ffb84d"></span> AFRICOM</div>
+            <div class="legend-chip"><span style="background:#ff647c"></span> NORTHCOM</div>
+            <div class="legend-chip"><span style="background:#b08cff"></span> SOUTHCOM</div>
+          </div>
+
+          <div class="footprint-legend">
+            <div class="legend-chip"><span style="background:#a7d0ff"></span> Sensor Footprint</div>
+            <div class="legend-chip"><span style="background:#86ffd0"></span> Relay Access</div>
+            <div class="legend-chip"><span style="background:#ffd394"></span> Tasked Track</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="inspector panel">
+        <div class="panel-head">
+          <h3>Vehicle Inspector</h3>
+          <p>Select a satellite or orbital object to inspect health, mission state, tasking, and automation recommendations.</p>
+        </div>
+
+        <div class="inspector-summary">
+          <div class="vehicle-name">
+            <div>
+              <div class="eyebrow">Selected Vehicle</div>
+              <h4>SV-204 Kestrel</h4>
+            </div>
+            <div class="badge"><span class="dot"></span> On Mission</div>
+          </div>
+
+          <div class="detail-grid">
+            <div class="metric-card">
+              <div class="metric-label">Orbit Class</div>
+              <div class="metric-value">MEO</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Ground Track</div>
+              <div class="metric-value">EUCOM</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Health</div>
+              <div class="metric-value">Nominal</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Latency</div>
+              <div class="metric-value">1.2 sec</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="inspector-body">
+          <section class="section-block">
+            <h5>Mission Data</h5>
+            <ul>
+              <li><span>Payload</span><span>Wide-area persistent sensing, cross-link relay</span></li>
+              <li><span>Task</span><span>Regional surveillance support, automated custody track handoff</span></li>
+              <li><span>Coverage</span><span>Active footprint projected over EUCOM and eastern AFRICOM edge</span></li>
+            </ul>
+          </section>
+
+          <section class="section-block">
+            <h5>System Status</h5>
+            <ul>
+              <li><span>Power</span><span>94%, discharge nominal</span></li>
+              <li><span>Thermal</span><span>Stable, no exceedances</span></li>
+              <li><span>Comms</span><span>Primary link active, secondary path available</span></li>
+              <li><span>Autonomy</span><span>Recommendation authority enabled, human approval required</span></li>
+            </ul>
+          </section>
+
+          <section class="section-block">
+            <h5>Recommended Action</h5>
+            <ul>
+              <li><span>Detect</span><span>Cross-link latency trending above scenario baseline</span></li>
+              <li><span>Assess</span><span>No mission loss, moderate performance degradation risk</span></li>
+              <li><span>Recommend</span><span>Re-route relay chain through alternate vehicle in 12-minute window</span></li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="inspector-actions">
+          <button class="primary-btn">Open Task Context</button>
+          <button class="secondary-btn">Center on Vehicle</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="workflow-panel panel">
+      <div class="workflow-left">
+        <h3>Automation Workflow</h3>
+        <p>Mission thread placeholder for event-driven automation, analyst review, and command approval actions.</p>
+
+        <div class="scenario-clock">
+          <div class="clock-row"><span>Scenario Time</span><span class="clock-value">T+04:12:36</span></div>
+          <div class="clock-row"><span>Playback Rate</span><span class="clock-value">8x</span></div>
+          <div class="clock-bar"><span></span></div>
+        </div>
+      </div>
+
+      <div class="workflow-center">
+        <div class="flow-track">
+          <article class="flow-step active">
+            <div class="step-index">01</div>
+            <strong>Detect</strong>
+            <p>System flags off-nominal telemetry or operational change.</p>
+          </article>
+
+          <article class="flow-step active">
+            <div class="step-index">02</div>
+            <strong>Assess</strong>
+            <p>Mission logic scores impact, confidence, and timing sensitivity.</p>
+          </article>
+
+          <article class="flow-step active">
+            <div class="step-index">03</div>
+            <strong>Recommend</strong>
+            <p>Automation proposes next-best action and alternate routing path.</p>
+          </article>
+
+          <article class="flow-step">
+            <div class="step-index">04</div>
+            <strong>Queue</strong>
+            <p>Action package prepared for operator review and sequencing.</p>
+          </article>
+
+          <article class="flow-step">
+            <div class="step-index">05</div>
+            <strong>Approve</strong>
+            <p>Human decision authority confirms execution or modifies task.</p>
+          </article>
+        </div>
+
+        <div class="workflow-note">
+          <span>Current thread: relay degradation / alternate link recommendation</span>
+          <span>Approval model: human-in-the-loop</span>
+        </div>
+      </div>
+
+      <div class="workflow-right">
+        <h3>Action Queue</h3>
+        <div class="queue-card">
+          <div class="queue-item">
+            <div class="queue-tag">Pending Review</div>
+            <strong>SV-204 Relay Re-route</strong>
+            <span>Confidence 92%, projected mission impact avoided if approved within 08:00.</span>
+          </div>
+
+          <div class="queue-item">
+            <div class="queue-tag">Staged</div>
+            <strong>Footprint Rebalance</strong>
+            <span>Shift regional coverage overlap to maintain custody track continuity.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const toolbarButtons = document.querySelectorAll('.tool-btn');
+    toolbarButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        toolbarButtons.forEach((btn) => btn.classList.remove('active'));
+        button.classList.add('active');
+      });
+    });
+  </script>
 </body>
 </html>
