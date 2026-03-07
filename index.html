@@ -1,1704 +1,1008 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AstroNetix Futures | Mission Interface</title>
-  <style>
-    :root {
-      --bg: #04070d;
-      --panel: rgba(10, 17, 30, 0.92);
-      --line: rgba(89, 146, 255, 0.18);
-      --line-strong: rgba(89, 146, 255, 0.38);
-      --text: #eaf1ff;
-      --muted: #90a6cb;
-      --blue: #4da3ff;
-      --cyan: #63f2ff;
-      --green: #41d38a;
-      --amber: #ffb84d;
-      --red: #ff647c;
-      --purple: #b08cff;
-      --shadow: 0 18px 60px rgba(0, 0, 0, 0.46);
-      --radius: 18px;
-      --header-h: 76px;
-      --bottom-h: 230px;
-      --inspector-w: 390px;
-      --gap: 16px;
-      --font: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      background: radial-gradient(circle at top, rgba(38, 89, 166, 0.18), transparent 24%), linear-gradient(180deg, #04070d 0%, #07101b 100%);
-      color: var(--text);
-      font-family: var(--font);
-      overflow: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 42px 42px;
-      opacity: 0.18;
-      z-index: 0;
-    }
-
-    .app-shell {
-      position: relative;
-      z-index: 1;
-      height: 100vh;
-      padding: 14px;
-      display: grid;
-      grid-template-columns: 1fr;
-      grid-template-rows: var(--header-h) 1fr var(--bottom-h);
-      gap: var(--gap);
-    }
-
-    .panel {
-      background: linear-gradient(180deg, rgba(10,17,30,.92) 0%, rgba(7,12,22,.95) 100%);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(135deg, rgba(99,242,255,.22), rgba(77,163,255,.08), transparent 45%);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-    }
-
-    .topbar {
-      display: grid;
-      grid-template-columns: minmax(280px, 440px) 1fr minmax(280px, 440px);
-      gap: 14px;
-      align-items: center;
-      padding: 0 18px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 0;
-    }
-
-    .brand-mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle at 35% 35%, rgba(99,242,255,.28), rgba(77,163,255,.14));
-      border: 1px solid var(--line-strong);
-      color: var(--cyan);
-      font-weight: 800;
-      letter-spacing: .08em;
-      flex: 0 0 auto;
-    }
-
-    .eyebrow {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .16em;
-      color: var(--muted);
-      margin-bottom: 3px;
-    }
-
-    .title {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: .04em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .status-cluster,
-    .mission-cluster {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .status-cluster { justify-content: center; }
-    .mission-cluster { justify-content: flex-end; }
-
-    .pill {
-      min-height: 38px;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 0 14px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      font-size: 12px;
-      letter-spacing: .04em;
-    }
-
-    .pill strong {
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 12px rgba(65,211,138,.75);
-      flex: 0 0 auto;
-    }
-
-    .dot.warn {
-      background: var(--amber);
-      box-shadow: 0 0 12px rgba(255,184,77,.75);
-    }
-
-    .dot.alert {
-      background: var(--red);
-      box-shadow: 0 0 12px rgba(255,100,124,.75);
-    }
-
-    .main-grid {
-      min-height: 0;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) var(--inspector-w);
-      gap: var(--gap);
-    }
-
-    .globe-stage {
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-    }
-
-    .stage-top,
-    .stage-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      position: relative;
-      z-index: 2;
-      border-bottom: 1px solid rgba(255,255,255,.05);
-    }
-
-    .stage-bottom {
-      border-bottom: 0;
-      border-top: 1px solid rgba(255,255,255,.05);
-    }
-
-    .stage-title-wrap h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: .04em;
-    }
-
-    .stage-title-wrap p {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .toolbar,
-    .toolbar-secondary {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    .toolbar-stack {
-      display: grid;
-      gap: 10px;
-    }
-
-    .tool-btn {
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: 180ms ease;
-    }
-
-    .tool-btn:hover,
-    .tool-btn.active {
-      border-color: rgba(99,242,255,.45);
-      color: #fff;
-      background: rgba(77,163,255,.12);
-      box-shadow: inset 0 0 0 1px rgba(99,242,255,.1), 0 0 18px rgba(77,163,255,.12);
-      transform: translateY(-1px);
-    }
-
-    .stage-canvas {
-      position: relative;
-      min-height: 0;
-      overflow: hidden;
-      background: radial-gradient(circle at 50% 50%, rgba(17,60,122,.22), transparent 22%), linear-gradient(180deg, rgba(2,6,10,.6), rgba(2,6,10,.2));
-    }
-
-    #globeCanvas,
-    #map2dCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    #map2dCanvas {
-      display: none;
-      cursor: grab;
-      background: linear-gradient(180deg, rgba(4,8,14,.95), rgba(5,10,18,.98));
-    }
-
-    #map2dCanvas.dragging { cursor: grabbing; }
-
-    .canvas-overlay,
-    .scanline,
-    .target-corners,
-    .zone-overlay,
-    .satellite-tags,
-    .view-label,
-    .mouse-help,
-    .crosshair {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    .canvas-overlay {
-      background: radial-gradient(circle at 20% 25%, rgba(99,242,255,.06), transparent 18%), radial-gradient(circle at 80% 20%, rgba(77,163,255,.08), transparent 20%), radial-gradient(circle at 50% 80%, rgba(65,211,138,.05), transparent 28%);
-      z-index: 1;
-    }
-
-    .zone-overlay { z-index: 3; }
-
-    .zone-tag {
-      position: absolute;
-      padding: 7px 10px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(8,14,26,.68);
-      color: #d7e7ff;
-      border-radius: 999px;
-      font-size: 10px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 8px 18px rgba(0,0,0,.25);
-      white-space: nowrap;
-    }
-
-    .satellite-tags { z-index: 4; }
-
-    .sat-tag {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      padding: 6px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(99,242,255,.28);
-      background: rgba(5,12,22,.8);
-      color: #d7f8ff;
-      font-size: 10px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      box-shadow: 0 8px 18px rgba(0,0,0,.28);
-      opacity: .92;
-      white-space: nowrap;
-    }
-
-    .view-label {
-      inset: auto auto 18px 18px;
-      width: auto;
-      height: auto;
-      z-index: 8;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(5,12,22,.76);
-      color: var(--muted);
-      font-size: 11px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .mouse-help {
-      inset: 18px auto auto 18px;
-      width: auto;
-      height: auto;
-      z-index: 8;
-      display: grid;
-      gap: 6px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(5,12,22,.68);
-      color: var(--muted);
-      font-size: 10px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .crosshair {
-      z-index: 7;
-      display: none;
-    }
-
-    .crosshair::before,
-    .crosshair::after {
-      content: "";
-      position: absolute;
-      background: rgba(99,242,255,.22);
-    }
-
-    .crosshair::before {
-      left: calc(50% - 1px);
-      top: 0;
-      bottom: 0;
-      width: 2px;
-    }
-
-    .crosshair::after {
-      top: calc(50% - 1px);
-      left: 0;
-      right: 0;
-      height: 2px;
-    }
-
-    .target-corners { z-index: 5; }
-
-    .target-corners::before,
-    .target-corners::after,
-    .target-corners span::before,
-    .target-corners span::after {
-      content: "";
-      position: absolute;
-      width: 110px;
-      height: 110px;
-      border-color: rgba(99,242,255,.18);
-      border-style: solid;
-    }
-
-    .target-corners::before { top: 22px; left: 22px; border-width: 2px 0 0 2px; }
-    .target-corners::after { top: 22px; right: 22px; border-width: 2px 2px 0 0; }
-    .target-corners span::before { bottom: 22px; left: 22px; border-width: 0 0 2px 2px; }
-    .target-corners span::after { bottom: 22px; right: 22px; border-width: 0 2px 2px 0; }
-
-    .scanline {
-      z-index: 6;
-      background: linear-gradient(180deg, transparent 0%, rgba(99,242,255,.06) 49%, transparent 100%);
-      background-size: 100% 180px;
-      animation: scan 7s linear infinite;
-      opacity: .42;
-    }
-
-    .zone-legend,
-    .footprint-legend {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .legend-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.06);
-      color: var(--muted);
-      font-size: 11px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-
-    .legend-chip span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .inspector {
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-    }
-
-    .panel-head {
-      padding: 16px 18px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-
-    .panel-head h3 {
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-    }
-
-    .panel-head p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .inspector-summary {
-      padding: 16px 18px;
-      display: grid;
-      gap: 12px;
-      border-bottom: 1px solid rgba(255,255,255,.05);
-    }
-
-    .vehicle-name {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .vehicle-name h4 {
-      margin: 0;
-      font-size: 22px;
-      line-height: 1.1;
-      letter-spacing: .05em;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(65,211,138,.28);
-      background: rgba(65,211,138,.08);
-      color: #b8f3d3;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      white-space: nowrap;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .metric-card {
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.025);
-    }
-
-    .metric-label {
-      font-size: 11px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .metric-value {
-      font-size: 17px;
-      font-weight: 700;
-      letter-spacing: .04em;
-    }
-
-    .inspector-body {
-      min-height: 0;
-      overflow: auto;
-      padding: 18px;
-      display: grid;
-      gap: 16px;
-    }
-
-    .section-block {
-      padding: 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.025);
-    }
-
-    .section-block h5 {
-      margin: 0 0 10px;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--cyan);
-    }
-
-    .section-block ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 10px;
-    }
-
-    .section-block li {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: flex-start;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .section-block li span:first-child {
-      color: var(--muted);
-      min-width: 108px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      font-size: 11px;
-      padding-top: 2px;
-    }
-
-    .inspector-actions {
-      padding: 16px 18px 18px;
-      display: grid;
-      gap: 10px;
-      border-top: 1px solid rgba(255,255,255,.05);
-    }
-
-    .btn-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .primary-btn,
-    .secondary-btn {
-      width: 100%;
-      border: 0;
-      border-radius: 14px;
-      padding: 13px 14px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      cursor: pointer;
-      transition: 180ms ease;
-    }
-
-    .primary-btn {
-      background: linear-gradient(135deg, rgba(77,163,255,.92), rgba(99,242,255,.74));
-      color: #04101b;
-      box-shadow: 0 14px 28px rgba(77,163,255,.22);
-    }
-
-    .secondary-btn {
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,.08);
-    }
-
-    .primary-btn:hover,
-    .secondary-btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .workflow-panel {
-      min-height: 0;
-      display: grid;
-      grid-template-columns: 320px 1fr 300px;
-    }
-
-    .workflow-left,
-    .workflow-center,
-    .workflow-right {
-      padding: 18px;
-    }
-
-    .workflow-left,
-    .workflow-center {
-      border-right: 1px solid rgba(255,255,255,.05);
-    }
-
-    .workflow-left h3,
-    .workflow-right h3 {
-      margin: 0 0 10px;
-      font-size: 15px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    .workflow-left p,
-    .workflow-right p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .scenario-clock {
-      margin-top: 14px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .clock-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    .clock-value {
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .clock-bar {
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.05);
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.05);
-    }
-
-    .clock-bar > span {
-      display: block;
-      width: 48%;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, rgba(77,163,255,.92), rgba(99,242,255,.76));
-      box-shadow: 0 0 24px rgba(77,163,255,.2);
-    }
-
-    .workflow-center {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 16px;
-    }
-
-    .flow-track {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      align-items: center;
-    }
-
-    .flow-step {
-      min-height: 96px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
-      padding: 14px;
-      display: grid;
-      gap: 8px;
-      align-content: start;
-    }
-
-    .flow-step.active {
-      border-color: rgba(99,242,255,.35);
-      background: linear-gradient(180deg, rgba(77,163,255,.12), rgba(255,255,255,.03));
-      box-shadow: 0 0 22px rgba(77,163,255,.12);
-    }
-
-    .flow-step .step-index {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: #fff;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.08);
-    }
-
-    .flow-step.active .step-index {
-      background: rgba(99,242,255,.18);
-      border-color: rgba(99,242,255,.35);
-      color: var(--cyan);
-    }
-
-    .flow-step strong {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    .flow-step p {
-      margin: 0;
-      font-size: 12px;
-      line-height: 1.4;
-      color: var(--muted);
-    }
-
-    .workflow-note {
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .queue-card {
-      display: grid;
-      gap: 12px;
-    }
-
-    .queue-item {
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.025);
-      display: grid;
-      gap: 6px;
-    }
-
-    .queue-item strong {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    .queue-item span {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .queue-tag {
-      display: inline-flex;
-      align-items: center;
-      width: fit-content;
-      padding: 6px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      border: 1px solid rgba(255,184,77,.18);
-      background: rgba(255,184,77,.08);
-      color: #ffd39a;
-    }
-
-    @keyframes scan {
-      0% { transform: translateY(-100%); }
-      100% { transform: translateY(100%); }
-    }
-
-    @media (max-width: 1360px) {
-      :root {
-        --inspector-w: 340px;
-        --bottom-h: 255px;
-      }
-      .topbar {
-        grid-template-columns: 1fr;
-        padding: 14px 18px;
-        align-items: start;
-      }
-      .status-cluster,
-      .mission-cluster {
-        justify-content: flex-start;
-      }
-      .workflow-panel {
-        grid-template-columns: 1fr;
-      }
-      .workflow-left,
-      .workflow-center {
-        border-right: 0;
-        border-bottom: 1px solid rgba(255,255,255,.05);
-      }
-    }
-
-    @media (max-width: 1080px) {
-      html, body { overflow: auto; }
-      .app-shell {
-        height: auto;
-        min-height: 100vh;
-        grid-template-rows: auto auto auto;
-      }
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-      .flow-track {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .app-shell {
-        padding: 10px;
-        gap: 10px;
-      }
-      .stage-top,
-      .stage-bottom,
-      .workflow-left,
-      .workflow-center,
-      .workflow-right,
-      .panel-head,
-      .inspector-summary,
-      .inspector-body,
-      .inspector-actions {
-        padding-left: 14px;
-        padding-right: 14px;
-      }
-      .detail-grid,
-      .btn-row {
-        grid-template-columns: 1fr;
-      }
-      .target-corners::before,
-      .target-corners::after,
-      .target-corners span::before,
-      .target-corners span::after {
-        width: 58px;
-        height: 58px;
-      }
-      .mouse-help {
-        display: none;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="app-shell">
-    <header class="topbar panel">
-      <div class="brand">
-        <div class="brand-mark">AX</div>
-        <div>
-          <div class="eyebrow">AstroNetix Futures</div>
-          <div class="title">Automated-Enabled Defense Space Operations Interface</div>
+<style>
+  #ax-wrap {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    height: 960px;
+    overflow: hidden;
+    background: #02050b;
+  }
+
+  #ax-wrap #ax-console {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: unset !important;
+  }
+
+  :root{
+    --bg0:#02050b;
+    --bg1:#07111f;
+    --panel:rgba(7,16,30,.78);
+    --panel-strong:rgba(7,16,30,.9);
+    --panel-border:rgba(84,142,255,.22);
+    --text:#eef4ff;
+    --muted:#9caecc;
+    --blue:#1a5cff;
+    --blue2:#75a8ff;
+    --cyan:#6fe8ff;
+    --green:#65f1b8;
+    --amber:#f4c96b;
+    --red:#ff7474;
+    --shadow:0 18px 50px rgba(0,0,0,.45);
+  }
+
+  #ax-console{
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(32,91,255,.16), transparent 28%),
+      radial-gradient(circle at 50% 50%, rgba(55,108,255,.06), transparent 50%),
+      linear-gradient(180deg, #07111e 0%, #02050b 100%);
+    color:#eef4ff;
+    font-family:Inter, Arial, Helvetica, sans-serif;
+  }
+
+  #ax-console #scene-wrap{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:1;
+  }
+
+  #ax-console canvas{
+    display:block;
+    width:100%;
+    height:100%;
+  }
+
+  #ax-console::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    background:
+      linear-gradient(rgba(110,160,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110,160,255,.05) 1px, transparent 1px);
+    background-size:120px 120px, 120px 120px;
+    mask-image:radial-gradient(circle at center, rgba(0,0,0,.95), rgba(0,0,0,.65));
+  }
+
+  #ax-console::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:3;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at center, transparent 48%, rgba(0,0,0,.16) 80%, rgba(0,0,0,.36) 100%);
+  }
+
+  #ax-console .hud{
+    position:absolute;
+    inset:0;
+    z-index:10;
+    pointer-events:none;
+  }
+
+  #ax-console .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    box-shadow:var(--shadow);
+    pointer-events:auto;
+  }
+
+  #ax-console .mission-card{
+    position:absolute;
+    top:22px;
+    left:22px;
+    width:min(520px, calc(100vw - 44px));
+    padding:20px 20px 18px;
+    border-radius:22px;
+  }
+
+  #ax-console .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    margin-bottom:12px;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--blue2);
+  }
+
+  #ax-console .eyebrow::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 14px rgba(26,92,255,.9);
+  }
+
+  #ax-console .mission-title{
+    margin:0 0 10px;
+    font-size:clamp(34px, 4vw, 56px);
+    line-height:.98;
+    letter-spacing:-.04em;
+    color:#eef4ff;
+  }
+
+  #ax-console .mission-copy{
+    margin:0;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.6;
+    max-width:470px;
+  }
+
+  #ax-console .status-card{
+    position:absolute;
+    top:22px;
+    right:22px;
+    width:min(370px, calc(100vw - 44px));
+    padding:16px;
+    border-radius:22px;
+  }
+
+  #ax-console .status-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+
+  #ax-console .panel-label{
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  #ax-console .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(111,232,255,.08);
+    border:1px solid rgba(111,232,255,.28);
+    color:var(--cyan);
+    font-size:12px;
+    font-weight:800;
+    white-space:nowrap;
+  }
+
+  #ax-console .status-pill::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 10px rgba(111,232,255,.9);
+  }
+
+  #ax-console .status-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  #ax-console .metric{
+    padding:13px 14px;
+    border-radius:16px;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+  }
+
+  #ax-console .metric-k{
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:7px;
+  }
+
+  #ax-console .metric-v{
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:-.02em;
+    color:#eef4ff;
+  }
+
+  #ax-console .left-stack{
+    position:absolute;
+    left:22px;
+    bottom:22px;
+    width:min(460px, calc(100vw - 44px));
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  #ax-console .controls-card,
+  #ax-console .legend-card{
+    padding:15px;
+    border-radius:22px;
+  }
+
+  #ax-console .subhead{
+    margin:0 0 12px;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  #ax-console .control-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:10px;
+  }
+
+  #ax-console .btn{
+    appearance:none;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05);
+    color:#eef4ff;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    transition:transform .15s ease, background .2s ease, border-color .2s ease;
+  }
+
+  #ax-console .btn:hover{
+    transform:translateY(-1px);
+    background:rgba(255,255,255,.08);
+    border-color:rgba(255,255,255,.18);
+  }
+
+  #ax-console .btn.active{
+    background:rgba(26,92,255,.18);
+    border-color:rgba(26,92,255,.52);
+    box-shadow:0 0 0 1px rgba(26,92,255,.15) inset;
+  }
+
+  #ax-console .btn.toggle-cyan.active{
+    background:rgba(111,232,255,.14);
+    border-color:rgba(111,232,255,.48);
+  }
+
+  #ax-console .btn.toggle-green.active{
+    background:rgba(101,241,184,.14);
+    border-color:rgba(101,241,184,.48);
+  }
+
+  #ax-console .btn.toggle-amber.active{
+    background:rgba(244,201,107,.14);
+    border-color:rgba(244,201,107,.48);
+  }
+
+  #ax-console .legend-items{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 14px;
+  }
+
+  #ax-console .legend-item{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  #ax-console .legend-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    flex:none;
+  }
+
+  #ax-console .legend-dot.blue{background:var(--blue)}
+  #ax-console .legend-dot.cyan{background:var(--cyan)}
+  #ax-console .legend-dot.green{background:var(--green)}
+  #ax-console .legend-dot.amber{background:var(--amber)}
+  #ax-console .legend-dot.red{background:var(--red)}
+
+  #ax-console .intel-card{
+    position:absolute;
+    right:22px;
+    bottom:22px;
+    width:min(390px, calc(100vw - 44px));
+    padding:16px;
+    border-radius:22px;
+    background:var(--panel-strong);
+  }
+
+  #ax-console .intel-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:12px;
+  }
+
+  #ax-console .intel-box{
+    padding:12px 13px;
+    border-radius:16px;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+  }
+
+  #ax-console .intel-box .k{
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+
+  #ax-console .intel-box .v{
+    font-size:16px;
+    font-weight:800;
+    color:#eef4ff;
+  }
+
+  #ax-console .intel-note{
+    font-size:13px;
+    line-height:1.55;
+    color:var(--muted);
+    margin:0;
+  }
+
+  #ax-console .crosshair{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:34px;
+    height:34px;
+    transform:translate(-50%,-50%);
+    z-index:11;
+    pointer-events:none;
+    opacity:.34;
+  }
+
+  #ax-console .crosshair::before,
+  #ax-console .crosshair::after{
+    content:"";
+    position:absolute;
+    background:rgba(184,214,255,.65);
+  }
+
+  #ax-console .crosshair::before{
+    left:50%;
+    top:0;
+    transform:translateX(-50%);
+    width:1px;
+    height:34px;
+  }
+
+  #ax-console .crosshair::after{
+    top:50%;
+    left:0;
+    transform:translateY(-50%);
+    height:1px;
+    width:34px;
+  }
+
+  #ax-console .crosshair-ring{
+    position:absolute;
+    inset:8px;
+    border:1px solid rgba(184,214,255,.45);
+    border-radius:50%;
+  }
+
+  @media (max-width: 1100px){
+    #ax-wrap {
+      height: 1180px;
+    }
+
+    #ax-console .mission-card,
+    #ax-console .status-card,
+    #ax-console .left-stack,
+    #ax-console .intel-card{
+      position:relative;
+      top:auto;
+      left:auto;
+      right:auto;
+      bottom:auto;
+      width:calc(100% - 32px);
+      margin:16px auto 0;
+    }
+
+    #ax-console .hud{
+      display:flex;
+      flex-direction:column;
+      padding-bottom:22px;
+      overflow-y:auto;
+    }
+
+    #ax-console .crosshair{
+      display:none;
+    }
+  }
+
+  @media (max-width: 640px){
+    #ax-console .mission-title{
+      font-size:34px;
+    }
+
+    #ax-console .status-grid,
+    #ax-console .intel-grid{
+      grid-template-columns:1fr 1fr;
+    }
+
+    #ax-console .mission-card,
+    #ax-console .status-card,
+    #ax-console .controls-card,
+    #ax-console .legend-card,
+    #ax-console .intel-card{
+      border-radius:18px;
+    }
+  }
+</style>
+
+<div id="ax-wrap">
+  <div id="ax-console">
+    <div id="scene-wrap"></div>
+
+    <div class="hud">
+      <div class="panel mission-card">
+        <div class="eyebrow">AstroNetix Mission Visualization</div>
+        <h1 class="mission-title">Constellation Management Display</h1>
+        <p class="mission-copy">
+          Full-spectrum orbital visualization with layered mission awareness for ISR, missile warning,
+          orbital routing, and strategic constellation monitoring. Drag to rotate, scroll to zoom,
+          and use the controls to shift perspective like an actual operator.
+        </p>
+      </div>
+
+      <div class="panel status-card">
+        <div class="status-top">
+          <div class="panel-label">System Status</div>
+          <div class="status-pill" id="dayNightPill">Day/Night Sync</div>
+        </div>
+        <div class="status-grid">
+          <div class="metric">
+            <div class="metric-k">Mode</div>
+            <div class="metric-v" id="modeReadout">3D Globe</div>
+          </div>
+          <div class="metric">
+            <div class="metric-k">Camera</div>
+            <div class="metric-v" id="cameraReadout">Default</div>
+          </div>
+          <div class="metric">
+            <div class="metric-k">Objects</div>
+            <div class="metric-v" id="objectReadout">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-k">UTC</div>
+            <div class="metric-v" id="utcReadout">--:--:--</div>
+          </div>
         </div>
       </div>
 
-      <div class="status-cluster">
-        <div class="pill"><span class="dot"></span><strong>System:</strong> NOMINAL</div>
-        <div class="pill"><span class="dot"></span><strong>Assets:</strong> <span id="assetCount">07 Tracked</span></div>
-        <div class="pill"><span class="dot warn"></span><strong>Queue:</strong> <span id="queueCount">02 Pending</span></div>
+      <div class="left-stack">
+        <div class="panel controls-card">
+          <div class="subhead">View Controls</div>
+          <div class="control-row">
+            <button class="btn active" id="btn3d">3D Globe</button>
+            <button class="btn" id="btn2d">2D Strategic</button>
+            <button class="btn" id="btnDefaultCam">Default</button>
+            <button class="btn" id="btnTopCam">Top View</button>
+            <button class="btn" id="btnEquatorCam">Equator</button>
+            <button class="btn" id="btnNightCam">Night Focus</button>
+          </div>
+          <div class="subhead" style="margin-top:4px;">Layer Controls</div>
+          <div class="control-row">
+            <button class="btn toggle-cyan active" id="btnSatellites">Satellites</button>
+            <button class="btn toggle-green active" id="btnISR">ISR Layer</button>
+            <button class="btn toggle-amber active" id="btnMissile">Missile Warning</button>
+            <button class="btn active" id="btnOrbits">Orbit Tracks</button>
+            <button class="btn active" id="btnStars">Stars</button>
+            <button class="btn active" id="btnAutoRotate">Auto Rotate</button>
+            <button class="btn" id="btnPause">Pause Motion</button>
+            <button class="btn" id="btnReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="panel legend-card">
+          <div class="subhead">Legend</div>
+          <div class="legend-items">
+            <div class="legend-item"><span class="legend-dot cyan"></span> Satellites</div>
+            <div class="legend-item"><span class="legend-dot green"></span> ISR assets</div>
+            <div class="legend-item"><span class="legend-dot amber"></span> Missile warning</div>
+            <div class="legend-item"><span class="legend-dot blue"></span> Orbit tracks</div>
+            <div class="legend-item"><span class="legend-dot red"></span> Terminator / night edge</div>
+          </div>
+        </div>
       </div>
 
-      <div class="mission-cluster">
-        <div class="pill"><strong>Scenario Clock</strong> <span id="headerClock">14:32:18 Z</span></div>
-        <div class="pill"><strong>Speed</strong> <span id="headerRate">8x</span></div>
-        <div class="pill"><strong>View</strong> <span id="viewModeLabel">3D Globe</span></div>
+      <div class="panel intel-card">
+        <div class="subhead">Mission Readout</div>
+        <div class="intel-grid">
+          <div class="intel-box">
+            <div class="k">ISR Layer</div>
+            <div class="v" id="isrStatus">Active</div>
+          </div>
+          <div class="intel-box">
+            <div class="k">Missile Layer</div>
+            <div class="v" id="missileStatus">Active</div>
+          </div>
+          <div class="intel-box">
+            <div class="k">Orbit Tracks</div>
+            <div class="v" id="orbitStatus">Visible</div>
+          </div>
+          <div class="intel-box">
+            <div class="k">Motion State</div>
+            <div class="v" id="motionStatus">Live</div>
+          </div>
+        </div>
+        <p class="intel-note">
+          Full-bleed command layout with layered orbital awareness.
+        </p>
       </div>
-    </header>
 
-    <section class="main-grid">
-      <section class="globe-stage panel">
-        <div class="stage-top">
-          <div class="stage-title-wrap">
-            <h2>Global Mission Picture</h2>
-            <p>3D globe, 2D map, day-night state, orbital tracks, projected footprints, and selectable vehicles.</p>
-          </div>
-
-          <div class="toolbar-stack">
-            <div class="toolbar">
-              <button class="tool-btn active" data-layer="earth">Earth</button>
-              <button class="tool-btn active" data-layer="zones">Zones</button>
-              <button class="tool-btn active" data-layer="orbits">Orbits</button>
-              <button class="tool-btn active" data-layer="coverage">Coverage</button>
-              <button class="tool-btn active" data-layer="labels">Labels</button>
-            </div>
-            <div class="toolbar-secondary">
-              <button class="tool-btn active" id="mode3dBtn">3D Globe</button>
-              <button class="tool-btn" id="mode2dBtn">2D Map</button>
-              <button class="tool-btn active" id="cameraGlobalBtn">Global</button>
-              <button class="tool-btn" id="cameraTheaterBtn">Theater</button>
-              <button class="tool-btn" id="cameraFollowBtn">Vehicle Follow</button>
-              <button class="tool-btn" id="cameraResetBtn">Reset</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="stage-canvas" id="globeStage">
-          <canvas id="globeCanvas"></canvas>
-          <canvas id="map2dCanvas"></canvas>
-          <div class="canvas-overlay"></div>
-          <div class="zone-overlay" id="zoneOverlay">
-            <div class="zone-tag" style="top:18%;left:73%;">INDOPACOM</div>
-            <div class="zone-tag" style="top:20%;left:48%;">EUCOM</div>
-            <div class="zone-tag" style="top:40%;left:52%;">CENTCOM</div>
-            <div class="zone-tag" style="top:49%;left:44%;">AFRICOM</div>
-            <div class="zone-tag" style="top:18%;left:27%;">NORTHCOM</div>
-            <div class="zone-tag" style="top:63%;left:31%;">SOUTHCOM</div>
-          </div>
-          <div class="satellite-tags" id="satelliteTags"></div>
-          <div class="mouse-help">
-            <div>3D: left drag rotate</div>
-            <div>3D: wheel zoom, right drag pan</div>
-            <div>2D: drag pan, wheel zoom</div>
-            <div>Click asset to inspect</div>
-          </div>
-          <div class="view-label" id="viewLabel">3D Globe / Global Camera</div>
-          <div class="crosshair" id="crosshair"></div>
-          <div class="target-corners"><span></span></div>
-          <div class="scanline"></div>
-        </div>
-
-        <div class="stage-bottom">
-          <div class="zone-legend">
-            <div class="legend-chip"><span style="background:#4da3ff"></span> INDOPACOM</div>
-            <div class="legend-chip"><span style="background:#63f2ff"></span> EUCOM</div>
-            <div class="legend-chip"><span style="background:#41d38a"></span> CENTCOM</div>
-            <div class="legend-chip"><span style="background:#ffb84d"></span> AFRICOM</div>
-            <div class="legend-chip"><span style="background:#ff647c"></span> NORTHCOM</div>
-            <div class="legend-chip"><span style="background:#b08cff"></span> SOUTHCOM</div>
-          </div>
-          <div class="footprint-legend">
-            <div class="legend-chip"><span style="background:#9dd6ff"></span> Sensor Footprint</div>
-            <div class="legend-chip"><span style="background:#86ffd0"></span> Relay Access</div>
-            <div class="legend-chip"><span style="background:#ffd394"></span> Day/Night Terminator</div>
-          </div>
-        </div>
-      </section>
-
-      <aside class="inspector panel">
-        <div class="panel-head">
-          <h3>Vehicle Inspector</h3>
-          <p>Click an orbital asset in either view to inspect mission state, health, links, coverage, and automation logic.</p>
-        </div>
-
-        <div class="inspector-summary">
-          <div class="vehicle-name">
-            <div>
-              <div class="eyebrow">Selected Vehicle</div>
-              <h4 id="vehicleName">SV-204 Kestrel</h4>
-            </div>
-            <div class="badge"><span class="dot" id="statusDot"></span><span id="vehicleBadge">On Mission</span></div>
-          </div>
-          <div class="detail-grid">
-            <div class="metric-card"><div class="metric-label">Orbit Class</div><div class="metric-value" id="orbitClass">MEO</div></div>
-            <div class="metric-card"><div class="metric-label">Ground Track</div><div class="metric-value" id="groundTrack">EUCOM</div></div>
-            <div class="metric-card"><div class="metric-label">Health</div><div class="metric-value" id="vehicleHealth">Nominal</div></div>
-            <div class="metric-card"><div class="metric-label">Latency</div><div class="metric-value" id="vehicleLatency">1.2 sec</div></div>
-          </div>
-        </div>
-
-        <div class="inspector-body">
-          <section class="section-block">
-            <h5>Mission Data</h5>
-            <ul>
-              <li><span>Payload</span><span id="payloadText">Wide-area persistent sensing, cross-link relay</span></li>
-              <li><span>Task</span><span id="taskText">Regional surveillance support, automated custody track handoff</span></li>
-              <li><span>Coverage</span><span id="coverageText">Projected over EUCOM and eastern AFRICOM edge</span></li>
-            </ul>
-          </section>
-          <section class="section-block">
-            <h5>System Status</h5>
-            <ul>
-              <li><span>Power</span><span id="powerText">94%, discharge nominal</span></li>
-              <li><span>Thermal</span><span id="thermalText">Stable, no exceedances</span></li>
-              <li><span>Comms</span><span id="commsText">Primary link active, secondary path available</span></li>
-              <li><span>Autonomy</span><span id="autonomyText">Recommendation authority enabled, human approval required</span></li>
-            </ul>
-          </section>
-          <section class="section-block">
-            <h5>Recommended Action</h5>
-            <ul>
-              <li><span>Detect</span><span id="detectText">Cross-link latency trending above scenario baseline</span></li>
-              <li><span>Assess</span><span id="assessText">No mission loss, moderate performance degradation risk</span></li>
-              <li><span>Recommend</span><span id="recommendText">Re-route relay chain through alternate vehicle in 12-minute window</span></li>
-            </ul>
-          </section>
-        </div>
-
-        <div class="inspector-actions">
-          <button class="primary-btn" id="focusBtn">Center on Vehicle</button>
-          <div class="btn-row">
-            <button class="secondary-btn" id="nextVehicleBtn">Cycle Vehicle</button>
-            <button class="secondary-btn" id="toggleViewBtn">Toggle 2D/3D</button>
-          </div>
-        </div>
-      </aside>
-    </section>
-
-    <section class="workflow-panel panel">
-      <div class="workflow-left">
-        <h3>Automation Workflow</h3>
-        <p>Mission thread showing detection, scoring, operator queueing, and approval timing against the scenario clock.</p>
-        <div class="scenario-clock">
-          <div class="clock-row"><span>Scenario Time</span><span class="clock-value" id="scenarioClock">T+04:12:36</span></div>
-          <div class="clock-row"><span>Playback Rate</span><span class="clock-value" id="playbackRate">8x</span></div>
-          <div class="clock-row"><span>Solar State</span><span class="clock-value" id="solarState">Sunlit / Terminator</span></div>
-          <div class="clock-bar"><span id="clockBar"></span></div>
-        </div>
+      <div class="crosshair">
+        <div class="crosshair-ring"></div>
       </div>
-      <div class="workflow-center">
-        <div class="flow-track">
-          <article class="flow-step active" id="step-detect"><div class="step-index">01</div><strong>Detect</strong><p id="stepDetectText">System flags off-nominal telemetry or operational change.</p></article>
-          <article class="flow-step active" id="step-assess"><div class="step-index">02</div><strong>Assess</strong><p id="stepAssessText">Mission logic scores impact, confidence, and timing sensitivity.</p></article>
-          <article class="flow-step active" id="step-recommend"><div class="step-index">03</div><strong>Recommend</strong><p id="stepRecommendText">Automation proposes next-best action and alternate routing path.</p></article>
-          <article class="flow-step" id="step-queue"><div class="step-index">04</div><strong>Queue</strong><p id="stepQueueText">Action package prepared for operator review and sequencing.</p></article>
-          <article class="flow-step" id="step-approve"><div class="step-index">05</div><strong>Approve</strong><p id="stepApproveText">Human decision authority confirms execution or modifies task.</p></article>
-        </div>
-        <div class="workflow-note"><span id="currentThread">Current thread: relay degradation / alternate link recommendation</span><span id="cameraNote">Camera: global</span></div>
-      </div>
-      <div class="workflow-right">
-        <h3>Action Queue</h3>
-        <div class="queue-card">
-          <div class="queue-item"><div class="queue-tag" id="queueTag1">Pending Review</div><strong id="queueTitle1">SV-204 Relay Re-route</strong><span id="queueBody1">Confidence 92%, projected mission impact avoided if approved within 08:00.</span></div>
-          <div class="queue-item"><div class="queue-tag" id="queueTag2">Staged</div><strong id="queueTitle2">Footprint Rebalance</strong><span id="queueBody2">Shift regional coverage overlap to maintain custody track continuity.</span></div>
-        </div>
-      </div>
-    </section>
+    </div>
   </div>
+</div>
 
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/controls/OrbitControls.js';
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
-    const ASSET_PATHS = {
-      earthDay: './earth-day.png',
-      earthMap: './earth-map.png',
-      satellite: './satellite.png'
-    };
+<script>
+  (() => {
+    const rootEl = document.getElementById("ax-console");
+    const container = document.getElementById("scene-wrap");
 
-    const zones = {
-      INDOPACOM: { color: '#4da3ff', centerLon: 120, centerLat: 15, spanLon: 120, spanLat: 50 },
-      EUCOM:     { color: '#63f2ff', centerLon: 20,  centerLat: 48, spanLon: 70,  spanLat: 28 },
-      CENTCOM:   { color: '#41d38a', centerLon: 55,  centerLat: 26, spanLon: 50,  spanLat: 28 },
-      AFRICOM:   { color: '#ffb84d', centerLon: 20,  centerLat: 4,  spanLon: 60,  spanLat: 44 },
-      NORTHCOM:  { color: '#ff647c', centerLon: -105,centerLat: 48, spanLon: 90,  spanLat: 36 },
-      SOUTHCOM:  { color: '#b08cff', centerLon: -62, centerLat: -20,spanLon: 60,  spanLat: 44 }
-    };
-
-    const assets = [
-      { id:'SV-204', name:'SV-204 Kestrel', orbitClass:'MEO', region:'EUCOM', health:'Nominal', status:'On Mission', latency:'1.2 sec', payload:'Wide-area persistent sensing, cross-link relay', task:'Regional surveillance support, automated custody track handoff', coverage:'Projected over EUCOM and eastern AFRICOM edge', power:'94%, discharge nominal', thermal:'Stable, no exceedances', comms:'Primary link active, secondary path available', autonomy:'Recommendation authority enabled, human approval required', detect:'Cross-link latency trending above scenario baseline', assess:'No mission loss, moderate performance degradation risk', recommend:'Re-route relay chain through alternate vehicle in 12-minute window', queue1:['Pending Review','SV-204 Relay Re-route','Confidence 92%, projected mission impact avoided if approved within 08:00.'], queue2:['Staged','Footprint Rebalance','Shift regional coverage overlap to maintain custody track continuity.'], orbitRadius:2.2, inclination:42, speed:.34, phase:.4, color:0x63f2ff, footprintColor:'#86ffd0', workflowStage:3 },
-      { id:'SV-118', name:'SV-118 Sentinel', orbitClass:'LEO', region:'INDOPACOM', health:'Nominal', status:'Tracking', latency:'0.8 sec', payload:'Low-latency ISR collection and target custody relay', task:'Pacific theater revisit support and track persistence', coverage:'Projected over western Pacific and northern INDOPACOM arc', power:'88%, solar positive', thermal:'Stable under expected load', comms:'Cross-link mesh active, gateway 2 preferred', autonomy:'Auto-prioritization enabled, human execution authority retained', detect:'New track entered monitored corridor', assess:'High confidence track continuity available with current revisit', recommend:'Maintain current collection plan and pre-stage handoff path', queue1:['Monitoring','SV-118 Collection Hold','Confidence 96%, no intervention required unless track velocity changes.'], queue2:['Staged','Gateway Handoff','Prepare alternate downlink path for next pass window.'], orbitRadius:1.72, inclination:63, speed:.82, phase:2.4, color:0x4da3ff, footprintColor:'#9dd6ff', workflowStage:2 },
-      { id:'SV-330', name:'SV-330 Valiant', orbitClass:'GEO', region:'CENTCOM', health:'Degraded', status:'Review Required', latency:'2.6 sec', payload:'Persistent theater relay and protected comms support', task:'Regional assured relay for tasking and command dissemination', coverage:'Projected over CENTCOM with overlap into AFRICOM and INDOPACOM west', power:'91%, nominal reserve', thermal:'Minor thermal variance in communications bus', comms:'Primary relay active, redundancy reduced on one channel', autonomy:'Recommendation generation enabled, operator approval required', detect:'Thermal drift detected on communications bus segment B', assess:'Mission continues, redundancy margin reduced', recommend:'Queue load shift to companion relay asset during next timing window', queue1:['Pending Review','SV-330 Load Shift','Confidence 87%, preserves relay margin before thermal threshold narrows.'], queue2:['Ready','Companion Asset Sync','Prepare alternate relay chain for operator approval.'], orbitRadius:2.78, inclination:8, speed:.12, phase:4.85, color:0xffb84d, footprintColor:'#ffd394', workflowStage:4 },
-      { id:'SV-441', name:'SV-441 Aegis', orbitClass:'LEO', region:'NORTHCOM', health:'Nominal', status:'On Mission', latency:'0.6 sec', payload:'Missile warning support and event correlation', task:'Northern hemisphere event track support and automated prioritization', coverage:'Projected over NORTHCOM with Arctic edge revisit', power:'86%, charge improving', thermal:'Within limits', comms:'All links green', autonomy:'Event triage automation enabled, operator review at queue stage', detect:'No off-nominal activity, monitoring active event grid', assess:'Stable mission posture, normal track load', recommend:'No action required, maintain watch', queue1:['Ready','No Immediate Action','Asset remains available for rapid task reprioritization.'], queue2:['Staged','Sensor Bias Check','Background validation scheduled during low-load period.'], orbitRadius:1.56, inclination:78, speed:1.05, phase:1.2, color:0xff647c, footprintColor:'#ff98a9', workflowStage:1 },
-      { id:'SV-290', name:'SV-290 Meridian', orbitClass:'MEO', region:'AFRICOM', health:'Nominal', status:'Queued', latency:'1.5 sec', payload:'Wide-area relay and timing support', task:'Coverage overlap extension into AFRICOM corridor', coverage:'Projected over central AFRICOM with relay overlap into EUCOM south', power:'93%, nominal', thermal:'Stable', comms:'Cross-link preferred route available', autonomy:'Action package queued for operator release', detect:'Coverage seam identified during vehicle transition', assess:'Short-duration access gap possible if left unchanged', recommend:'Advance handoff by one timing increment to preserve overlap', queue1:['Queued','SV-290 Handoff Advance','Confidence 90%, closes projected access seam before next pass.'], queue2:['Ready','Relay Backstop','Companion vehicle available if queue not approved in time.'], orbitRadius:2.06, inclination:34, speed:.41, phase:3.35, color:0x41d38a, footprintColor:'#86ffd0', workflowStage:4 },
-      { id:'SV-372', name:'SV-372 Horizon', orbitClass:'LEO', region:'SOUTHCOM', health:'Nominal', status:'Tracking', latency:'0.9 sec', payload:'Maritime surveillance and event relay', task:'Southern hemisphere maritime custody support', coverage:'Projected over SOUTHCOM maritime approaches', power:'84%, nominal', thermal:'Within expected band', comms:'Gateway routing nominal', autonomy:'Dynamic event prioritization enabled', detect:'New maritime cluster observed inside monitored box', assess:'Moderate significance, no escalation required yet', recommend:'Maintain current track density and raise collection priority if persistence continues', queue1:['Monitoring','SV-372 Track Watch','Confidence 78%, continue collection and trend for change.'], queue2:['Ready','Cross-Cue Relay','Available for cueing from companion sensor layer if needed.'], orbitRadius:1.66, inclination:52, speed:.9, phase:5.1, color:0xb08cff, footprintColor:'#d1b8ff', workflowStage:2 },
-      { id:'SV-501', name:'SV-501 Atlas', orbitClass:'GEO', region:'INDOPACOM', health:'Nominal', status:'Available', latency:'1.9 sec', payload:'Protected relay and wide-area command distribution', task:'Persistent command dissemination and backstop routing', coverage:'Projected over broad INDOPACOM with overlap into CENTCOM east', power:'97%, nominal', thermal:'Stable', comms:'Protected relay nominal', autonomy:'Recommendation package generation enabled', detect:'No immediate anomaly, backstop routing available', assess:'Asset ready to absorb load if regional queue escalates', recommend:'Hold in reserve as alternate relay endpoint', queue1:['Ready','Reserve Relay Slot','Confidence 94%, available to absorb redirected mission traffic.'], queue2:['Staged','Protected Route Align','Precompute route if regional queue is approved.'], orbitRadius:2.86, inclination:4, speed:.1, phase:.95, color:0x63f2ff, footprintColor:'#9dd6ff', workflowStage:1 }
-    ];
-
-    const scenario = { start: new Date('2030-04-12T14:32:18Z'), multiplier: 8, elapsedSeconds: 0 };
-    const state = { viewMode:'3d', cameraMode:'global', showEarth:true, showZones:true, showOrbits:true, showCoverage:true, showLabels:true, selectedAssetIndex:0, mapZoom:1, mapOffsetX:0, mapOffsetY:0, draggingMap:false, dragStartX:0, dragStartY:0, solarLon:0 };
-
-    const canvas3d = document.getElementById('globeCanvas');
-    const canvas2d = document.getElementById('map2dCanvas');
-    const ctx2d = canvas2d.getContext('2d');
-    const stage = document.getElementById('globeStage');
-    const tagsLayer = document.getElementById('satelliteTags');
-    const zoneOverlay = document.getElementById('zoneOverlay');
-    const viewModeLabel = document.getElementById('viewModeLabel');
-    const viewLabel = document.getElementById('viewLabel');
-    const crosshair = document.getElementById('crosshair');
-    const assetCount = document.getElementById('assetCount');
-    const queueCount = document.getElementById('queueCount');
-
-    const ui = {
-      vehicleName: document.getElementById('vehicleName'),
-      vehicleBadge: document.getElementById('vehicleBadge'),
-      orbitClass: document.getElementById('orbitClass'),
-      groundTrack: document.getElementById('groundTrack'),
-      vehicleHealth: document.getElementById('vehicleHealth'),
-      vehicleLatency: document.getElementById('vehicleLatency'),
-      payloadText: document.getElementById('payloadText'),
-      taskText: document.getElementById('taskText'),
-      coverageText: document.getElementById('coverageText'),
-      powerText: document.getElementById('powerText'),
-      thermalText: document.getElementById('thermalText'),
-      commsText: document.getElementById('commsText'),
-      autonomyText: document.getElementById('autonomyText'),
-      detectText: document.getElementById('detectText'),
-      assessText: document.getElementById('assessText'),
-      recommendText: document.getElementById('recommendText'),
-      stepDetect: document.getElementById('step-detect'),
-      stepAssess: document.getElementById('step-assess'),
-      stepRecommend: document.getElementById('step-recommend'),
-      stepQueue: document.getElementById('step-queue'),
-      stepApprove: document.getElementById('step-approve'),
-      stepDetectText: document.getElementById('stepDetectText'),
-      stepAssessText: document.getElementById('stepAssessText'),
-      stepRecommendText: document.getElementById('stepRecommendText'),
-      stepQueueText: document.getElementById('stepQueueText'),
-      stepApproveText: document.getElementById('stepApproveText'),
-      currentThread: document.getElementById('currentThread'),
-      queueTag1: document.getElementById('queueTag1'),
-      queueTitle1: document.getElementById('queueTitle1'),
-      queueBody1: document.getElementById('queueBody1'),
-      queueTag2: document.getElementById('queueTag2'),
-      queueTitle2: document.getElementById('queueTitle2'),
-      queueBody2: document.getElementById('queueBody2'),
-      scenarioClock: document.getElementById('scenarioClock'),
-      playbackRate: document.getElementById('playbackRate'),
-      solarState: document.getElementById('solarState'),
-      headerClock: document.getElementById('headerClock'),
-      headerRate: document.getElementById('headerRate'),
-      clockBar: document.getElementById('clockBar'),
-      statusDot: document.getElementById('statusDot'),
-      cameraNote: document.getElementById('cameraNote')
-    };
-
-    assetCount.textContent = `${assets.length.toString().padStart(2, '0')} Tracked`;
-
-    const textureLoader = new THREE.TextureLoader();
-    const imgMap = new Image();
-    imgMap.src = ASSET_PATHS.earthMap;
-    const imgSat = new Image();
-    imgSat.src = ASSET_PATHS.satellite;
-
-    const renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance"
+    });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-    camera.position.set(0, 0, 8.6);
+    scene.fog = new THREE.FogExp2(0x03070f, 0.00085);
 
-    const controls = new OrbitControls(camera, canvas3d);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.minDistance = 3.6;
-    controls.maxDistance = 14;
-    controls.target.set(0, 0, 0);
-    controls.rotateSpeed = 0.8;
-    controls.panSpeed = 0.6;
-    controls.zoomSpeed = 0.8;
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 3000);
+    camera.position.set(0, 0, 10.5);
 
-    const root = new THREE.Group();
-    scene.add(root);
-    const globeGroup = new THREE.Group();
+    const orthoSize = 4.4;
+    const orthoCamera = new THREE.OrthographicCamera(-orthoSize, orthoSize, orthoSize, -orthoSize, 0.1, 3000);
+    orthoCamera.position.set(0, 0, 10.5);
+    orthoCamera.lookAt(0, 0, 0);
+
+    let activeCamera = camera;
+    let is2DMode = false;
+
+    const clock = new THREE.Clock();
+
+    const systemRoot = new THREE.Group();
+    scene.add(systemRoot);
+
+    const starGroup = new THREE.Group();
+    scene.add(starGroup);
+
+    const earthGroup = new THREE.Group();
+    systemRoot.add(earthGroup);
+
     const orbitGroup = new THREE.Group();
-    const footprintGroup = new THREE.Group();
-    const satGroup = new THREE.Group();
-    root.add(globeGroup, orbitGroup, footprintGroup, satGroup);
+    systemRoot.add(orbitGroup);
 
-    scene.add(new THREE.AmbientLight(0xa6c4ff, 0.75));
-    const sunLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    sunLight.position.set(6, 2, 8);
+    const satelliteGroup = new THREE.Group();
+    systemRoot.add(satelliteGroup);
+
+    const isrGroup = new THREE.Group();
+    systemRoot.add(isrGroup);
+
+    const missileGroup = new THREE.Group();
+    systemRoot.add(missileGroup);
+
+    const ambient = new THREE.AmbientLight(0x90a6d4, 0.72);
+    scene.add(ambient);
+
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.85);
     scene.add(sunLight);
-    const rimLight = new THREE.DirectionalLight(0x2f7dff, 1.0);
-    rimLight.position.set(-6, -2, -6);
+
+    const rimLight = new THREE.DirectionalLight(0x4f9dff, 0.72);
+    rimLight.position.set(-8, -2, -8);
     scene.add(rimLight);
 
-    const starGeo = new THREE.BufferGeometry();
-    const starCount = 1200;
-    const starPos = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount; i++) {
-      const r = 24 + Math.random() * 28;
-      const t = Math.random() * Math.PI * 2;
-      const p = Math.acos((Math.random() * 2) - 1);
-      starPos[i * 3] = r * Math.sin(p) * Math.cos(t);
-      starPos[i * 3 + 1] = r * Math.cos(p);
-      starPos[i * 3 + 2] = r * Math.sin(p) * Math.sin(t);
-    }
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xd9e8ff, size: 0.08, transparent: true, opacity: 0.82 })));
+    const loader = new THREE.TextureLoader();
+    const earthTexture = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
+    const bumpTexture = loader.load("https://threejs.org/examples/textures/planets/earth_normal_2048.jpg");
+    const specTexture = loader.load("https://threejs.org/examples/textures/planets/earth_specular_2048.jpg");
 
-    const earthRadius = 1.28;
-    const earthMat = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 12, specular: 0x1f3b69 });
-    const earth = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, 96, 96), earthMat);
-    globeGroup.add(earth);
-    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(earthRadius * 1.04, 64, 64), new THREE.MeshBasicMaterial({ color: 0x57a7ff, transparent: true, opacity: 0.12, side: THREE.BackSide }));
-    globeGroup.add(atmosphere);
-    const glow = new THREE.Mesh(new THREE.SphereGeometry(earthRadius * 1.18, 64, 64), new THREE.MeshBasicMaterial({ color: 0x2568ff, transparent: true, opacity: 0.08, side: THREE.BackSide }));
-    globeGroup.add(glow);
+    const earth = new THREE.Mesh(
+      new THREE.SphereGeometry(2.45, 96, 96),
+      new THREE.MeshPhongMaterial({
+        map: earthTexture,
+        bumpMap: bumpTexture,
+        bumpScale: 0.06,
+        specularMap: specTexture,
+        specular: new THREE.Color(0x27456d),
+        shininess: 14
+      })
+    );
+    earthGroup.add(earth);
 
-    const gridMat = new THREE.LineBasicMaterial({ color: 0x98c8ff, transparent: true, opacity: 0.16 });
-    function makeLat(latDeg) {
-      const lat = THREE.MathUtils.degToRad(latDeg);
-      const y = Math.sin(lat) * earthRadius * .998;
-      const r = Math.cos(lat) * earthRadius * .998;
-      const pts = [];
-      for (let i = 0; i <= 128; i++) {
-        const a = (i / 128) * Math.PI * 2;
-        pts.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r));
+    const clouds = new THREE.Mesh(
+      new THREE.SphereGeometry(2.5, 72, 72),
+      new THREE.MeshPhongMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.075,
+        blending: THREE.AdditiveBlending
+      })
+    );
+    earthGroup.add(clouds);
+
+    const atmosphere = new THREE.Mesh(
+      new THREE.SphereGeometry(2.65, 72, 72),
+      new THREE.ShaderMaterial({
+        transparent: true,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        uniforms: {
+          glowColor: { value: new THREE.Color(0x2c8cff) },
+          viewVector: { value: camera.position }
+        },
+        vertexShader: `
+          uniform vec3 viewVector;
+          varying float intensity;
+          void main() {
+            vec3 vNormal = normalize(normalMatrix * normal);
+            vec3 vNormel = normalize(normalMatrix * viewVector);
+            intensity = pow(0.8 - dot(vNormal, vNormel), 3.2);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 glowColor;
+          varying float intensity;
+          void main() {
+            gl_FragColor = vec4(glowColor * intensity, intensity * 0.78);
+          }
+        `
+      })
+    );
+    earthGroup.add(atmosphere);
+
+    const terminatorRing = new THREE.Mesh(
+      new THREE.TorusGeometry(2.68, 0.012, 10, 220),
+      new THREE.MeshBasicMaterial({
+        color: 0xff6767,
+        transparent: true,
+        opacity: 0.58
+      })
+    );
+    earthGroup.add(terminatorRing);
+
+    function createStars() {
+      const count = 2800;
+      const positions = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        const r = 160 + Math.random() * 580;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.cos(phi);
+        positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
       }
-      return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat);
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({
+        color: 0xa9c8ff,
+        size: 0.95,
+        transparent: true,
+        opacity: 0.92
+      });
+      starGroup.add(new THREE.Points(geometry, material));
     }
-    function makeLon(lonDeg) {
-      const lon = THREE.MathUtils.degToRad(lonDeg);
+
+    createStars();
+
+    function latLonToVector3(lat, lon, radius) {
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (lon + 180) * (Math.PI / 180);
+      const x = -(radius * Math.sin(phi) * Math.cos(theta));
+      const z = radius * Math.sin(phi) * Math.sin(theta);
+      const y = radius * Math.cos(phi);
+      return new THREE.Vector3(x, y, z);
+    }
+
+    function createMarker(lat, lon, color, size = 0.05, radius = 2.5) {
+      const marker = new THREE.Mesh(
+        new THREE.SphereGeometry(size, 10, 10),
+        new THREE.MeshBasicMaterial({ color })
+      );
+      marker.position.copy(latLonToVector3(lat, lon, radius));
+      return marker;
+    }
+
+    function createOrbitalPath(radius, inclinationDeg, color, opacity = 0.4) {
       const pts = [];
-      for (let i = 0; i <= 128; i++) {
-        const a = (i / 128) * Math.PI * 2;
-        pts.push(new THREE.Vector3(Math.cos(a) * earthRadius * Math.cos(lon), Math.sin(a) * earthRadius, Math.cos(a) * earthRadius * Math.sin(lon)));
+      const inc = THREE.MathUtils.degToRad(inclinationDeg);
+      for (let i = 0; i <= 280; i++) {
+        const t = (i / 280) * Math.PI * 2;
+        const x = radius * Math.cos(t);
+        const y = radius * Math.sin(t) * Math.sin(inc);
+        const z = radius * Math.sin(t) * Math.cos(inc);
+        pts.push(new THREE.Vector3(x, y, z));
       }
-      return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat);
-    }
-    [-60,-30,0,30,60].forEach(v => globeGroup.add(makeLat(v)));
-    [-120,-60,0,60,120].forEach(v => globeGroup.add(makeLon(v)));
-
-    textureLoader.load(ASSET_PATHS.earthDay, (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      earthMat.map = tex;
-      earthMat.needsUpdate = true;
-    });
-
-    const satTexture = textureLoader.load(ASSET_PATHS.satellite);
-    satTexture.colorSpace = THREE.SRGBColorSpace;
-
-    function latLonToVec(latDeg, lonDeg, radius) {
-      const lat = THREE.MathUtils.degToRad(latDeg);
-      const lon = THREE.MathUtils.degToRad(lonDeg);
-      return new THREE.Vector3(radius * Math.cos(lat) * Math.sin(lon), radius * Math.sin(lat), radius * Math.cos(lat) * Math.cos(lon));
-    }
-
-    function orbitLine(radius, incDeg, color) {
-      const pts = [];
-      const inc = THREE.MathUtils.degToRad(incDeg);
-      for (let i = 0; i <= 256; i++) {
-        const a = (i / 256) * Math.PI * 2;
-        const p = new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius).applyAxisAngle(new THREE.Vector3(1, 0, 0), inc);
-        pts.push(p);
-      }
-      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color, transparent: true, opacity: .36, dashSize: .18, gapSize: .12 }));
-      line.computeLineDistances();
+      const line = new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color, transparent: true, opacity })
+      );
+      orbitGroup.add(line);
       return line;
     }
 
-    function coverageDisc(hex) {
-      return new THREE.Mesh(new THREE.CircleGeometry(.42, 60), new THREE.MeshBasicMaterial({ color: new THREE.Color(hex), transparent: true, opacity: .16, side: THREE.DoubleSide, depthWrite: false }));
+    const orbitTracks = [
+      createOrbitalPath(3.4, 15, 0x1a5cff),
+      createOrbitalPath(3.75, 40, 0x6fe8ff),
+      createOrbitalPath(4.15, 65, 0x65f1b8),
+      createOrbitalPath(4.55, 98, 0xf4c96b),
+      createOrbitalPath(4.85, 54, 0x4f90ff, 0.28)
+    ];
+
+    function createSatellite(color, size = 0.048) {
+      const group = new THREE.Group();
+      const body = new THREE.Mesh(
+        new THREE.SphereGeometry(size, 8, 8),
+        new THREE.MeshBasicMaterial({ color })
+      );
+      const panelGeo = new THREE.BoxGeometry(0.12, 0.01, 0.055);
+      const panelMat = new THREE.MeshBasicMaterial({ color: 0xbfd7ff });
+      const left = new THREE.Mesh(panelGeo, panelMat);
+      const right = new THREE.Mesh(panelGeo, panelMat);
+      left.position.x = -0.12;
+      right.position.x = 0.12;
+      group.add(body, left, right);
+      return group;
     }
 
     const satellites = [];
-    assets.forEach((asset, idx) => {
-      const line = orbitLine(asset.orbitRadius, asset.inclination, asset.color);
-      orbitGroup.add(line);
-      const disc = coverageDisc(asset.footprintColor);
-      footprintGroup.add(disc);
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: satTexture, transparent: true, depthWrite: false }));
-      sprite.scale.set(.34, .22, 1);
-      sprite.userData.assetIndex = idx;
-      satGroup.add(sprite);
-      const tag = document.createElement('div');
-      tag.className = 'sat-tag';
-      tag.textContent = asset.id;
-      tagsLayer.appendChild(tag);
-      satellites.push({ sprite, line, disc, tag, pos: new THREE.Vector3(), lat: 0, lon: 0 });
-    });
+    const isrSatellites = [];
+    const missileSatellites = [];
 
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-
-    function setStep(stage) {
-      [ui.stepDetect, ui.stepAssess, ui.stepRecommend, ui.stepQueue, ui.stepApprove].forEach((el, i) => el.classList.toggle('active', i < stage));
+    function addSatellite(arr, parent, radius, inclination, speed, phase, color) {
+      const sat = createSatellite(color);
+      sat.userData = { radius, inclination, speed, phase };
+      parent.add(sat);
+      arr.push(sat);
     }
 
-    function applyAsset(index) {
-      state.selectedAssetIndex = index;
-      const a = assets[index];
-      ui.vehicleName.textContent = a.name;
-      ui.vehicleBadge.textContent = a.status;
-      ui.orbitClass.textContent = a.orbitClass;
-      ui.groundTrack.textContent = a.region;
-      ui.vehicleHealth.textContent = a.health;
-      ui.vehicleLatency.textContent = a.latency;
-      ui.payloadText.textContent = a.payload;
-      ui.taskText.textContent = a.task;
-      ui.coverageText.textContent = a.coverage;
-      ui.powerText.textContent = a.power;
-      ui.thermalText.textContent = a.thermal;
-      ui.commsText.textContent = a.comms;
-      ui.autonomyText.textContent = a.autonomy;
-      ui.detectText.textContent = a.detect;
-      ui.assessText.textContent = a.assess;
-      ui.recommendText.textContent = a.recommend;
-      ui.stepDetectText.textContent = a.detect;
-      ui.stepAssessText.textContent = a.assess;
-      ui.stepRecommendText.textContent = a.recommend;
-      ui.stepQueueText.textContent = `${a.queue1[1]} prepared for operator review.`;
-      ui.stepApproveText.textContent = `Operator approval required before execution on ${a.name}.`;
-      ui.currentThread.textContent = `Current thread: ${a.id} / ${a.recommend.toLowerCase()}`;
-      ui.queueTag1.textContent = a.queue1[0];
-      ui.queueTitle1.textContent = a.queue1[1];
-      ui.queueBody1.textContent = a.queue1[2];
-      ui.queueTag2.textContent = a.queue2[0];
-      ui.queueTitle2.textContent = a.queue2[1];
-      ui.queueBody2.textContent = a.queue2[2];
-      ui.statusDot.className = 'dot' + (a.health === 'Degraded' ? ' warn' : '');
-      queueCount.textContent = `${(a.workflowStage >= 4 ? 2 : 1).toString().padStart(2, '0')} Pending`;
-      setStep(a.workflowStage);
+    for (let i = 0; i < 14; i++) {
+      addSatellite(satellites, satelliteGroup, 3.45 + (i % 4) * 0.18, 12 + (i % 5) * 10, 0.17 + (i % 4) * 0.011, i * 0.58, 0x6fe8ff);
+    }
+    for (let i = 0; i < 10; i++) {
+      addSatellite(isrSatellites, isrGroup, 3.95 + (i % 3) * 0.2, 36 + (i % 4) * 9, 0.135 + (i % 4) * 0.01, i * 0.82, 0x65f1b8);
+    }
+    for (let i = 0; i < 8; i++) {
+      addSatellite(missileSatellites, missileGroup, 4.45 + (i % 2) * 0.24, 78 + (i % 3) * 7, 0.1 + (i % 3) * 0.009, i * 1.04, 0xf4c96b);
     }
 
-    function resizeAll() {
-      const w = stage.clientWidth;
-      const h = stage.clientHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      canvas2d.width = Math.floor(w * Math.min(window.devicePixelRatio, 2));
-      canvas2d.height = Math.floor(h * Math.min(window.devicePixelRatio, 2));
-      canvas2d.style.width = w + 'px';
-      canvas2d.style.height = h + 'px';
+    [[38.89,-77.03],[34.73,-86.59],[51.5,-0.12],[35.68,139.69],[1.35,103.82],[21.31,-157.86],[48.85,2.35]]
+      .forEach(([lat,lon]) => earthGroup.add(createMarker(lat, lon, 0x65f1b8)));
+
+    [[64.84,-147.72],[37.57,126.98],[31.23,121.47],[25.76,-80.19],[28.61,77.21],[55.75,37.61]]
+      .forEach(([lat,lon]) => earthGroup.add(createMarker(lat, lon, 0xf4c96b)));
+
+    function updateSatellitePosition(sat, t) {
+      const r = sat.userData.radius;
+      const inc = THREE.MathUtils.degToRad(sat.userData.inclination);
+      const ang = (t * sat.userData.speed) + sat.userData.phase;
+      sat.position.set(r * Math.cos(ang), r * Math.sin(ang) * Math.sin(inc), r * Math.sin(ang) * Math.cos(inc));
+      const tangent = new THREE.Vector3(-r * Math.sin(ang), r * Math.cos(ang) * Math.sin(inc), r * Math.cos(ang) * Math.cos(inc)).normalize();
+      sat.lookAt(sat.position.clone().add(tangent));
     }
 
-    function updateScenario(delta) {
-      scenario.elapsedSeconds += delta * scenario.multiplier;
-      const time = new Date(scenario.start.getTime() + scenario.elapsedSeconds * 1000);
-      ui.headerClock.textContent = time.toISOString().slice(11, 19) + ' Z';
-      const total = Math.floor(scenario.elapsedSeconds);
-      const hh = String(Math.floor(total / 3600)).padStart(2, '0');
-      const mm = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
-      const ss = String(total % 60).padStart(2, '0');
-      ui.scenarioClock.textContent = `T+${hh}:${mm}:${ss}`;
-      ui.playbackRate.textContent = `${scenario.multiplier}x`;
-      ui.headerRate.textContent = `${scenario.multiplier}x`;
-      ui.clockBar.style.width = (20 + ((total / 6) % 80)) + '%';
-      state.solarLon = ((scenario.elapsedSeconds * 0.12) % 360) - 180;
-      ui.solarState.textContent = Math.abs(Math.sin(scenario.elapsedSeconds * 0.01)) > .35 ? 'Sunlit / Night' : 'Sunlit / Terminator';
-    }
+    const controls = {
+      rotating:false, lastX:0, lastY:0,
+      lon:-22, lat:12, targetLon:-22, targetLat:12,
+      distance:11.3, targetDistance:11.3,
+      autoRotate:true, paused:false
+    };
 
-    function updateLighting() {
-      const sunVec = latLonToVec(8, state.solarLon, 1).normalize();
-      sunLight.position.copy(sunVec.clone().multiplyScalar(8));
-      earth.rotation.y += .0018 * scenario.multiplier / 8;
-      atmosphere.rotation.y = earth.rotation.y;
-      glow.rotation.y = earth.rotation.y;
-    }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
-    function updateSatellites(t) {
-      const rect = stage.getBoundingClientRect();
-      assets.forEach((a, i) => {
-        const ang = a.phase + t * a.speed * .18;
-        const p = new THREE.Vector3(Math.cos(ang) * a.orbitRadius, 0, Math.sin(ang) * a.orbitRadius).applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(a.inclination));
-        satellites[i].pos.copy(p);
-        satellites[i].sprite.position.copy(p);
-        satellites[i].disc.position.copy(p.clone().normalize().multiplyScalar(earthRadius * 1.001));
-        satellites[i].disc.lookAt(new THREE.Vector3(0,0,0));
-        satellites[i].disc.rotateZ(t * .12 + i);
-        satellites[i].disc.material.opacity = (i === state.selectedAssetIndex ? .26 : .15) + Math.sin(t * 2 + i) * .02;
-        satellites[i].line.material.opacity = i === state.selectedAssetIndex ? .65 : .28;
-
-        const n = p.clone().normalize();
-        satellites[i].lat = THREE.MathUtils.radToDeg(Math.asin(n.y));
-        satellites[i].lon = THREE.MathUtils.radToDeg(Math.atan2(n.x, n.z)) - THREE.MathUtils.radToDeg(earth.rotation.y);
-        while (satellites[i].lon > 180) satellites[i].lon -= 360;
-        while (satellites[i].lon < -180) satellites[i].lon += 360;
-
-        const proj = p.clone().project(camera);
-        const visible = proj.z < 1 && proj.z > -1;
-        if (state.viewMode === '3d' && state.showLabels && visible) {
-          satellites[i].tag.style.display = 'block';
-          satellites[i].tag.style.left = `${((proj.x + 1) / 2) * rect.width}px`;
-          satellites[i].tag.style.top = `${((-proj.y + 1) / 2) * rect.height - 18}px`;
-          satellites[i].tag.style.opacity = i === state.selectedAssetIndex ? '1' : '.82';
-          satellites[i].tag.style.borderColor = i === state.selectedAssetIndex ? 'rgba(99,242,255,.5)' : 'rgba(99,242,255,.22)';
-        } else if (state.viewMode === '3d') {
-          satellites[i].tag.style.display = 'none';
-        }
-      });
-    }
-
-    function setCameraMode(mode) {
-      state.cameraMode = mode;
-      document.getElementById('cameraGlobalBtn').classList.toggle('active', mode === 'global');
-      document.getElementById('cameraTheaterBtn').classList.toggle('active', mode === 'theater');
-      document.getElementById('cameraFollowBtn').classList.toggle('active', mode === 'follow');
-      ui.cameraNote.textContent = `Camera: ${mode === 'follow' ? 'vehicle follow' : mode}`;
-      crosshair.style.display = mode === 'follow' ? 'block' : 'none';
-      updateViewLabel();
-    }
-
-    function updateCamera() {
-      const selIndex = state.selectedAssetIndex;
-      const selPos = satellites[selIndex].pos.clone();
-
-      if (state.cameraMode === 'global') {
-        controls.enableRotate = true;
-        controls.enablePan = true;
-        controls.target.lerp(new THREE.Vector3(0, 0, 0), .08);
-      } else if (state.cameraMode === 'theater') {
-        controls.enableRotate = true;
-        controls.enablePan = true;
-        const zone = zones[assets[selIndex].region];
-        const target = latLonToVec(zone.centerLat, zone.centerLon + THREE.MathUtils.radToDeg(earth.rotation.y), .25);
-        controls.target.lerp(target, .06);
-        const eye = latLonToVec(zone.centerLat, zone.centerLon + 20 + THREE.MathUtils.radToDeg(earth.rotation.y), 6.4);
-        camera.position.lerp(eye, .04);
-      } else if (state.cameraMode === 'follow') {
-        controls.enableRotate = false;
-        controls.enablePan = false;
-        const camPos = selPos.clone().normalize().multiplyScalar(selPos.length() + 1.35).add(new THREE.Vector3(.5, .35, .5));
-        camera.position.lerp(camPos, .08);
-        controls.target.lerp(selPos, .1);
-      }
-
-      controls.update();
-    }
-
-    function updateViewLabel() {
-      const cameraName = state.cameraMode === 'follow' ? 'Vehicle Follow' : state.cameraMode === 'theater' ? 'Theater' : 'Global';
-      const viewName = state.viewMode === '3d' ? '3D Globe' : '2D Map';
-      viewModeLabel.textContent = viewName;
-      viewLabel.textContent = `${viewName} / ${cameraName}`;
-    }
-
-    function switchView(mode) {
-      state.viewMode = mode;
-      canvas3d.style.display = mode === '3d' ? 'block' : 'none';
-      canvas2d.style.display = mode === '2d' ? 'block' : 'none';
-      document.getElementById('mode3dBtn').classList.toggle('active', mode === '3d');
-      document.getElementById('mode2dBtn').classList.toggle('active', mode === '2d');
-      updateViewLabel();
-      if (mode === '2d') draw2D();
-    }
-
-    function clamp(n, min, max) {
-      return Math.max(min, Math.min(max, n));
-    }
-
-    function lonLatToCanvas(lon, lat, w, h) {
-      const x = (((lon + 180) / 360) * w * state.mapZoom) + state.mapOffsetX;
-      const y = (((90 - lat) / 180) * h * state.mapZoom) + state.mapOffsetY;
-      return { x, y };
-    }
-
-    function drawZones2D(w, h) {
-      if (!state.showZones) return;
-      Object.entries(zones).forEach(([name, z]) => {
-        const p = lonLatToCanvas(z.centerLon, z.centerLat, w, h);
-        const rw = (z.spanLon / 360) * w * state.mapZoom;
-        const rh = (z.spanLat / 180) * h * state.mapZoom;
-        ctx2d.strokeStyle = z.color;
-        ctx2d.fillStyle = z.color + '1a';
-        ctx2d.lineWidth = 2;
-        ctx2d.beginPath();
-        ctx2d.roundRect(p.x - rw / 2, p.y - rh / 2, rw, rh, 22);
-        ctx2d.fill();
-        ctx2d.stroke();
-        ctx2d.fillStyle = '#d7e7ff';
-        ctx2d.font = '11px Inter, sans-serif';
-        ctx2d.fillText(name, p.x - rw / 2 + 10, p.y - rh / 2 + 18);
-      });
-    }
-
-    function drawTerminator2D(w, h) {
-      const nightStart = state.solarLon + 90;
-      const nightEnd = state.solarLon + 270;
-      const x1 = (((nightStart + 180) / 360) * w * state.mapZoom) + state.mapOffsetX;
-      const x2 = (((nightEnd + 180) / 360) * w * state.mapZoom) + state.mapOffsetX;
-      ctx2d.fillStyle = 'rgba(7,10,18,.34)';
-      if (x1 < x2) {
-        ctx2d.fillRect(x1, state.mapOffsetY, x2 - x1, h * state.mapZoom);
+    function updateCameraFromSpherical() {
+      const phi = THREE.MathUtils.degToRad(90 - controls.lat);
+      const theta = THREE.MathUtils.degToRad(controls.lon);
+      const x = controls.distance * Math.sin(phi) * Math.cos(theta);
+      const y = controls.distance * Math.cos(phi);
+      const z = controls.distance * Math.sin(phi) * Math.sin(theta);
+      if (!is2DMode) {
+        camera.position.set(x, y, z);
+        camera.lookAt(0, 0, 0);
       } else {
-        ctx2d.fillRect(0, state.mapOffsetY, x2, h * state.mapZoom);
-        ctx2d.fillRect(x1, state.mapOffsetY, w * state.mapZoom, h * state.mapZoom);
+        orthoCamera.position.set(0, 0, 11.5);
+        orthoCamera.lookAt(0, 0, 0);
       }
-      ctx2d.strokeStyle = 'rgba(255,211,148,.45)';
-      ctx2d.lineWidth = 2;
-      ctx2d.beginPath();
-      ctx2d.moveTo(x1, state.mapOffsetY);
-      ctx2d.lineTo(x1, state.mapOffsetY + h * state.mapZoom);
-      ctx2d.stroke();
     }
 
-    function drawSatellites2D(w, h) {
-      satellites.forEach((s, i) => {
-        const p = lonLatToCanvas(s.lon, s.lat, w, h);
-        if (state.showCoverage) {
-          ctx2d.beginPath();
-          ctx2d.fillStyle = assets[i].footprintColor + '33';
-          ctx2d.strokeStyle = assets[i].footprintColor + 'aa';
-          ctx2d.lineWidth = 1.5;
-          ctx2d.ellipse(p.x, p.y, 24 * state.mapZoom, 14 * state.mapZoom, 0, 0, Math.PI * 2);
-          ctx2d.fill();
-          ctx2d.stroke();
-        }
-        if (imgSat.complete && imgSat.naturalWidth) {
-          const sw = 44 * state.mapZoom;
-          const sh = 24 * state.mapZoom;
-          ctx2d.drawImage(imgSat, p.x - sw / 2, p.y - sh / 2, sw, sh);
-        } else {
-          ctx2d.fillStyle = '#d7f8ff';
-          ctx2d.beginPath();
-          ctx2d.arc(p.x, p.y, 5, 0, Math.PI * 2);
-          ctx2d.fill();
-        }
-        if (state.showLabels) {
-          ctx2d.fillStyle = i === state.selectedAssetIndex ? '#ffffff' : '#d7f8ff';
-          ctx2d.font = '11px Inter, sans-serif';
-          ctx2d.fillText(assets[i].id, p.x + 10, p.y - 10);
-        }
-      });
-    }
-
-    function draw2D() {
-      const w = canvas2d.width;
-      const h = canvas2d.height;
-      ctx2d.clearRect(0, 0, w, h);
-      if (imgMap.complete && imgMap.naturalWidth) {
-        ctx2d.drawImage(imgMap, state.mapOffsetX, state.mapOffsetY, w * state.mapZoom, h * state.mapZoom);
-      } else {
-        ctx2d.fillStyle = '#0a1a2d';
-        ctx2d.fillRect(0, 0, w, h);
-      }
-      drawTerminator2D(w, h);
-      drawZones2D(w, h);
-      drawSatellites2D(w, h);
-    }
-
-    function animateTagsFor2D() {
-      const scale = Math.min(window.devicePixelRatio, 2);
-      satellites.forEach((s, i) => {
-        if (state.viewMode !== '2d' || !state.showLabels) {
-          s.tag.style.display = 'none';
-          return;
-        }
-        const p = lonLatToCanvas(s.lon, s.lat, canvas2d.width, canvas2d.height);
-        s.tag.style.display = 'block';
-        s.tag.style.left = `${p.x / scale}px`;
-        s.tag.style.top = `${p.y / scale - 18}px`;
-        s.tag.style.opacity = i === state.selectedAssetIndex ? '1' : '.82';
-        s.tag.style.borderColor = i === state.selectedAssetIndex ? 'rgba(99,242,255,.5)' : 'rgba(99,242,255,.22)';
-      });
-    }
-
-    function selectFrom2D(x, y) {
-      let best = -1;
-      let bestD = 28;
-      const w = canvas2d.width;
-      const h = canvas2d.height;
-      const scale = Math.min(window.devicePixelRatio, 2);
-      const cx = x * scale;
-      const cy = y * scale;
-      satellites.forEach((s, i) => {
-        const p = lonLatToCanvas(s.lon, s.lat, w, h);
-        const d = Math.hypot(cx - p.x, cy - p.y);
-        if (d < bestD) {
-          bestD = d;
-          best = i;
-        }
-      });
-      if (best >= 0) applyAsset(best);
-    }
-
-    canvas3d.addEventListener('click', (e) => {
-      if (state.viewMode !== '3d') return;
-      const r = canvas3d.getBoundingClientRect();
-      pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
-      pointer.y = -((e.clientY - r.top) / r.height) * 2 + 1;
-      raycaster.setFromCamera(pointer, camera);
-      const hit = raycaster.intersectObjects(satGroup.children, false)[0];
-      if (hit && typeof hit.object.userData.assetIndex === 'number') {
-        applyAsset(hit.object.userData.assetIndex);
-      }
+    renderer.domElement.addEventListener("pointerdown", (e) => {
+      controls.rotating = true;
+      controls.lastX = e.clientX;
+      controls.lastY = e.clientY;
     });
-
-    canvas2d.addEventListener('mousedown', (e) => {
-      state.draggingMap = true;
-      state.dragStartX = e.clientX - state.mapOffsetX;
-      state.dragStartY = e.clientY - state.mapOffsetY;
-      canvas2d.classList.add('dragging');
+    window.addEventListener("pointerup", () => { controls.rotating = false; });
+    window.addEventListener("pointermove", (e) => {
+      if (!controls.rotating) return;
+      const dx = e.clientX - controls.lastX;
+      const dy = e.clientY - controls.lastY;
+      controls.lastX = e.clientX;
+      controls.lastY = e.clientY;
+      controls.targetLon += dx * 0.22;
+      controls.targetLat -= dy * 0.18;
+      controls.targetLat = clamp(controls.targetLat, -85, 85);
     });
-
-    window.addEventListener('mouseup', () => {
-      state.draggingMap = false;
-      canvas2d.classList.remove('dragging');
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!state.draggingMap || state.viewMode !== '2d') return;
-      state.mapOffsetX = e.clientX - state.dragStartX;
-      state.mapOffsetY = e.clientY - state.dragStartY;
-      draw2D();
-    });
-
-    canvas2d.addEventListener('wheel', (e) => {
-      if (state.viewMode !== '2d') return;
+    renderer.domElement.addEventListener("wheel", (e) => {
       e.preventDefault();
-      state.mapZoom = clamp(state.mapZoom + (e.deltaY < 0 ? .08 : -.08), .75, 3.2);
-      draw2D();
-    }, { passive: false });
+      controls.targetDistance += e.deltaY * 0.005;
+      controls.targetDistance = clamp(controls.targetDistance, 6.4, 18.5);
+    }, { passive:false });
+    renderer.domElement.addEventListener("dblclick", () => { resetView(); });
 
-    canvas2d.addEventListener('click', (e) => {
-      if (!state.draggingMap) selectFrom2D(e.offsetX, e.offsetY);
-    });
-
-    document.querySelectorAll('[data-layer]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.classList.toggle('active');
-        const on = btn.classList.contains('active');
-        const layer = btn.dataset.layer;
-        if (layer === 'earth') { state.showEarth = on; globeGroup.visible = on; }
-        if (layer === 'zones') { state.showZones = on; zoneOverlay.style.display = on ? 'block' : 'none'; }
-        if (layer === 'orbits') { state.showOrbits = on; orbitGroup.visible = on; }
-        if (layer === 'coverage') { state.showCoverage = on; footprintGroup.visible = on; }
-        if (layer === 'labels') { state.showLabels = on; if (!on) satellites.forEach(s => s.tag.style.display = 'none'); }
-        draw2D();
-      });
-    });
-
-    document.getElementById('mode3dBtn').addEventListener('click', () => switchView('3d'));
-    document.getElementById('mode2dBtn').addEventListener('click', () => switchView('2d'));
-    document.getElementById('toggleViewBtn').addEventListener('click', () => switchView(state.viewMode === '3d' ? '2d' : '3d'));
-    document.getElementById('cameraGlobalBtn').addEventListener('click', () => setCameraMode('global'));
-    document.getElementById('cameraTheaterBtn').addEventListener('click', () => setCameraMode('theater'));
-    document.getElementById('cameraFollowBtn').addEventListener('click', () => setCameraMode('follow'));
-    document.getElementById('cameraResetBtn').addEventListener('click', () => {
-      camera.position.set(0, 0, 8.6);
-      controls.target.set(0, 0, 0);
-      controls.update();
-      setCameraMode('global');
-    });
-    document.getElementById('focusBtn').addEventListener('click', () => setCameraMode('follow'));
-    document.getElementById('nextVehicleBtn').addEventListener('click', () => applyAsset((state.selectedAssetIndex + 1) % assets.length));
-
-    function switchView(mode) {
-      state.viewMode = mode;
-      canvas3d.style.display = mode === '3d' ? 'block' : 'none';
-      canvas2d.style.display = mode === '2d' ? 'block' : 'none';
-      document.getElementById('mode3dBtn').classList.toggle('active', mode === '3d');
-      document.getElementById('mode2dBtn').classList.toggle('active', mode === '2d');
-      updateViewLabel();
-      if (mode === '2d') draw2D();
+    function setMode2D(enabled) {
+      is2DMode = enabled;
+      activeCamera = enabled ? orthoCamera : camera;
+      document.getElementById("btn2d").classList.toggle("active", enabled);
+      document.getElementById("btn3d").classList.toggle("active", !enabled);
+      document.getElementById("modeReadout").textContent = enabled ? "2D Strategic" : "3D Globe";
+      if (enabled) { controls.targetLon = 0; controls.targetLat = 0; controls.targetDistance = 11.3; }
+      onResize();
     }
 
-    let last = performance.now();
-    function tick(now) {
-      const delta = Math.min((now - last) / 1000, .05);
-      last = now;
-      updateScenario(delta);
-      updateLighting();
-      updateSatellites(now * .001);
-      updateCamera();
-      controls.update();
-      renderer.render(scene, camera);
-      if (state.viewMode === '2d') draw2D();
-      animateTagsFor2D();
-      requestAnimationFrame(tick);
+    function setCameraPreset(name) {
+      document.getElementById("cameraReadout").textContent = name;
+      if (name === "Default") { controls.targetLon = -22; controls.targetLat = 12; controls.targetDistance = 11.3; }
+      else if (name === "Top View") { controls.targetLon = 0; controls.targetLat = 85; controls.targetDistance = 9.4; }
+      else if (name === "Equator") { controls.targetLon = 90; controls.targetLat = 0; controls.targetDistance = 10.4; }
+      else if (name === "Night Focus") { controls.targetLon = 180; controls.targetLat = 6; controls.targetDistance = 8.9; }
     }
 
-    window.addEventListener('resize', resizeAll);
-    resizeAll();
-    applyAsset(0);
-    setCameraMode('global');
-    updateViewLabel();
-    requestAnimationFrame(tick);
-  </script>
-</body>
-</html>
+    function syncStatus() {
+      document.getElementById("btnSatellites").classList.toggle("active", satelliteGroup.visible);
+      document.getElementById("btnISR").classList.toggle("active", isrGroup.visible);
+      document.getElementById("btnMissile").classList.toggle("active", missileGroup.visible);
+      document.getElementById("btnOrbits").classList.toggle("active", orbitGroup.visible);
+      document.getElementById("btnStars").classList.toggle("active", starGroup.visible);
+      document.getElementById("btnAutoRotate").classList.toggle("active", controls.autoRotate);
+      document.getElementById("btnPause").classList.toggle("active", controls.paused);
+      document.getElementById("isrStatus").textContent = isrGroup.visible ? "Active" : "Hidden";
+      document.getElementById("missileStatus").textContent = missileGroup.visible ? "Active" : "Hidden";
+      document.getElementById("orbitStatus").textContent = orbitGroup.visible ? "Visible" : "Hidden";
+      document.getElementById("motionStatus").textContent = controls.paused ? "Paused" : "Live";
+    }
+
+    function resetView() {
+      setMode2D(false);
+      setCameraPreset("Default");
+      controls.autoRotate = true;
+      controls.paused = false;
+      satelliteGroup.visible = true;
+      isrGroup.visible = true;
+      missileGroup.visible = true;
+      orbitGroup.visible = true;
+      starGroup.visible = true;
+      syncStatus();
+    }
+
+    document.getElementById("btn3d").addEventListener("click", () => setMode2D(false));
+    document.getElementById("btn2d").addEventListener("click", () => setMode2D(true));
+    document.getElementById("btnDefaultCam").addEventListener("click", () => setCameraPreset("Default"));
+    document.getElementById("btnTopCam").addEventListener("click", () => setCameraPreset("Top View"));
+    document.getElementById("btnEquatorCam").addEventListener("click", () => setCameraPreset("Equator"));
+    document.getElementById("btnNightCam").addEventListener("click", () => setCameraPreset("Night Focus"));
+    document.getElementById("btnSatellites").addEventListener("click", () => { satelliteGroup.visible = !satelliteGroup.visible; syncStatus(); });
+    document.getElementById("btnISR").addEventListener("click", () => { isrGroup.visible = !isrGroup.visible; syncStatus(); });
+    document.getElementById("btnMissile").addEventListener("click", () => { missileGroup.visible = !missileGroup.visible; syncStatus(); });
+    document.getElementById("btnOrbits").addEventListener("click", () => { orbitGroup.visible = !orbitGroup.visible; syncStatus(); });
+    document.getElementById("btnStars").addEventListener("click", () => { starGroup.visible = !starGroup.visible; syncStatus(); });
+    document.getElementById("btnAutoRotate").addEventListener("click", () => { controls.autoRotate = !controls.autoRotate; syncStatus(); });
+    document.getElementById("btnPause").addEventListener("click", () => { controls.paused = !controls.paused; syncStatus(); });
+    document.getElementById("btnReset").addEventListener("click", resetView);
+
+    function updateDayNight() {
+      const now = new Date();
+      document.getElementById("utcReadout").textContent = now.toISOString().slice(11,19);
+      const hours = now.getUTCHours() + (now.getUTCMinutes() / 60);
+      const sunAngle = (hours / 24) * Math.PI * 2;
+      const sx = Math.cos(sunAngle) * 12.5;
+      const sy = Math.sin(sunAngle * 0.35) * 2.6;
+      const sz = Math.sin(sunAngle) * 12.5;
+      sunLight.position.set(sx, sy, sz);
+      const sunDir = new THREE.Vector3(sx, sy, sz).normalize();
+      const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), sunDir);
+      terminatorRing.quaternion.copy(quat);
+      document.getElementById("dayNightPill").textContent = sx >= 0 ? "Day/Night Sync" : "Night Hemisphere";
+    }
+
+    function updateCounts() {
+      const count =
+        (satelliteGroup.visible ? satellites.length : 0) +
+        (isrGroup.visible ? isrSatellites.length : 0) +
+        (missileGroup.visible ? missileSatellites.length : 0) +
+        (orbitGroup.visible ? orbitTracks.length : 0);
+      document.getElementById("objectReadout").textContent = String(count);
+    }
+
+    function getSize() {
+      return {
+        width: rootEl.clientWidth || window.innerWidth,
+        height: rootEl.clientHeight || window.innerHeight
+      };
+    }
+
+    function onResize() {
+      const { width, height } = getSize();
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      orthoCamera.left = (-orthoSize * width) / height;
+      orthoCamera.right = (orthoSize * width) / height;
+      orthoCamera.top = orthoSize;
+      orthoCamera.bottom = -orthoSize;
+      orthoCamera.updateProjectionMatrix();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = clock.getDelta();
+      const elapsed = clock.getElapsedTime();
+      updateDayNight();
+      if (!controls.paused) { clouds.rotation.y += dt * 0.018; }
+      if (!is2DMode) {
+        if (controls.autoRotate && !controls.rotating && !controls.paused) {
+          controls.targetLon += dt * 5.4;
+        }
+        controls.lon += (controls.targetLon - controls.lon) * 0.08;
+        controls.lat += (controls.targetLat - controls.lat) * 0.08;
+        controls.distance += (controls.targetDistance - controls.distance) * 0.09;
+        updateCameraFromSpherical();
+        atmosphere.material.uniforms.viewVector.value = camera.position;
+      } else {
+        orthoCamera.position.set(0, 0, 11.5);
+        orthoCamera.lookAt(0, 0, 0);
+      }
+      if (!controls.paused) {
+        [...satellites, ...isrSatellites, ...missileSatellites].forEach(sat => updateSatellitePosition(sat, elapsed));
+      }
+      updateCounts();
+      renderer.render(scene, activeCamera);
+    }
+
+    resetView();
+    onResize();
+    animate();
+
+    window.addEventListener("resize", onResize);
+  })();
+</script>
