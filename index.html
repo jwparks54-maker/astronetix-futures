@@ -7,9 +7,9 @@
   <style>
     :root {
       --bg: #04070d;
-      --panel: rgba(10,17,30,.92);
-      --line: rgba(89,146,255,.18);
-      --line-strong: rgba(89,146,255,.38);
+      --panel: rgba(10, 17, 30, 0.92);
+      --line: rgba(89, 146, 255, 0.18);
+      --line-strong: rgba(89, 146, 255, 0.38);
       --text: #eaf1ff;
       --muted: #90a6cb;
       --blue: #4da3ff;
@@ -18,33 +18,37 @@
       --amber: #ffb84d;
       --red: #ff647c;
       --purple: #b08cff;
-      --shadow: 0 18px 60px rgba(0,0,0,.46);
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.46);
       --radius: 18px;
       --header-h: 76px;
-      --bottom-h: 228px;
+      --bottom-h: 230px;
       --inspector-w: 390px;
       --gap: 16px;
       --font: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
+
     * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
       min-height: 100%;
-      background: radial-gradient(circle at top, rgba(38,89,166,.18), transparent 24%), linear-gradient(180deg, #04070d 0%, #07101b 100%);
+      background: radial-gradient(circle at top, rgba(38, 89, 166, 0.18), transparent 24%), linear-gradient(180deg, #04070d 0%, #07101b 100%);
       color: var(--text);
       font-family: var(--font);
       overflow: hidden;
     }
+
     body::before {
       content: "";
       position: fixed;
       inset: 0;
       pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
       background-size: 42px 42px;
-      opacity: .18;
+      opacity: 0.18;
       z-index: 0;
     }
+
     .app-shell {
       position: relative;
       z-index: 1;
@@ -55,6 +59,7 @@
       grid-template-rows: var(--header-h) 1fr var(--bottom-h);
       gap: var(--gap);
     }
+
     .panel {
       background: linear-gradient(180deg, rgba(10,17,30,.92) 0%, rgba(7,12,22,.95) 100%);
       border: 1px solid var(--line);
@@ -64,6 +69,7 @@
       overflow: hidden;
       position: relative;
     }
+
     .panel::before {
       content: "";
       position: absolute;
@@ -76,179 +82,813 @@
       -webkit-mask-composite: xor;
       mask-composite: exclude;
     }
+
     .topbar {
       display: grid;
-      grid-template-columns: minmax(280px,440px) 1fr minmax(280px,440px);
+      grid-template-columns: minmax(280px, 440px) 1fr minmax(280px, 440px);
       gap: 14px;
       align-items: center;
       padding: 0 18px;
     }
-    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
-    .brand-mark {
-      width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
-      background: radial-gradient(circle at 35% 35%, rgba(99,242,255,.28), rgba(77,163,255,.14));
-      border: 1px solid var(--line-strong); color: var(--cyan); font-weight: 800; letter-spacing: .08em; flex: 0 0 auto;
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
     }
-    .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .16em; color: var(--muted); margin-bottom: 3px; }
-    .title { font-size: 18px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .status-cluster, .mission-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 35% 35%, rgba(99,242,255,.28), rgba(77,163,255,.14));
+      border: 1px solid var(--line-strong);
+      color: var(--cyan);
+      font-weight: 800;
+      letter-spacing: .08em;
+      flex: 0 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-cluster,
+    .mission-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
     .status-cluster { justify-content: center; }
     .mission-cluster { justify-content: flex-end; }
+
     .pill {
-      min-height: 38px; display: inline-flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: 999px;
-      border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); font-size: 12px; letter-spacing: .04em;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: .04em;
     }
-    .pill strong { font-size: 12px; font-weight: 700; color: #fff; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px rgba(65,211,138,.75); flex: 0 0 auto; }
-    .dot.warn { background: var(--amber); box-shadow: 0 0 12px rgba(255,184,77,.75); }
-    .dot.alert { background: var(--red); box-shadow: 0 0 12px rgba(255,100,124,.75); }
-    .main-grid { min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) var(--inspector-w); gap: var(--gap); }
-    .globe-stage { min-height: 0; display: grid; grid-template-rows: auto 1fr auto; }
-    .stage-top, .stage-bottom {
-      display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; position: relative; z-index: 2;
+
+    .pill strong {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(65,211,138,.75);
+      flex: 0 0 auto;
+    }
+
+    .dot.warn {
+      background: var(--amber);
+      box-shadow: 0 0 12px rgba(255,184,77,.75);
+    }
+
+    .dot.alert {
+      background: var(--red);
+      box-shadow: 0 0 12px rgba(255,100,124,.75);
+    }
+
+    .main-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--inspector-w);
+      gap: var(--gap);
+    }
+
+    .globe-stage {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .stage-top,
+    .stage-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      position: relative;
+      z-index: 2;
       border-bottom: 1px solid rgba(255,255,255,.05);
     }
-    .stage-bottom { border-bottom: 0; border-top: 1px solid rgba(255,255,255,.05); }
-    .stage-title-wrap h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .04em; }
-    .stage-title-wrap p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
-    .toolbar, .toolbar-secondary { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
-    .toolbar-stack { display: grid; gap: 10px; }
+
+    .stage-bottom {
+      border-bottom: 0;
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+
+    .stage-title-wrap h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .stage-title-wrap p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar,
+    .toolbar-secondary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .toolbar-stack {
+      display: grid;
+      gap: 10px;
+    }
+
     .tool-btn {
-      border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); padding: 10px 12px;
-      border-radius: 12px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: 180ms ease;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 180ms ease;
     }
-    .tool-btn:hover, .tool-btn.active {
-      border-color: rgba(99,242,255,.45); color: #fff; background: rgba(77,163,255,.12);
-      box-shadow: inset 0 0 0 1px rgba(99,242,255,.1), 0 0 18px rgba(77,163,255,.12); transform: translateY(-1px);
+
+    .tool-btn:hover,
+    .tool-btn.active {
+      border-color: rgba(99,242,255,.45);
+      color: #fff;
+      background: rgba(77,163,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(99,242,255,.1), 0 0 18px rgba(77,163,255,.12);
+      transform: translateY(-1px);
     }
+
     .stage-canvas {
-      position: relative; min-height: 0; overflow: hidden;
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
       background: radial-gradient(circle at 50% 50%, rgba(17,60,122,.22), transparent 22%), linear-gradient(180deg, rgba(2,6,10,.6), rgba(2,6,10,.2));
     }
-    #globeCanvas, #map2dCanvas {
-      position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+
+    #globeCanvas,
+    #map2dCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
     }
-    #map2dCanvas { display: none; cursor: grab; background: linear-gradient(180deg, rgba(4,8,14,.95), rgba(5,10,18,.98)); }
+
+    #map2dCanvas {
+      display: none;
+      cursor: grab;
+      background: linear-gradient(180deg, rgba(4,8,14,.95), rgba(5,10,18,.98));
+    }
+
     #map2dCanvas.dragging { cursor: grabbing; }
-    .canvas-overlay, .scanline, .target-corners, .zone-overlay, .satellite-tags, .view-label, .mouse-help, .crosshair {
-      position: absolute; inset: 0; pointer-events: none;
+
+    .canvas-overlay,
+    .scanline,
+    .target-corners,
+    .zone-overlay,
+    .satellite-tags,
+    .view-label,
+    .mouse-help,
+    .crosshair {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
     }
+
     .canvas-overlay {
       background: radial-gradient(circle at 20% 25%, rgba(99,242,255,.06), transparent 18%), radial-gradient(circle at 80% 20%, rgba(77,163,255,.08), transparent 20%), radial-gradient(circle at 50% 80%, rgba(65,211,138,.05), transparent 28%);
       z-index: 1;
     }
+
     .zone-overlay { z-index: 3; }
+
     .zone-tag {
-      position: absolute; padding: 7px 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(8,14,26,.68); color: #d7e7ff;
-      border-radius: 999px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; backdrop-filter: blur(8px); box-shadow: 0 8px 18px rgba(0,0,0,.25); white-space: nowrap;
+      position: absolute;
+      padding: 7px 10px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(8,14,26,.68);
+      color: #d7e7ff;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+      white-space: nowrap;
     }
+
     .satellite-tags { z-index: 4; }
+
     .sat-tag {
-      position: absolute; transform: translate(-50%, -50%); padding: 6px 9px; border-radius: 999px; border: 1px solid rgba(99,242,255,.28);
-      background: rgba(5,12,22,.8); color: #d7f8ff; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 8px 18px rgba(0,0,0,.28); opacity: .92; white-space: nowrap;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(99,242,255,.28);
+      background: rgba(5,12,22,.8);
+      color: #d7f8ff;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(0,0,0,.28);
+      opacity: .92;
+      white-space: nowrap;
     }
+
     .view-label {
-      inset: auto auto 18px 18px; width: auto; height: auto; z-index: 8; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
-      background: rgba(5,12,22,.76); color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+      inset: auto auto 18px 18px;
+      width: auto;
+      height: auto;
+      z-index: 8;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(5,12,22,.76);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
     }
+
     .mouse-help {
-      inset: 18px auto auto 18px; width: auto; height: auto; z-index: 8; display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
-      background: rgba(5,12,22,.68); color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+      inset: 18px auto auto 18px;
+      width: auto;
+      height: auto;
+      z-index: 8;
+      display: grid;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(5,12,22,.68);
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
     }
-    .crosshair { z-index: 7; display: none; }
-    .crosshair::before, .crosshair::after { content: ""; position: absolute; background: rgba(99,242,255,.22); }
-    .crosshair::before { left: calc(50% - 1px); top: 0; bottom: 0; width: 2px; }
-    .crosshair::after { top: calc(50% - 1px); left: 0; right: 0; height: 2px; }
+
+    .crosshair {
+      z-index: 7;
+      display: none;
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+      content: "";
+      position: absolute;
+      background: rgba(99,242,255,.22);
+    }
+
+    .crosshair::before {
+      left: calc(50% - 1px);
+      top: 0;
+      bottom: 0;
+      width: 2px;
+    }
+
+    .crosshair::after {
+      top: calc(50% - 1px);
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
     .target-corners { z-index: 5; }
-    .target-corners::before, .target-corners::after, .target-corners span::before, .target-corners span::after {
-      content: ""; position: absolute; width: 110px; height: 110px; border-color: rgba(99,242,255,.18); border-style: solid;
+
+    .target-corners::before,
+    .target-corners::after,
+    .target-corners span::before,
+    .target-corners span::after {
+      content: "";
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-color: rgba(99,242,255,.18);
+      border-style: solid;
     }
+
     .target-corners::before { top: 22px; left: 22px; border-width: 2px 0 0 2px; }
     .target-corners::after { top: 22px; right: 22px; border-width: 2px 2px 0 0; }
     .target-corners span::before { bottom: 22px; left: 22px; border-width: 0 0 2px 2px; }
     .target-corners span::after { bottom: 22px; right: 22px; border-width: 0 2px 2px 0; }
+
     .scanline {
-      z-index: 6; background: linear-gradient(180deg, transparent 0%, rgba(99,242,255,.06) 49%, transparent 100%); background-size: 100% 180px; animation: scan 7s linear infinite; opacity: .42;
+      z-index: 6;
+      background: linear-gradient(180deg, transparent 0%, rgba(99,242,255,.06) 49%, transparent 100%);
+      background-size: 100% 180px;
+      animation: scan 7s linear infinite;
+      opacity: .42;
     }
-    .zone-legend, .footprint-legend { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .zone-legend,
+    .footprint-legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
     .legend-chip {
-      display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 999px; background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.06); color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
-    .legend-chip span { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .inspector { min-height: 0; display: grid; grid-template-rows: auto auto 1fr auto; }
-    .panel-head { padding: 16px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
-    .panel-head h3 { margin: 0; font-size: 16px; letter-spacing: .05em; text-transform: uppercase; }
-    .panel-head p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
-    .inspector-summary { padding: 16px 18px; display: grid; gap: 12px; border-bottom: 1px solid rgba(255,255,255,.05); }
-    .vehicle-name { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-    .vehicle-name h4 { margin: 0; font-size: 22px; line-height: 1.1; letter-spacing: .05em; }
+
+    .legend-chip span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .inspector {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+    }
+
+    .panel-head {
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .panel-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .inspector-summary {
+      padding: 16px 18px;
+      display: grid;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+
+    .vehicle-name {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .vehicle-name h4 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+      letter-spacing: .05em;
+    }
+
     .badge {
-      display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 999px; border: 1px solid rgba(65,211,138,.28);
-      background: rgba(65,211,138,.08); color: #b8f3d3; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(65,211,138,.28);
+      background: rgba(65,211,138,.08);
+      color: #b8f3d3;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      white-space: nowrap;
     }
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .metric-card { padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.025); }
-    .metric-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-    .metric-value { font-size: 17px; font-weight: 700; letter-spacing: .04em; }
-    .inspector-body { min-height: 0; overflow: auto; padding: 18px; display: grid; gap: 16px; }
-    .section-block { padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.025); }
-    .section-block h5 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--cyan); }
-    .section-block ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-    .section-block li { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.45; }
-    .section-block li span:first-child { color: var(--muted); min-width: 108px; text-transform: uppercase; letter-spacing: .06em; font-size: 11px; padding-top: 2px; }
-    .inspector-actions { padding: 16px 18px 18px; display: grid; gap: 10px; border-top: 1px solid rgba(255,255,255,.05); }
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .primary-btn, .secondary-btn {
-      width: 100%; border: 0; border-radius: 14px; padding: 13px 14px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; cursor: pointer; transition: 180ms ease;
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
-    .primary-btn { background: linear-gradient(135deg, rgba(77,163,255,.92), rgba(99,242,255,.74)); color: #04101b; box-shadow: 0 14px 28px rgba(77,163,255,.22); }
-    .secondary-btn { background: rgba(255,255,255,.04); color: var(--text); border: 1px solid rgba(255,255,255,.08); }
-    .primary-btn:hover, .secondary-btn:hover { transform: translateY(-1px); }
-    .workflow-panel { min-height: 0; display: grid; grid-template-columns: 320px 1fr 300px; }
-    .workflow-left, .workflow-center, .workflow-right { padding: 18px; }
-    .workflow-left, .workflow-center { border-right: 1px solid rgba(255,255,255,.05); }
-    .workflow-left h3, .workflow-right h3 { margin: 0 0 10px; font-size: 15px; text-transform: uppercase; letter-spacing: .08em; }
-    .workflow-left p, .workflow-right p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .scenario-clock { margin-top: 14px; display: grid; gap: 10px; }
-    .clock-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-    .clock-value { color: #fff; font-weight: 700; }
-    .clock-bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,.05); overflow: hidden; border: 1px solid rgba(255,255,255,.05); }
-    .clock-bar > span { display: block; width: 48%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(77,163,255,.92), rgba(99,242,255,.76)); box-shadow: 0 0 24px rgba(77,163,255,.2); }
-    .workflow-center { display: flex; flex-direction: column; justify-content: center; gap: 16px; }
-    .flow-track { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; align-items: center; }
-    .flow-step { min-height: 96px; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); padding: 14px; display: grid; gap: 8px; align-content: start; }
-    .flow-step.active { border-color: rgba(99,242,255,.35); background: linear-gradient(180deg, rgba(77,163,255,.12), rgba(255,255,255,.03)); box-shadow: 0 0 22px rgba(77,163,255,.12); }
-    .flow-step .step-index { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08); }
-    .flow-step.active .step-index { background: rgba(99,242,255,.18); border-color: rgba(99,242,255,.35); color: var(--cyan); }
-    .flow-step strong { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
-    .flow-step p { margin: 0; font-size: 12px; line-height: 1.4; color: var(--muted); }
-    .workflow-note { color: var(--muted); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-    .queue-card { display: grid; gap: 12px; }
-    .queue-item { padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.025); display: grid; gap: 6px; }
-    .queue-item strong { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
-    .queue-item span { font-size: 12px; color: var(--muted); line-height: 1.45; }
-    .queue-tag { display: inline-flex; align-items: center; width: fit-content; padding: 6px 8px; border-radius: 999px; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; border: 1px solid rgba(255,184,77,.18); background: rgba(255,184,77,.08); color: #ffd39a; }
-    @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+
+    .metric-card {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.025);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+
+    .inspector-body {
+      min-height: 0;
+      overflow: auto;
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-block {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.025);
+    }
+
+    .section-block h5 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--cyan);
+    }
+
+    .section-block ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .section-block li {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .section-block li span:first-child {
+      color: var(--muted);
+      min-width: 108px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 11px;
+      padding-top: 2px;
+    }
+
+    .inspector-actions {
+      padding: 16px 18px 18px;
+      display: grid;
+      gap: 10px;
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, rgba(77,163,255,.92), rgba(99,242,255,.74));
+      color: #04101b;
+      box-shadow: 0 14px 28px rgba(77,163,255,.22);
+    }
+
+    .secondary-btn {
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .primary-btn:hover,
+    .secondary-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .workflow-panel {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 320px 1fr 300px;
+    }
+
+    .workflow-left,
+    .workflow-center,
+    .workflow-right {
+      padding: 18px;
+    }
+
+    .workflow-left,
+    .workflow-center {
+      border-right: 1px solid rgba(255,255,255,.05);
+    }
+
+    .workflow-left h3,
+    .workflow-right h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .workflow-left p,
+    .workflow-right p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .scenario-clock {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .clock-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .clock-value {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .clock-bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.05);
+    }
+
+    .clock-bar > span {
+      display: block;
+      width: 48%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(77,163,255,.92), rgba(99,242,255,.76));
+      box-shadow: 0 0 24px rgba(77,163,255,.2);
+    }
+
+    .workflow-center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .flow-track {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .flow-step {
+      min-height: 96px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .flow-step.active {
+      border-color: rgba(99,242,255,.35);
+      background: linear-gradient(180deg, rgba(77,163,255,.12), rgba(255,255,255,.03));
+      box-shadow: 0 0 22px rgba(77,163,255,.12);
+    }
+
+    .flow-step .step-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .flow-step.active .step-index {
+      background: rgba(99,242,255,.18);
+      border-color: rgba(99,242,255,.35);
+      color: var(--cyan);
+    }
+
+    .flow-step strong {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .flow-step p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .workflow-note {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .queue-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .queue-item {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.025);
+      display: grid;
+      gap: 6px;
+    }
+
+    .queue-item strong {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .queue-item span {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .queue-tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      border: 1px solid rgba(255,184,77,.18);
+      background: rgba(255,184,77,.08);
+      color: #ffd39a;
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+
     @media (max-width: 1360px) {
-      :root { --inspector-w: 340px; --bottom-h: 250px; }
-      .topbar { grid-template-columns: 1fr; padding: 14px 18px; align-items: start; }
-      .status-cluster, .mission-cluster { justify-content: flex-start; }
-      .workflow-panel { grid-template-columns: 1fr; }
-      .workflow-left, .workflow-center { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+      :root {
+        --inspector-w: 340px;
+        --bottom-h: 255px;
+      }
+      .topbar {
+        grid-template-columns: 1fr;
+        padding: 14px 18px;
+        align-items: start;
+      }
+      .status-cluster,
+      .mission-cluster {
+        justify-content: flex-start;
+      }
+      .workflow-panel {
+        grid-template-columns: 1fr;
+      }
+      .workflow-left,
+      .workflow-center {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,.05);
+      }
     }
+
     @media (max-width: 1080px) {
       html, body { overflow: auto; }
-      .app-shell { height: auto; min-height: 100vh; grid-template-rows: auto auto auto; }
-      .main-grid { grid-template-columns: 1fr; }
-      .flow-track { grid-template-columns: 1fr; }
+      .app-shell {
+        height: auto;
+        min-height: 100vh;
+        grid-template-rows: auto auto auto;
+      }
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .flow-track {
+        grid-template-columns: 1fr;
+      }
     }
+
     @media (max-width: 720px) {
-      .app-shell { padding: 10px; gap: 10px; }
-      .stage-top, .stage-bottom, .workflow-left, .workflow-center, .workflow-right, .panel-head, .inspector-summary, .inspector-body, .inspector-actions { padding-left: 14px; padding-right: 14px; }
-      .detail-grid, .btn-row { grid-template-columns: 1fr; }
-      .target-corners::before, .target-corners::after, .target-corners span::before, .target-corners span::after { width: 58px; height: 58px; }
-      .mouse-help { display: none; }
+      .app-shell {
+        padding: 10px;
+        gap: 10px;
+      }
+      .stage-top,
+      .stage-bottom,
+      .workflow-left,
+      .workflow-center,
+      .workflow-right,
+      .panel-head,
+      .inspector-summary,
+      .inspector-body,
+      .inspector-actions {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+      .detail-grid,
+      .btn-row {
+        grid-template-columns: 1fr;
+      }
+      .target-corners::before,
+      .target-corners::after,
+      .target-corners span::before,
+      .target-corners span::after {
+        width: 58px;
+        height: 58px;
+      }
+      .mouse-help {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -262,11 +902,13 @@
           <div class="title">Automated-Enabled Defense Space Operations Interface</div>
         </div>
       </div>
+
       <div class="status-cluster">
         <div class="pill"><span class="dot"></span><strong>System:</strong> NOMINAL</div>
         <div class="pill"><span class="dot"></span><strong>Assets:</strong> <span id="assetCount">07 Tracked</span></div>
         <div class="pill"><span class="dot warn"></span><strong>Queue:</strong> <span id="queueCount">02 Pending</span></div>
       </div>
+
       <div class="mission-cluster">
         <div class="pill"><strong>Scenario Clock</strong> <span id="headerClock">14:32:18 Z</span></div>
         <div class="pill"><strong>Speed</strong> <span id="headerRate">8x</span></div>
@@ -281,6 +923,7 @@
             <h2>Global Mission Picture</h2>
             <p>3D globe, 2D map, day-night state, orbital tracks, projected footprints, and selectable vehicles.</p>
           </div>
+
           <div class="toolbar-stack">
             <div class="toolbar">
               <button class="tool-btn active" data-layer="earth">Earth</button>
@@ -347,6 +990,7 @@
           <h3>Vehicle Inspector</h3>
           <p>Click an orbital asset in either view to inspect mission state, health, links, coverage, and automation logic.</p>
         </div>
+
         <div class="inspector-summary">
           <div class="vehicle-name">
             <div>
@@ -362,6 +1006,7 @@
             <div class="metric-card"><div class="metric-label">Latency</div><div class="metric-value" id="vehicleLatency">1.2 sec</div></div>
           </div>
         </div>
+
         <div class="inspector-body">
           <section class="section-block">
             <h5>Mission Data</h5>
@@ -389,6 +1034,7 @@
             </ul>
           </section>
         </div>
+
         <div class="inspector-actions">
           <button class="primary-btn" id="focusBtn">Center on Vehicle</button>
           <div class="btn-row">
@@ -434,10 +1080,6 @@
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
     import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/controls/OrbitControls.js';
 
-    // Put these 3 image files in the same folder as index.html
-    // earth-day.png     -> use your globe image
-    // earth-map.png     -> use your flat map image
-    // satellite.png     -> use your satellite image
     const ASSET_PATHS = {
       earthDay: './earth-day.png',
       earthMap: './earth-map.png',
@@ -464,7 +1106,7 @@
     ];
 
     const scenario = { start: new Date('2030-04-12T14:32:18Z'), multiplier: 8, elapsedSeconds: 0 };
-    const state = { viewMode:'3d', cameraMode:'global', showEarth:true, showZones:true, showOrbits:true, showCoverage:true, showLabels:true, selectedAssetIndex:0, followAssetIndex:0, mapZoom:1, mapOffsetX:0, mapOffsetY:0, draggingMap:false, dragStartX:0, dragStartY:0, solarLon:0 };
+    const state = { viewMode:'3d', cameraMode:'global', showEarth:true, showZones:true, showOrbits:true, showCoverage:true, showLabels:true, selectedAssetIndex:0, mapZoom:1, mapOffsetX:0, mapOffsetY:0, draggingMap:false, dragStartX:0, dragStartY:0, solarLon:0 };
 
     const canvas3d = document.getElementById('globeCanvas');
     const canvas2d = document.getElementById('map2dCanvas');
@@ -477,8 +1119,49 @@
     const crosshair = document.getElementById('crosshair');
     const assetCount = document.getElementById('assetCount');
     const queueCount = document.getElementById('queueCount');
+
     const ui = {
-      vehicleName: document.getElementById('vehicleName'), vehicleBadge: document.getElementById('vehicleBadge'), orbitClass: document.getElementById('orbitClass'), groundTrack: document.getElementById('groundTrack'), vehicleHealth: document.getElementById('vehicleHealth'), vehicleLatency: document.getElementById('vehicleLatency'), payloadText: document.getElementById('payloadText'), taskText: document.getElementById('taskText'), coverageText: document.getElementById('coverageText'), powerText: document.getElementById('powerText'), thermalText: document.getElementById('thermalText'), commsText: document.getElementById('commsText'), autonomyText: document.getElementById('autonomyText'), detectText: document.getElementById('detectText'), assessText: document.getElementById('assessText'), recommendText: document.getElementById('recommendText'), stepDetectText: document.getElementById('stepDetectText'), stepAssessText: document.getElementById('stepAssessText'), stepRecommendText: document.getElementById('stepRecommendText'), stepQueueText: document.getElementById('stepQueueText'), stepApproveText: document.getElementById('stepApproveText'), currentThread: document.getElementById('currentThread'), queueTag1: document.getElementById('queueTag1'), queueTitle1: document.getElementById('queueTitle1'), queueBody1: document.getElementById('queueBody1'), queueTag2: document.getElementById('queueTag2'), queueTitle2: document.getElementById('queueTitle2'), queueBody2: document.getElementById('queueBody2'), scenarioClock: document.getElementById('scenarioClock'), playbackRate: document.getElementById('playbackRate'), solarState: document.getElementById('solarState'), headerClock: document.getElementById('headerClock'), headerRate: document.getElementById('headerRate'), clockBar: document.getElementById('clockBar'), statusDot: document.getElementById('statusDot'), stepDetect: document.getElementById('step-detect'), stepAssess: document.getElementById('step-assess'), stepRecommend: document.getElementById('step-recommend'), stepQueue: document.getElementById('step-queue'), stepApprove: document.getElementById('step-approve'), cameraNote: document.getElementById('cameraNote')
+      vehicleName: document.getElementById('vehicleName'),
+      vehicleBadge: document.getElementById('vehicleBadge'),
+      orbitClass: document.getElementById('orbitClass'),
+      groundTrack: document.getElementById('groundTrack'),
+      vehicleHealth: document.getElementById('vehicleHealth'),
+      vehicleLatency: document.getElementById('vehicleLatency'),
+      payloadText: document.getElementById('payloadText'),
+      taskText: document.getElementById('taskText'),
+      coverageText: document.getElementById('coverageText'),
+      powerText: document.getElementById('powerText'),
+      thermalText: document.getElementById('thermalText'),
+      commsText: document.getElementById('commsText'),
+      autonomyText: document.getElementById('autonomyText'),
+      detectText: document.getElementById('detectText'),
+      assessText: document.getElementById('assessText'),
+      recommendText: document.getElementById('recommendText'),
+      stepDetect: document.getElementById('step-detect'),
+      stepAssess: document.getElementById('step-assess'),
+      stepRecommend: document.getElementById('step-recommend'),
+      stepQueue: document.getElementById('step-queue'),
+      stepApprove: document.getElementById('step-approve'),
+      stepDetectText: document.getElementById('stepDetectText'),
+      stepAssessText: document.getElementById('stepAssessText'),
+      stepRecommendText: document.getElementById('stepRecommendText'),
+      stepQueueText: document.getElementById('stepQueueText'),
+      stepApproveText: document.getElementById('stepApproveText'),
+      currentThread: document.getElementById('currentThread'),
+      queueTag1: document.getElementById('queueTag1'),
+      queueTitle1: document.getElementById('queueTitle1'),
+      queueBody1: document.getElementById('queueBody1'),
+      queueTag2: document.getElementById('queueTag2'),
+      queueTitle2: document.getElementById('queueTitle2'),
+      queueBody2: document.getElementById('queueBody2'),
+      scenarioClock: document.getElementById('scenarioClock'),
+      playbackRate: document.getElementById('playbackRate'),
+      solarState: document.getElementById('solarState'),
+      headerClock: document.getElementById('headerClock'),
+      headerRate: document.getElementById('headerRate'),
+      clockBar: document.getElementById('clockBar'),
+      statusDot: document.getElementById('statusDot'),
+      cameraNote: document.getElementById('cameraNote')
     };
 
     assetCount.textContent = `${assets.length.toString().padStart(2, '0')} Tracked`;
@@ -491,9 +1174,11 @@
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
     camera.position.set(0, 0, 8.6);
+
     const controls = new OrbitControls(camera, canvas3d);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
@@ -507,11 +1192,10 @@
     const root = new THREE.Group();
     scene.add(root);
     const globeGroup = new THREE.Group();
-    root.add(globeGroup);
     const orbitGroup = new THREE.Group();
     const footprintGroup = new THREE.Group();
     const satGroup = new THREE.Group();
-    root.add(orbitGroup, footprintGroup, satGroup);
+    root.add(globeGroup, orbitGroup, footprintGroup, satGroup);
 
     scene.add(new THREE.AmbientLight(0xa6c4ff, 0.75));
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -543,19 +1227,26 @@
     globeGroup.add(atmosphere);
     const glow = new THREE.Mesh(new THREE.SphereGeometry(earthRadius * 1.18, 64, 64), new THREE.MeshBasicMaterial({ color: 0x2568ff, transparent: true, opacity: 0.08, side: THREE.BackSide }));
     globeGroup.add(glow);
-    const nightside = new THREE.Mesh(new THREE.SphereGeometry(earthRadius * 1.001, 96, 96), new THREE.MeshPhongMaterial({ color: 0x07101f, transparent: true, opacity: 0.18, shininess: 0 }));
-    globeGroup.add(nightside);
 
     const gridMat = new THREE.LineBasicMaterial({ color: 0x98c8ff, transparent: true, opacity: 0.16 });
     function makeLat(latDeg) {
-      const lat = THREE.MathUtils.degToRad(latDeg), y = Math.sin(lat) * earthRadius * .998, r = Math.cos(lat) * earthRadius * .998;
+      const lat = THREE.MathUtils.degToRad(latDeg);
+      const y = Math.sin(lat) * earthRadius * .998;
+      const r = Math.cos(lat) * earthRadius * .998;
       const pts = [];
-      for (let i = 0; i <= 128; i++) { const a = (i / 128) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r)); }
+      for (let i = 0; i <= 128; i++) {
+        const a = (i / 128) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r));
+      }
       return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat);
     }
     function makeLon(lonDeg) {
-      const lon = THREE.MathUtils.degToRad(lonDeg), pts = [];
-      for (let i = 0; i <= 128; i++) { const a = (i / 128) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * earthRadius * Math.cos(lon), Math.sin(a) * earthRadius, Math.cos(a) * earthRadius * Math.sin(lon))); }
+      const lon = THREE.MathUtils.degToRad(lonDeg);
+      const pts = [];
+      for (let i = 0; i <= 128; i++) {
+        const a = (i / 128) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(a) * earthRadius * Math.cos(lon), Math.sin(a) * earthRadius, Math.cos(a) * earthRadius * Math.sin(lon)));
+      }
       return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat);
     }
     [-60,-30,0,30,60].forEach(v => globeGroup.add(makeLat(v)));
@@ -568,11 +1259,12 @@
       earthMat.needsUpdate = true;
     });
 
-    const satSpriteTexture = textureLoader.load(ASSET_PATHS.satellite);
-    satSpriteTexture.colorSpace = THREE.SRGBColorSpace;
+    const satTexture = textureLoader.load(ASSET_PATHS.satellite);
+    satTexture.colorSpace = THREE.SRGBColorSpace;
 
     function latLonToVec(latDeg, lonDeg, radius) {
-      const lat = THREE.MathUtils.degToRad(latDeg), lon = THREE.MathUtils.degToRad(lonDeg);
+      const lat = THREE.MathUtils.degToRad(latDeg);
+      const lon = THREE.MathUtils.degToRad(lonDeg);
       return new THREE.Vector3(radius * Math.cos(lat) * Math.sin(lon), radius * Math.sin(lat), radius * Math.cos(lat) * Math.cos(lon));
     }
 
@@ -581,7 +1273,7 @@
       const inc = THREE.MathUtils.degToRad(incDeg);
       for (let i = 0; i <= 256; i++) {
         const a = (i / 256) * Math.PI * 2;
-        const p = new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius).applyAxisAngle(new THREE.Vector3(1,0,0), inc);
+        const p = new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius).applyAxisAngle(new THREE.Vector3(1, 0, 0), inc);
         pts.push(p);
       }
       const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color, transparent: true, opacity: .36, dashSize: .18, gapSize: .12 }));
@@ -599,8 +1291,7 @@
       orbitGroup.add(line);
       const disc = coverageDisc(asset.footprintColor);
       footprintGroup.add(disc);
-      const spriteMat = new THREE.SpriteMaterial({ map: satSpriteTexture, transparent: true, depthWrite: false });
-      const sprite = new THREE.Sprite(spriteMat);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: satTexture, transparent: true, depthWrite: false }));
       sprite.scale.set(.34, .22, 1);
       sprite.userData.assetIndex = idx;
       satGroup.add(sprite);
@@ -650,12 +1341,13 @@
       ui.queueTitle2.textContent = a.queue2[1];
       ui.queueBody2.textContent = a.queue2[2];
       ui.statusDot.className = 'dot' + (a.health === 'Degraded' ? ' warn' : '');
-      setStep(a.workflowStage);
       queueCount.textContent = `${(a.workflowStage >= 4 ? 2 : 1).toString().padStart(2, '0')} Pending`;
+      setStep(a.workflowStage);
     }
 
     function resizeAll() {
-      const w = stage.clientWidth, h = stage.clientHeight;
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -681,15 +1373,9 @@
       ui.solarState.textContent = Math.abs(Math.sin(scenario.elapsedSeconds * 0.01)) > .35 ? 'Sunlit / Night' : 'Sunlit / Terminator';
     }
 
-    function sunVector() {
-      return latLonToVec(8, state.solarLon, 1).normalize();
-    }
-
-    function updateEarthLighting() {
-      const sv = sunVector();
-      sunLight.position.copy(sv.clone().multiplyScalar(8));
-      nightside.position.copy(earth.position);
-      nightside.lookAt(sv.clone().multiplyScalar(-4));
+    function updateLighting() {
+      const sunVec = latLonToVec(8, state.solarLon, 1).normalize();
+      sunLight.position.copy(sunVec.clone().multiplyScalar(8));
       earth.rotation.y += .0018 * scenario.multiplier / 8;
       atmosphere.rotation.y = earth.rotation.y;
       glow.rotation.y = earth.rotation.y;
@@ -699,7 +1385,7 @@
       const rect = stage.getBoundingClientRect();
       assets.forEach((a, i) => {
         const ang = a.phase + t * a.speed * .18;
-        const p = new THREE.Vector3(Math.cos(ang) * a.orbitRadius, 0, Math.sin(ang) * a.orbitRadius).applyAxisAngle(new THREE.Vector3(1,0,0), THREE.MathUtils.degToRad(a.inclination));
+        const p = new THREE.Vector3(Math.cos(ang) * a.orbitRadius, 0, Math.sin(ang) * a.orbitRadius).applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(a.inclination));
         satellites[i].pos.copy(p);
         satellites[i].sprite.position.copy(p);
         satellites[i].disc.position.copy(p.clone().normalize().multiplyScalar(earthRadius * 1.001));
@@ -707,6 +1393,7 @@
         satellites[i].disc.rotateZ(t * .12 + i);
         satellites[i].disc.material.opacity = (i === state.selectedAssetIndex ? .26 : .15) + Math.sin(t * 2 + i) * .02;
         satellites[i].line.material.opacity = i === state.selectedAssetIndex ? .65 : .28;
+
         const n = p.clone().normalize();
         satellites[i].lat = THREE.MathUtils.radToDeg(Math.asin(n.y));
         satellites[i].lon = THREE.MathUtils.radToDeg(Math.atan2(n.x, n.z)) - THREE.MathUtils.radToDeg(earth.rotation.y);
@@ -737,30 +1424,30 @@
       updateViewLabel();
     }
 
-    function updateCamera(t) {
-      const sel = satellites[state.selectedAssetIndex];
+    function updateCamera() {
+      const selIndex = state.selectedAssetIndex;
+      const selPos = satellites[selIndex].pos.clone();
+
       if (state.cameraMode === 'global') {
         controls.enableRotate = true;
         controls.enablePan = true;
-        controls.minPolarAngle = .2;
-        controls.maxPolarAngle = Math.PI - .2;
-        controls.target.lerp(new THREE.Vector3(0,0,0), .08);
+        controls.target.lerp(new THREE.Vector3(0, 0, 0), .08);
       } else if (state.cameraMode === 'theater') {
         controls.enableRotate = true;
         controls.enablePan = true;
-        const zone = zones[assets[state.selectedAssetIndex].region];
+        const zone = zones[assets[selIndex].region];
         const target = latLonToVec(zone.centerLat, zone.centerLon + THREE.MathUtils.radToDeg(earth.rotation.y), .25);
         controls.target.lerp(target, .06);
-        const eyeDir = latLonToVec(zone.centerLat, zone.centerLon + 20 + THREE.MathUtils.radToDeg(earth.rotation.y), 6.4);
-        camera.position.lerp(eyeDir, .04);
+        const eye = latLonToVec(zone.centerLat, zone.centerLon + 20 + THREE.MathUtils.radToDeg(earth.rotation.y), 6.4);
+        camera.position.lerp(eye, .04);
       } else if (state.cameraMode === 'follow') {
         controls.enableRotate = false;
         controls.enablePan = false;
-        const assetPos = sel.pos.clone();
-        const camPos = assetPos.clone().normalize().multiplyScalar(assetPos.length() + 1.35).add(new THREE.Vector3(.5, .35, .5));
+        const camPos = selPos.clone().normalize().multiplyScalar(selPos.length() + 1.35).add(new THREE.Vector3(.5, .35, .5));
         camera.position.lerp(camPos, .08);
-        controls.target.lerp(assetPos, .1);
+        controls.target.lerp(selPos, .1);
       }
+
       controls.update();
     }
 
@@ -781,7 +1468,10 @@
       if (mode === '2d') draw2D();
     }
 
-    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+    function clamp(n, min, max) {
+      return Math.max(min, Math.min(max, n));
+    }
+
     function lonLatToCanvas(lon, lat, w, h) {
       const x = (((lon + 180) / 360) * w * state.mapZoom) + state.mapOffsetX;
       const y = (((90 - lat) / 180) * h * state.mapZoom) + state.mapOffsetY;
@@ -808,9 +1498,8 @@
     }
 
     function drawTerminator2D(w, h) {
-      const sunLon = state.solarLon;
-      const nightStart = sunLon + 90;
-      const nightEnd = sunLon + 270;
+      const nightStart = state.solarLon + 90;
+      const nightEnd = state.solarLon + 270;
       const x1 = (((nightStart + 180) / 360) * w * state.mapZoom) + state.mapOffsetX;
       const x2 = (((nightEnd + 180) / 360) * w * state.mapZoom) + state.mapOffsetX;
       ctx2d.fillStyle = 'rgba(7,10,18,.34)';
@@ -841,7 +1530,8 @@
           ctx2d.stroke();
         }
         if (imgSat.complete && imgSat.naturalWidth) {
-          const sw = 44 * state.mapZoom, sh = 24 * state.mapZoom;
+          const sw = 44 * state.mapZoom;
+          const sh = 24 * state.mapZoom;
           ctx2d.drawImage(imgSat, p.x - sw / 2, p.y - sh / 2, sw, sh);
         } else {
           ctx2d.fillStyle = '#d7f8ff';
@@ -858,9 +1548,9 @@
     }
 
     function draw2D() {
-      const w = canvas2d.width, h = canvas2d.height;
+      const w = canvas2d.width;
+      const h = canvas2d.height;
       ctx2d.clearRect(0, 0, w, h);
-      ctx2d.save();
       if (imgMap.complete && imgMap.naturalWidth) {
         ctx2d.drawImage(imgMap, state.mapOffsetX, state.mapOffsetY, w * state.mapZoom, h * state.mapZoom);
       } else {
@@ -870,26 +1560,15 @@
       drawTerminator2D(w, h);
       drawZones2D(w, h);
       drawSatellites2D(w, h);
-      ctx2d.restore();
-    }
-
-    function selectFrom2D(x, y) {
-      let best = -1, bestD = 28;
-      const w = canvas2d.width, h = canvas2d.height, scale = Math.min(window.devicePixelRatio, 2);
-      const cx = x * scale, cy = y * scale;
-      satellites.forEach((s, i) => {
-        const p = lonLatToCanvas(s.lon, s.lat, w, h);
-        const d = Math.hypot(cx - p.x, cy - p.y);
-        if (d < bestD) { bestD = d; best = i; }
-      });
-      if (best >= 0) { applyAsset(best); state.followAssetIndex = best; }
     }
 
     function animateTagsFor2D() {
-      const rect = stage.getBoundingClientRect();
       const scale = Math.min(window.devicePixelRatio, 2);
       satellites.forEach((s, i) => {
-        if (state.viewMode !== '2d' || !state.showLabels) { s.tag.style.display = 'none'; return; }
+        if (state.viewMode !== '2d' || !state.showLabels) {
+          s.tag.style.display = 'none';
+          return;
+        }
         const p = lonLatToCanvas(s.lon, s.lat, canvas2d.width, canvas2d.height);
         s.tag.style.display = 'block';
         s.tag.style.left = `${p.x / scale}px`;
@@ -897,6 +1576,25 @@
         s.tag.style.opacity = i === state.selectedAssetIndex ? '1' : '.82';
         s.tag.style.borderColor = i === state.selectedAssetIndex ? 'rgba(99,242,255,.5)' : 'rgba(99,242,255,.22)';
       });
+    }
+
+    function selectFrom2D(x, y) {
+      let best = -1;
+      let bestD = 28;
+      const w = canvas2d.width;
+      const h = canvas2d.height;
+      const scale = Math.min(window.devicePixelRatio, 2);
+      const cx = x * scale;
+      const cy = y * scale;
+      satellites.forEach((s, i) => {
+        const p = lonLatToCanvas(s.lon, s.lat, w, h);
+        const d = Math.hypot(cx - p.x, cy - p.y);
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+        }
+      });
+      if (best >= 0) applyAsset(best);
     }
 
     canvas3d.addEventListener('click', (e) => {
@@ -908,7 +1606,6 @@
       const hit = raycaster.intersectObjects(satGroup.children, false)[0];
       if (hit && typeof hit.object.userData.assetIndex === 'number') {
         applyAsset(hit.object.userData.assetIndex);
-        state.followAssetIndex = hit.object.userData.assetIndex;
       }
     });
 
@@ -918,32 +1615,40 @@
       state.dragStartY = e.clientY - state.mapOffsetY;
       canvas2d.classList.add('dragging');
     });
-    window.addEventListener('mouseup', () => { state.draggingMap = false; canvas2d.classList.remove('dragging'); });
+
+    window.addEventListener('mouseup', () => {
+      state.draggingMap = false;
+      canvas2d.classList.remove('dragging');
+    });
+
     window.addEventListener('mousemove', (e) => {
       if (!state.draggingMap || state.viewMode !== '2d') return;
       state.mapOffsetX = e.clientX - state.dragStartX;
       state.mapOffsetY = e.clientY - state.dragStartY;
       draw2D();
     });
+
     canvas2d.addEventListener('wheel', (e) => {
       if (state.viewMode !== '2d') return;
       e.preventDefault();
       state.mapZoom = clamp(state.mapZoom + (e.deltaY < 0 ? .08 : -.08), .75, 3.2);
       draw2D();
     }, { passive: false });
-    canvas2d.addEventListener('click', (e) => { if (!state.draggingMap) selectFrom2D(e.offsetX, e.offsetY); });
+
+    canvas2d.addEventListener('click', (e) => {
+      if (!state.draggingMap) selectFrom2D(e.offsetX, e.offsetY);
+    });
 
     document.querySelectorAll('[data-layer]').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('active');
         const on = btn.classList.contains('active');
         const layer = btn.dataset.layer;
-        if (layer === 'earth') state.showEarth = on;
+        if (layer === 'earth') { state.showEarth = on; globeGroup.visible = on; }
         if (layer === 'zones') { state.showZones = on; zoneOverlay.style.display = on ? 'block' : 'none'; }
         if (layer === 'orbits') { state.showOrbits = on; orbitGroup.visible = on; }
         if (layer === 'coverage') { state.showCoverage = on; footprintGroup.visible = on; }
         if (layer === 'labels') { state.showLabels = on; if (!on) satellites.forEach(s => s.tag.style.display = 'none'); }
-        globeGroup.visible = state.showEarth;
         draw2D();
       });
     });
@@ -955,22 +1660,32 @@
     document.getElementById('cameraTheaterBtn').addEventListener('click', () => setCameraMode('theater'));
     document.getElementById('cameraFollowBtn').addEventListener('click', () => setCameraMode('follow'));
     document.getElementById('cameraResetBtn').addEventListener('click', () => {
-      camera.position.set(0,0,8.6);
-      controls.target.set(0,0,0);
+      camera.position.set(0, 0, 8.6);
+      controls.target.set(0, 0, 0);
       controls.update();
       setCameraMode('global');
     });
-    document.getElementById('focusBtn').addEventListener('click', () => { state.followAssetIndex = state.selectedAssetIndex; setCameraMode('follow'); });
-    document.getElementById('nextVehicleBtn').addEventListener('click', () => { const n = (state.selectedAssetIndex + 1) % assets.length; applyAsset(n); state.followAssetIndex = n; });
+    document.getElementById('focusBtn').addEventListener('click', () => setCameraMode('follow'));
+    document.getElementById('nextVehicleBtn').addEventListener('click', () => applyAsset((state.selectedAssetIndex + 1) % assets.length));
+
+    function switchView(mode) {
+      state.viewMode = mode;
+      canvas3d.style.display = mode === '3d' ? 'block' : 'none';
+      canvas2d.style.display = mode === '2d' ? 'block' : 'none';
+      document.getElementById('mode3dBtn').classList.toggle('active', mode === '3d');
+      document.getElementById('mode2dBtn').classList.toggle('active', mode === '2d');
+      updateViewLabel();
+      if (mode === '2d') draw2D();
+    }
 
     let last = performance.now();
     function tick(now) {
       const delta = Math.min((now - last) / 1000, .05);
       last = now;
       updateScenario(delta);
-      updateEarthLighting();
+      updateLighting();
       updateSatellites(now * .001);
-      updateCamera(now * .001);
+      updateCamera();
       controls.update();
       renderer.render(scene, camera);
       if (state.viewMode === '2d') draw2D();
