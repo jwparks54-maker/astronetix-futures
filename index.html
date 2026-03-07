@@ -6,38 +6,37 @@
   <title>AstroNetix Futures | Mission Interface</title>
   <style>
     :root {
-      --bg: #05080f;
-      --bg-2: #0a1220;
-      --panel: rgba(10, 18, 32, 0.88);
-      --panel-2: rgba(7, 14, 24, 0.92);
-      --line: rgba(105, 160, 255, 0.2);
-      --line-strong: rgba(105, 160, 255, 0.45);
-      --text: #e7eefc;
-      --muted: #8ea4c9;
+      --bg: #04070d;
+      --bg-2: #091220;
+      --panel: rgba(10, 17, 30, 0.9);
+      --panel-2: rgba(7, 13, 24, 0.95);
+      --line: rgba(89, 146, 255, 0.18);
+      --line-strong: rgba(89, 146, 255, 0.38);
+      --text: #eaf1ff;
+      --muted: #90a6cb;
       --blue: #4da3ff;
       --cyan: #63f2ff;
       --green: #41d38a;
       --amber: #ffb84d;
       --red: #ff647c;
-      --shadow: 0 16px 60px rgba(0, 0, 0, 0.45);
+      --purple: #b08cff;
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.46);
       --radius: 18px;
-      --header-h: 72px;
-      --bottom-h: 190px;
-      --inspector-w: 360px;
-      --grid-gap: 16px;
+      --header-h: 76px;
+      --bottom-h: 200px;
+      --inspector-w: 380px;
+      --gap: 16px;
       --font: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
       min-height: 100%;
       background:
-        radial-gradient(circle at top, rgba(43, 91, 171, 0.18), transparent 28%),
-        linear-gradient(180deg, #04070d 0%, #07101d 100%);
+        radial-gradient(circle at top, rgba(38, 89, 166, 0.18), transparent 24%),
+        linear-gradient(180deg, #04070d 0%, #07101b 100%);
       color: var(--text);
       font-family: var(--font);
       overflow: hidden;
@@ -47,67 +46,54 @@
       content: "";
       position: fixed;
       inset: 0;
+      pointer-events: none;
       background-image:
         linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 44px 44px;
-      opacity: 0.22;
-      pointer-events: none;
-    }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 20% 30%, rgba(99, 242, 255, 0.07), transparent 22%),
-        radial-gradient(circle at 82% 18%, rgba(77, 163, 255, 0.08), transparent 20%),
-        radial-gradient(circle at 50% 80%, rgba(65, 211, 138, 0.05), transparent 28%);
-      pointer-events: none;
-      mix-blend-mode: screen;
+      background-size: 42px 42px;
+      opacity: 0.18;
+      z-index: 0;
     }
 
     .app-shell {
+      position: relative;
+      z-index: 1;
       height: 100vh;
       padding: 14px;
       display: grid;
       grid-template-columns: 1fr;
       grid-template-rows: var(--header-h) 1fr var(--bottom-h);
-      gap: var(--grid-gap);
-      position: relative;
-      z-index: 1;
+      gap: var(--gap);
     }
 
     .panel {
-      background: linear-gradient(180deg, rgba(12, 20, 34, 0.92) 0%, rgba(8, 14, 24, 0.95) 100%);
+      background: linear-gradient(180deg, rgba(10, 17, 30, 0.92) 0%, rgba(7, 12, 22, 0.95) 100%);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
-      position: relative;
       overflow: hidden;
+      position: relative;
     }
 
     .panel::before {
       content: "";
       position: absolute;
       inset: 0;
+      pointer-events: none;
       border-radius: inherit;
       padding: 1px;
-      background: linear-gradient(135deg, rgba(99,242,255,0.22), rgba(77,163,255,0.08), transparent 48%);
-      -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
+      background: linear-gradient(135deg, rgba(99,242,255,0.22), rgba(77,163,255,0.08), transparent 45%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
-      pointer-events: none;
     }
 
     .topbar {
       display: grid;
-      grid-template-columns: minmax(260px, 420px) 1fr minmax(280px, 420px);
-      align-items: center;
+      grid-template-columns: minmax(280px, 440px) 1fr minmax(280px, 440px);
       gap: 14px;
+      align-items: center;
       padding: 0 18px;
     }
 
@@ -124,11 +110,12 @@
       border-radius: 12px;
       display: grid;
       place-items: center;
-      background: radial-gradient(circle at 30% 30%, rgba(99,242,255,0.28), rgba(77,163,255,0.14));
+      background: radial-gradient(circle at 35% 35%, rgba(99,242,255,0.28), rgba(77,163,255,0.14));
       border: 1px solid var(--line-strong);
       color: var(--cyan);
       font-weight: 800;
       letter-spacing: 0.08em;
+      flex: 0 0 auto;
     }
 
     .eyebrow {
@@ -142,7 +129,7 @@
     .title {
       font-size: 18px;
       font-weight: 700;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -151,18 +138,13 @@
     .status-cluster,
     .mission-cluster {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
     }
 
-    .status-cluster {
-      justify-content: center;
-    }
-
-    .mission-cluster {
-      justify-content: flex-end;
-    }
+    .status-cluster { justify-content: center; }
+    .mission-cluster { justify-content: flex-end; }
 
     .pill {
       min-height: 38px;
@@ -207,13 +189,13 @@
       min-height: 0;
       display: grid;
       grid-template-columns: minmax(0, 1fr) var(--inspector-w);
-      gap: var(--grid-gap);
+      gap: var(--gap);
     }
 
     .globe-stage {
+      min-height: 0;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      min-height: 0;
     }
 
     .stage-top,
@@ -223,9 +205,9 @@
       align-items: center;
       gap: 12px;
       padding: 14px 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
       position: relative;
       z-index: 2;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
     .stage-bottom {
@@ -248,8 +230,8 @@
 
     .toolbar {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
+      gap: 10px;
       justify-content: flex-end;
     }
 
@@ -271,112 +253,108 @@
       border-color: rgba(99,242,255,0.45);
       color: #fff;
       background: rgba(77,163,255,0.12);
-      box-shadow: inset 0 0 0 1px rgba(99,242,255,0.12), 0 0 18px rgba(77,163,255,0.12);
+      box-shadow: inset 0 0 0 1px rgba(99,242,255,0.1), 0 0 18px rgba(77,163,255,0.12);
     }
 
     .stage-canvas {
-      min-height: 0;
       position: relative;
+      min-height: 0;
       overflow: hidden;
       background:
-        radial-gradient(circle at 50% 50%, rgba(27, 79, 155, 0.18), transparent 20%),
-        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03), transparent 45%),
-        linear-gradient(180deg, rgba(3, 7, 12, 0.4), rgba(3, 7, 12, 0.1));
+        radial-gradient(circle at 50% 50%, rgba(17, 60, 122, 0.22), transparent 22%),
+        linear-gradient(180deg, rgba(2, 6, 10, 0.6), rgba(2, 6, 10, 0.2));
     }
 
-    .stage-canvas .starfield,
-    .stage-canvas .hud-rings,
-    .stage-canvas .earth-placeholder,
-    .stage-canvas .target-corners,
-    .stage-canvas .scanline {
+    #globeCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-overlay,
+    .scanline,
+    .target-corners,
+    .zone-overlay,
+    .satellite-tags {
       position: absolute;
       inset: 0;
       pointer-events: none;
     }
 
-    .starfield {
-      background-image:
-        radial-gradient(circle at 12% 22%, rgba(255,255,255,0.7) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 74% 31%, rgba(255,255,255,0.7) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 58% 18%, rgba(255,255,255,0.55) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 82% 72%, rgba(255,255,255,0.55) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 22% 68%, rgba(255,255,255,0.5) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 40% 82%, rgba(255,255,255,0.6) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 90% 12%, rgba(255,255,255,0.55) 0 1px, transparent 1.2px);
-      opacity: 0.65;
-    }
-
-    .hud-rings {
-      display: grid;
-      place-items: center;
-    }
-
-    .earth-placeholder {
-      display: grid;
-      place-items: center;
-    }
-
-    .earth-core {
-      width: min(58vw, 680px);
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
-      position: relative;
+    .canvas-overlay {
       background:
-        radial-gradient(circle at 35% 28%, rgba(104, 205, 255, 0.75) 0%, rgba(27, 120, 212, 0.62) 20%, rgba(6, 42, 84, 0.96) 60%, rgba(2, 10, 22, 1) 78%),
-        radial-gradient(circle at 70% 65%, rgba(82, 255, 210, 0.18), transparent 30%);
-      box-shadow:
-        inset -60px -40px 100px rgba(0, 0, 0, 0.45),
-        inset 18px 18px 40px rgba(255, 255, 255, 0.08),
-        0 0 80px rgba(43, 134, 255, 0.22);
-      border: 1px solid rgba(108, 183, 255, 0.28);
-      animation: globePulse 8s ease-in-out infinite;
+        radial-gradient(circle at 20% 25%, rgba(99,242,255,0.06), transparent 18%),
+        radial-gradient(circle at 80% 20%, rgba(77,163,255,0.08), transparent 20%),
+        radial-gradient(circle at 50% 80%, rgba(65,211,138,0.05), transparent 28%);
+      z-index: 1;
     }
 
-    .earth-core::before,
-    .earth-core::after {
+    .zone-overlay {
+      z-index: 3;
+    }
+
+    .zone-tag {
+      position: absolute;
+      padding: 7px 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(8,14,26,0.68);
+      color: #d7e7ff;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      white-space: nowrap;
+    }
+
+    .satellite-tags {
+      z-index: 4;
+    }
+
+    .sat-tag {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(99,242,255,0.28);
+      background: rgba(5,12,22,0.8);
+      color: #d7f8ff;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.28);
+      opacity: 0.92;
+      white-space: nowrap;
+    }
+
+    .target-corners { z-index: 5; }
+
+    .target-corners::before,
+    .target-corners::after,
+    .target-corners span::before,
+    .target-corners span::after {
       content: "";
       position: absolute;
-      inset: 10%;
-      border-radius: 50%;
-      border: 1px solid rgba(99,242,255,0.11);
+      width: 110px;
+      height: 110px;
+      border-color: rgba(99,242,255,0.18);
+      border-style: solid;
     }
 
-    .earth-core::after {
-      inset: -8%;
-      border-color: rgba(77,163,255,0.12);
-      filter: blur(1px);
-    }
+    .target-corners::before { top: 22px; left: 22px; border-width: 2px 0 0 2px; }
+    .target-corners::after { top: 22px; right: 22px; border-width: 2px 2px 0 0; }
+    .target-corners span::before { bottom: 22px; left: 22px; border-width: 0 0 2px 2px; }
+    .target-corners span::after { bottom: 22px; right: 22px; border-width: 0 2px 2px 0; }
 
-    .earth-grid {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      overflow: hidden;
-      opacity: 0.24;
-      background-image:
-        repeating-linear-gradient(0deg, transparent 0 24px, rgba(255,255,255,0.18) 24px 25px),
-        repeating-linear-gradient(90deg, transparent 0 24px, rgba(255,255,255,0.16) 24px 25px);
-      mask-image: radial-gradient(circle at center, black 64%, transparent 80%);
-    }
-
-    .orbit-shell {
-      position: absolute;
-      inset: 50%;
-      width: min(78vw, 900px);
-      aspect-ratio: 1 / 1;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      border: 1px dashed rgba(99,242,255,0.18);
-    }
-
-    .orbit-shell.orbit-2 {
-      width: min(90vw, 1040px);
-      border-color: rgba(77,163,255,0.14);
-    }
-
-    .orbit-shell.orbit-3 {
-      width: min(68vw, 780px);
-      border-color: rgba(65,211,138,0.14);
+    .scanline {
+      z-index: 6;
+      background: linear-gradient(180deg, transparent 0%, rgba(99,242,255,0.06) 49%, transparent 100%);
+      background-size: 100% 180px;
+      animation: scan 7s linear infinite;
+      opacity: 0.42;
     }
 
     .zone-legend,
@@ -408,53 +386,10 @@
       display: inline-block;
     }
 
-    .target-corners::before,
-    .target-corners::after,
-    .target-corners span::before,
-    .target-corners span::after {
-      content: "";
-      position: absolute;
-      width: 110px;
-      height: 110px;
-      border-color: rgba(99,242,255,0.22);
-      border-style: solid;
-    }
-
-    .target-corners::before {
-      top: 22px;
-      left: 22px;
-      border-width: 2px 0 0 2px;
-    }
-
-    .target-corners::after {
-      top: 22px;
-      right: 22px;
-      border-width: 2px 2px 0 0;
-    }
-
-    .target-corners span::before {
-      bottom: 22px;
-      left: 22px;
-      border-width: 0 0 2px 2px;
-    }
-
-    .target-corners span::after {
-      bottom: 22px;
-      right: 22px;
-      border-width: 0 2px 2px 0;
-    }
-
-    .scanline {
-      background: linear-gradient(180deg, transparent 0%, rgba(99,242,255,0.06) 49%, transparent 100%);
-      background-size: 100% 180px;
-      animation: scan 7s linear infinite;
-      opacity: 0.45;
-    }
-
     .inspector {
+      min-height: 0;
       display: grid;
       grid-template-rows: auto auto 1fr auto;
-      min-height: 0;
     }
 
     .panel-head {
@@ -573,10 +508,9 @@
     .section-block li {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
       gap: 10px;
+      align-items: flex-start;
       font-size: 13px;
-      color: var(--text);
       line-height: 1.45;
     }
 
@@ -611,7 +545,7 @@
     }
 
     .primary-btn {
-      background: linear-gradient(135deg, rgba(77,163,255,0.92), rgba(99,242,255,0.72));
+      background: linear-gradient(135deg, rgba(77,163,255,0.92), rgba(99,242,255,0.74));
       color: #04101b;
       box-shadow: 0 14px 28px rgba(77,163,255,0.22);
     }
@@ -623,14 +557,15 @@
     }
 
     .primary-btn:hover,
-    .secondary-btn:hover {
+    .secondary-btn:hover,
+    .tool-btn:hover {
       transform: translateY(-1px);
     }
 
     .workflow-panel {
+      min-height: 0;
       display: grid;
       grid-template-columns: 320px 1fr 300px;
-      min-height: 0;
     }
 
     .workflow-left,
@@ -640,9 +575,7 @@
     }
 
     .workflow-left,
-    .workflow-center {
-      border-right: 1px solid rgba(255,255,255,0.05);
-    }
+    .workflow-center { border-right: 1px solid rgba(255,255,255,0.05); }
 
     .workflow-left h3,
     .workflow-right h3 {
@@ -676,10 +609,7 @@
       letter-spacing: 0.08em;
     }
 
-    .clock-value {
-      color: #fff;
-      font-weight: 700;
-    }
+    .clock-value { color: #fff; font-weight: 700; }
 
     .clock-bar {
       height: 10px;
@@ -713,7 +643,6 @@
     }
 
     .flow-step {
-      position: relative;
       min-height: 96px;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.08);
@@ -818,105 +747,33 @@
       100% { transform: translateY(100%); }
     }
 
-    @keyframes globePulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.012); }
-    }
-
-    @media (max-width: 1320px) {
-      :root {
-        --inspector-w: 320px;
-        --bottom-h: 220px;
-      }
-
-      .topbar {
-        grid-template-columns: 1fr;
-        padding: 14px 18px;
-        align-items: start;
-      }
-
-      .status-cluster,
-      .mission-cluster {
-        justify-content: flex-start;
-      }
-
-      .workflow-panel {
-        grid-template-columns: 1fr;
-      }
-
-      .workflow-left,
-      .workflow-center {
+    @media (max-width: 1360px) {
+      :root { --inspector-w: 336px; --bottom-h: 220px; }
+      .topbar { grid-template-columns: 1fr; padding: 14px 18px; align-items: start; }
+      .status-cluster, .mission-cluster { justify-content: flex-start; }
+      .workflow-panel { grid-template-columns: 1fr; }
+      .workflow-left, .workflow-center {
         border-right: 0;
         border-bottom: 1px solid rgba(255,255,255,0.05);
       }
     }
 
     @media (max-width: 1080px) {
-      html, body {
-        overflow: auto;
-      }
-
-      .app-shell {
-        height: auto;
-        min-height: 100vh;
-        grid-template-rows: auto auto auto;
-      }
-
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .earth-core {
-        width: min(78vw, 560px);
-      }
-
-      .flow-track {
-        grid-template-columns: 1fr;
-      }
+      html, body { overflow: auto; }
+      .app-shell { height: auto; min-height: 100vh; grid-template-rows: auto auto auto; }
+      .main-grid { grid-template-columns: 1fr; }
+      .flow-track { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
-      .app-shell {
-        padding: 10px;
-        gap: 10px;
+      .app-shell { padding: 10px; gap: 10px; }
+      .stage-top, .stage-bottom, .workflow-left, .workflow-center, .workflow-right,
+      .panel-head, .inspector-summary, .inspector-body, .inspector-actions {
+        padding-left: 14px; padding-right: 14px;
       }
-
-      .panel,
-      .tool-btn,
-      .flow-step,
-      .metric-card,
-      .section-block,
-      .queue-item {
-        border-radius: 14px;
-      }
-
-      .stage-top,
-      .stage-bottom,
-      .workflow-left,
-      .workflow-center,
-      .workflow-right,
-      .panel-head,
-      .inspector-summary,
-      .inspector-body,
-      .inspector-actions {
-        padding-left: 14px;
-        padding-right: 14px;
-      }
-
-      .detail-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .earth-core {
-        width: min(88vw, 460px);
-      }
-
-      .target-corners::before,
-      .target-corners::after,
-      .target-corners span::before,
-      .target-corners span::after {
-        width: 58px;
-        height: 58px;
+      .detail-grid { grid-template-columns: 1fr; }
+      .target-corners::before, .target-corners::after, .target-corners span::before, .target-corners span::after {
+        width: 58px; height: 58px;
       }
     }
   </style>
@@ -934,14 +791,14 @@
 
       <div class="status-cluster">
         <div class="pill"><span class="dot"></span><strong>System:</strong> NOMINAL</div>
-        <div class="pill"><span class="dot"></span><strong>Links:</strong> 24 / 24</div>
-        <div class="pill"><span class="dot warn"></span><strong>Queue:</strong> 03 Pending</div>
+        <div class="pill"><span class="dot"></span><strong>Assets:</strong> 07 Tracked</div>
+        <div class="pill"><span class="dot warn"></span><strong>Queue:</strong> 02 Pending</div>
       </div>
 
       <div class="mission-cluster">
-        <div class="pill"><strong>Scenario Clock</strong> 14:32:18 Z</div>
-        <div class="pill"><strong>Mode</strong> GEO / MEO / LEO</div>
-        <div class="pill"><strong>Ops State</strong> Shared Control</div>
+        <div class="pill"><strong>Scenario Clock</strong> <span id="headerClock">14:32:18 Z</span></div>
+        <div class="pill"><strong>Speed</strong> <span id="headerRate">8x</span></div>
+        <div class="pill"><strong>Mode</strong> Shared Control</div>
       </div>
     </header>
 
@@ -950,29 +807,29 @@
         <div class="stage-top">
           <div class="stage-title-wrap">
             <h2>Global Mission Picture</h2>
-            <p>Earth visualization, command zones, orbital tracks, coverage footprints, and live asset overlays.</p>
+            <p>Live Earth, orbital tracks, coverage footprints, combatant command overlays, and selectable vehicles.</p>
           </div>
 
           <div class="toolbar">
-            <button class="tool-btn active">Earth View</button>
-            <button class="tool-btn">Command Zones</button>
-            <button class="tool-btn">Orbital Paths</button>
-            <button class="tool-btn">Coverage</button>
+            <button class="tool-btn active" data-view="earth">Earth View</button>
+            <button class="tool-btn active" data-view="zones">Command Zones</button>
+            <button class="tool-btn active" data-view="orbits">Orbital Paths</button>
+            <button class="tool-btn active" data-view="coverage">Coverage</button>
           </div>
         </div>
 
         <div class="stage-canvas" id="globeStage">
-          <div class="starfield"></div>
-          <div class="hud-rings">
-            <div class="orbit-shell orbit-1"></div>
-            <div class="orbit-shell orbit-2"></div>
-            <div class="orbit-shell orbit-3"></div>
+          <canvas id="globeCanvas"></canvas>
+          <div class="canvas-overlay"></div>
+          <div class="zone-overlay" id="zoneOverlay">
+            <div class="zone-tag" style="top:18%;left:73%;">INDOPACOM</div>
+            <div class="zone-tag" style="top:20%;left:48%;">EUCOM</div>
+            <div class="zone-tag" style="top:40%;left:52%;">CENTCOM</div>
+            <div class="zone-tag" style="top:49%;left:44%;">AFRICOM</div>
+            <div class="zone-tag" style="top:18%;left:27%;">NORTHCOM</div>
+            <div class="zone-tag" style="top:63%;left:31%;">SOUTHCOM</div>
           </div>
-          <div class="earth-placeholder">
-            <div class="earth-core">
-              <div class="earth-grid"></div>
-            </div>
-          </div>
+          <div class="satellite-tags" id="satelliteTags"></div>
           <div class="target-corners"><span></span></div>
           <div class="scanline"></div>
         </div>
@@ -988,9 +845,9 @@
           </div>
 
           <div class="footprint-legend">
-            <div class="legend-chip"><span style="background:#a7d0ff"></span> Sensor Footprint</div>
+            <div class="legend-chip"><span style="background:#9dd6ff"></span> Sensor Footprint</div>
             <div class="legend-chip"><span style="background:#86ffd0"></span> Relay Access</div>
-            <div class="legend-chip"><span style="background:#ffd394"></span> Tasked Track</div>
+            <div class="legend-chip"><span style="background:#ffd394"></span> Active Tasking</div>
           </div>
         </div>
       </section>
@@ -998,34 +855,34 @@
       <aside class="inspector panel">
         <div class="panel-head">
           <h3>Vehicle Inspector</h3>
-          <p>Select a satellite or orbital object to inspect health, mission state, tasking, and automation recommendations.</p>
+          <p>Click an orbital asset in the globe to inspect mission state, health, latency, and automation recommendations.</p>
         </div>
 
         <div class="inspector-summary">
           <div class="vehicle-name">
             <div>
               <div class="eyebrow">Selected Vehicle</div>
-              <h4>SV-204 Kestrel</h4>
+              <h4 id="vehicleName">SV-204 Kestrel</h4>
             </div>
-            <div class="badge"><span class="dot"></span> On Mission</div>
+            <div class="badge"><span class="dot" id="statusDot"></span><span id="vehicleBadge">On Mission</span></div>
           </div>
 
           <div class="detail-grid">
             <div class="metric-card">
               <div class="metric-label">Orbit Class</div>
-              <div class="metric-value">MEO</div>
+              <div class="metric-value" id="orbitClass">MEO</div>
             </div>
             <div class="metric-card">
               <div class="metric-label">Ground Track</div>
-              <div class="metric-value">EUCOM</div>
+              <div class="metric-value" id="groundTrack">EUCOM</div>
             </div>
             <div class="metric-card">
               <div class="metric-label">Health</div>
-              <div class="metric-value">Nominal</div>
+              <div class="metric-value" id="vehicleHealth">Nominal</div>
             </div>
             <div class="metric-card">
               <div class="metric-label">Latency</div>
-              <div class="metric-value">1.2 sec</div>
+              <div class="metric-value" id="vehicleLatency">1.2 sec</div>
             </div>
           </div>
         </div>
@@ -1034,35 +891,35 @@
           <section class="section-block">
             <h5>Mission Data</h5>
             <ul>
-              <li><span>Payload</span><span>Wide-area persistent sensing, cross-link relay</span></li>
-              <li><span>Task</span><span>Regional surveillance support, automated custody track handoff</span></li>
-              <li><span>Coverage</span><span>Active footprint projected over EUCOM and eastern AFRICOM edge</span></li>
+              <li><span>Payload</span><span id="payloadText">Wide-area persistent sensing, cross-link relay</span></li>
+              <li><span>Task</span><span id="taskText">Regional surveillance support, automated custody track handoff</span></li>
+              <li><span>Coverage</span><span id="coverageText">Active footprint projected over EUCOM and eastern AFRICOM edge</span></li>
             </ul>
           </section>
 
           <section class="section-block">
             <h5>System Status</h5>
             <ul>
-              <li><span>Power</span><span>94%, discharge nominal</span></li>
-              <li><span>Thermal</span><span>Stable, no exceedances</span></li>
-              <li><span>Comms</span><span>Primary link active, secondary path available</span></li>
-              <li><span>Autonomy</span><span>Recommendation authority enabled, human approval required</span></li>
+              <li><span>Power</span><span id="powerText">94%, discharge nominal</span></li>
+              <li><span>Thermal</span><span id="thermalText">Stable, no exceedances</span></li>
+              <li><span>Comms</span><span id="commsText">Primary link active, secondary path available</span></li>
+              <li><span>Autonomy</span><span id="autonomyText">Recommendation authority enabled, human approval required</span></li>
             </ul>
           </section>
 
           <section class="section-block">
             <h5>Recommended Action</h5>
             <ul>
-              <li><span>Detect</span><span>Cross-link latency trending above scenario baseline</span></li>
-              <li><span>Assess</span><span>No mission loss, moderate performance degradation risk</span></li>
-              <li><span>Recommend</span><span>Re-route relay chain through alternate vehicle in 12-minute window</span></li>
+              <li><span>Detect</span><span id="detectText">Cross-link latency trending above scenario baseline</span></li>
+              <li><span>Assess</span><span id="assessText">No mission loss, moderate performance degradation risk</span></li>
+              <li><span>Recommend</span><span id="recommendText">Re-route relay chain through alternate vehicle in 12-minute window</span></li>
             </ul>
           </section>
         </div>
 
         <div class="inspector-actions">
-          <button class="primary-btn">Open Task Context</button>
-          <button class="secondary-btn">Center on Vehicle</button>
+          <button class="primary-btn" id="focusBtn">Center on Vehicle</button>
+          <button class="secondary-btn" id="nextVehicleBtn">Cycle Vehicle</button>
         </div>
       </aside>
     </section>
@@ -1070,50 +927,50 @@
     <section class="workflow-panel panel">
       <div class="workflow-left">
         <h3>Automation Workflow</h3>
-        <p>Mission thread placeholder for event-driven automation, analyst review, and command approval actions.</p>
+        <p>Event-driven mission thread showing system detection, scoring, queued actions, and operator approval logic.</p>
 
         <div class="scenario-clock">
-          <div class="clock-row"><span>Scenario Time</span><span class="clock-value">T+04:12:36</span></div>
-          <div class="clock-row"><span>Playback Rate</span><span class="clock-value">8x</span></div>
-          <div class="clock-bar"><span></span></div>
+          <div class="clock-row"><span>Scenario Time</span><span class="clock-value" id="scenarioClock">T+04:12:36</span></div>
+          <div class="clock-row"><span>Playback Rate</span><span class="clock-value" id="playbackRate">8x</span></div>
+          <div class="clock-bar"><span id="clockBar"></span></div>
         </div>
       </div>
 
       <div class="workflow-center">
         <div class="flow-track">
-          <article class="flow-step active">
+          <article class="flow-step active" id="step-detect">
             <div class="step-index">01</div>
             <strong>Detect</strong>
-            <p>System flags off-nominal telemetry or operational change.</p>
+            <p id="stepDetectText">System flags off-nominal telemetry or operational change.</p>
           </article>
 
-          <article class="flow-step active">
+          <article class="flow-step active" id="step-assess">
             <div class="step-index">02</div>
             <strong>Assess</strong>
-            <p>Mission logic scores impact, confidence, and timing sensitivity.</p>
+            <p id="stepAssessText">Mission logic scores impact, confidence, and timing sensitivity.</p>
           </article>
 
-          <article class="flow-step active">
+          <article class="flow-step active" id="step-recommend">
             <div class="step-index">03</div>
             <strong>Recommend</strong>
-            <p>Automation proposes next-best action and alternate routing path.</p>
+            <p id="stepRecommendText">Automation proposes next-best action and alternate routing path.</p>
           </article>
 
-          <article class="flow-step">
+          <article class="flow-step" id="step-queue">
             <div class="step-index">04</div>
             <strong>Queue</strong>
-            <p>Action package prepared for operator review and sequencing.</p>
+            <p id="stepQueueText">Action package prepared for operator review and sequencing.</p>
           </article>
 
-          <article class="flow-step">
+          <article class="flow-step" id="step-approve">
             <div class="step-index">05</div>
             <strong>Approve</strong>
-            <p>Human decision authority confirms execution or modifies task.</p>
+            <p id="stepApproveText">Human decision authority confirms execution or modifies task.</p>
           </article>
         </div>
 
         <div class="workflow-note">
-          <span>Current thread: relay degradation / alternate link recommendation</span>
+          <span id="currentThread">Current thread: relay degradation / alternate link recommendation</span>
           <span>Approval model: human-in-the-loop</span>
         </div>
       </div>
@@ -1122,29 +979,678 @@
         <h3>Action Queue</h3>
         <div class="queue-card">
           <div class="queue-item">
-            <div class="queue-tag">Pending Review</div>
-            <strong>SV-204 Relay Re-route</strong>
-            <span>Confidence 92%, projected mission impact avoided if approved within 08:00.</span>
+            <div class="queue-tag" id="queueTag1">Pending Review</div>
+            <strong id="queueTitle1">SV-204 Relay Re-route</strong>
+            <span id="queueBody1">Confidence 92%, projected mission impact avoided if approved within 08:00.</span>
           </div>
 
           <div class="queue-item">
-            <div class="queue-tag">Staged</div>
-            <strong>Footprint Rebalance</strong>
-            <span>Shift regional coverage overlap to maintain custody track continuity.</span>
+            <div class="queue-tag" id="queueTag2">Staged</div>
+            <strong id="queueTitle2">Footprint Rebalance</strong>
+            <span id="queueBody2">Shift regional coverage overlap to maintain custody track continuity.</span>
           </div>
         </div>
       </div>
     </section>
   </div>
 
-  <script>
-    const toolbarButtons = document.querySelectorAll('.tool-btn');
-    toolbarButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        toolbarButtons.forEach((btn) => btn.classList.remove('active'));
-        button.classList.add('active');
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
+
+    const canvas = document.getElementById('globeCanvas');
+    const stage = document.getElementById('globeStage');
+    const tagsLayer = document.getElementById('satelliteTags');
+
+    const ui = {
+      vehicleName: document.getElementById('vehicleName'),
+      vehicleBadge: document.getElementById('vehicleBadge'),
+      orbitClass: document.getElementById('orbitClass'),
+      groundTrack: document.getElementById('groundTrack'),
+      vehicleHealth: document.getElementById('vehicleHealth'),
+      vehicleLatency: document.getElementById('vehicleLatency'),
+      payloadText: document.getElementById('payloadText'),
+      taskText: document.getElementById('taskText'),
+      coverageText: document.getElementById('coverageText'),
+      powerText: document.getElementById('powerText'),
+      thermalText: document.getElementById('thermalText'),
+      commsText: document.getElementById('commsText'),
+      autonomyText: document.getElementById('autonomyText'),
+      detectText: document.getElementById('detectText'),
+      assessText: document.getElementById('assessText'),
+      recommendText: document.getElementById('recommendText'),
+      stepDetectText: document.getElementById('stepDetectText'),
+      stepAssessText: document.getElementById('stepAssessText'),
+      stepRecommendText: document.getElementById('stepRecommendText'),
+      stepQueueText: document.getElementById('stepQueueText'),
+      stepApproveText: document.getElementById('stepApproveText'),
+      currentThread: document.getElementById('currentThread'),
+      queueTag1: document.getElementById('queueTag1'),
+      queueTitle1: document.getElementById('queueTitle1'),
+      queueBody1: document.getElementById('queueBody1'),
+      queueTag2: document.getElementById('queueTag2'),
+      queueTitle2: document.getElementById('queueTitle2'),
+      queueBody2: document.getElementById('queueBody2'),
+      scenarioClock: document.getElementById('scenarioClock'),
+      playbackRate: document.getElementById('playbackRate'),
+      headerClock: document.getElementById('headerClock'),
+      headerRate: document.getElementById('headerRate'),
+      clockBar: document.getElementById('clockBar'),
+      statusDot: document.getElementById('statusDot'),
+      stepDetect: document.getElementById('step-detect'),
+      stepAssess: document.getElementById('step-assess'),
+      stepRecommend: document.getElementById('step-recommend'),
+      stepQueue: document.getElementById('step-queue'),
+      stepApprove: document.getElementById('step-approve')
+    };
+
+    const scenario = {
+      start: new Date('2030-04-12T14:32:18Z'),
+      multiplier: 8,
+      elapsedSeconds: 0
+    };
+
+    const assets = [
+      {
+        id: 'SV-204',
+        name: 'SV-204 Kestrel',
+        orbitClass: 'MEO',
+        region: 'EUCOM',
+        health: 'Nominal',
+        status: 'On Mission',
+        latency: '1.2 sec',
+        payload: 'Wide-area persistent sensing, cross-link relay',
+        task: 'Regional surveillance support, automated custody track handoff',
+        coverage: 'Projected over EUCOM and eastern AFRICOM edge',
+        power: '94%, discharge nominal',
+        thermal: 'Stable, no exceedances',
+        comms: 'Primary link active, secondary path available',
+        autonomy: 'Recommendation authority enabled, human approval required',
+        detect: 'Cross-link latency trending above scenario baseline',
+        assess: 'No mission loss, moderate performance degradation risk',
+        recommend: 'Re-route relay chain through alternate vehicle in 12-minute window',
+        queue1: ['Pending Review', 'SV-204 Relay Re-route', 'Confidence 92%, projected mission impact avoided if approved within 08:00.'],
+        queue2: ['Staged', 'Footprint Rebalance', 'Shift regional coverage overlap to maintain custody track continuity.'],
+        orbitRadius: 2.2,
+        inclination: 42,
+        speed: 0.34,
+        phase: 0.4,
+        color: 0x63f2ff,
+        footprintColor: 0x86ffd0,
+        workflowStage: 3
+      },
+      {
+        id: 'SV-118',
+        name: 'SV-118 Sentinel',
+        orbitClass: 'LEO',
+        region: 'INDOPACOM',
+        health: 'Nominal',
+        status: 'Tracking',
+        latency: '0.8 sec',
+        payload: 'Low-latency ISR collection and target custody relay',
+        task: 'Pacific theater revisit support and track persistence',
+        coverage: 'Projected over western Pacific and northern INDOPACOM arc',
+        power: '88%, solar positive',
+        thermal: 'Stable under expected load',
+        comms: 'Cross-link mesh active, gateway 2 preferred',
+        autonomy: 'Auto-prioritization enabled, human execution authority retained',
+        detect: 'New track entered monitored corridor',
+        assess: 'High confidence track continuity available with current revisit',
+        recommend: 'Maintain current collection plan and pre-stage handoff path',
+        queue1: ['Monitoring', 'SV-118 Collection Hold', 'Confidence 96%, no intervention required unless track velocity changes.'],
+        queue2: ['Staged', 'Gateway Handoff', 'Prepare alternate downlink path for next pass window.'],
+        orbitRadius: 1.72,
+        inclination: 63,
+        speed: 0.82,
+        phase: 2.4,
+        color: 0x4da3ff,
+        footprintColor: 0x9dd6ff,
+        workflowStage: 2
+      },
+      {
+        id: 'SV-330',
+        name: 'SV-330 Valiant',
+        orbitClass: 'GEO',
+        region: 'CENTCOM',
+        health: 'Degraded',
+        status: 'Review Required',
+        latency: '2.6 sec',
+        payload: 'Persistent theater relay and protected comms support',
+        task: 'Regional assured relay for tasking and command dissemination',
+        coverage: 'Projected over CENTCOM with overlap into AFRICOM and INDOPACOM west',
+        power: '91%, nominal reserve',
+        thermal: 'Minor thermal variance in communications bus',
+        comms: 'Primary relay active, redundancy reduced on one channel',
+        autonomy: 'Recommendation generation enabled, operator approval required',
+        detect: 'Thermal drift detected on communications bus segment B',
+        assess: 'Mission continues, redundancy margin reduced',
+        recommend: 'Queue load shift to companion relay asset during next timing window',
+        queue1: ['Pending Review', 'SV-330 Load Shift', 'Confidence 87%, preserves relay margin before thermal threshold narrows.'],
+        queue2: ['Ready', 'Companion Asset Sync', 'Prepare alternate relay chain for operator approval.'],
+        orbitRadius: 2.78,
+        inclination: 8,
+        speed: 0.12,
+        phase: 4.85,
+        color: 0xffb84d,
+        footprintColor: 0xffd394,
+        workflowStage: 4
+      },
+      {
+        id: 'SV-441',
+        name: 'SV-441 Aegis',
+        orbitClass: 'LEO',
+        region: 'NORTHCOM',
+        health: 'Nominal',
+        status: 'On Mission',
+        latency: '0.6 sec',
+        payload: 'Missile warning support and event correlation',
+        task: 'Northern hemisphere event track support and automated prioritization',
+        coverage: 'Projected over NORTHCOM with Arctic edge revisit',
+        power: '86%, charge improving',
+        thermal: 'Within limits',
+        comms: 'All links green',
+        autonomy: 'Event triage automation enabled, operator review at queue stage',
+        detect: 'No off-nominal activity, monitoring active event grid',
+        assess: 'Stable mission posture, normal track load',
+        recommend: 'No action required, maintain watch',
+        queue1: ['Ready', 'No Immediate Action', 'Asset remains available for rapid task reprioritization.'],
+        queue2: ['Staged', 'Sensor Bias Check', 'Background validation scheduled during low-load period.'],
+        orbitRadius: 1.56,
+        inclination: 78,
+        speed: 1.05,
+        phase: 1.2,
+        color: 0xff647c,
+        footprintColor: 0xff98a9,
+        workflowStage: 1
+      },
+      {
+        id: 'SV-290',
+        name: 'SV-290 Meridian',
+        orbitClass: 'MEO',
+        region: 'AFRICOM',
+        health: 'Nominal',
+        status: 'Queued',
+        latency: '1.5 sec',
+        payload: 'Wide-area relay and timing support',
+        task: 'Coverage overlap extension into AFRICOM corridor',
+        coverage: 'Projected over central AFRICOM with relay overlap into EUCOM south',
+        power: '93%, nominal',
+        thermal: 'Stable',
+        comms: 'Cross-link preferred route available',
+        autonomy: 'Action package queued for operator release',
+        detect: 'Coverage seam identified during vehicle transition',
+        assess: 'Short-duration access gap possible if left unchanged',
+        recommend: 'Advance handoff by one timing increment to preserve overlap',
+        queue1: ['Queued', 'SV-290 Handoff Advance', 'Confidence 90%, closes projected access seam before next pass.'],
+        queue2: ['Ready', 'Relay Backstop', 'Companion vehicle available if queue not approved in time.'],
+        orbitRadius: 2.06,
+        inclination: 34,
+        speed: 0.41,
+        phase: 3.35,
+        color: 0x41d38a,
+        footprintColor: 0x86ffd0,
+        workflowStage: 4
+      },
+      {
+        id: 'SV-372',
+        name: 'SV-372 Horizon',
+        orbitClass: 'LEO',
+        region: 'SOUTHCOM',
+        health: 'Nominal',
+        status: 'Tracking',
+        latency: '0.9 sec',
+        payload: 'Maritime surveillance and event relay',
+        task: 'Southern hemisphere maritime custody support',
+        coverage: 'Projected over SOUTHCOM maritime approaches',
+        power: '84%, nominal',
+        thermal: 'Within expected band',
+        comms: 'Gateway routing nominal',
+        autonomy: 'Dynamic event prioritization enabled',
+        detect: 'New maritime cluster observed inside monitored box',
+        assess: 'Moderate significance, no escalation required yet',
+        recommend: 'Maintain current track density and raise collection priority if persistence continues',
+        queue1: ['Monitoring', 'SV-372 Track Watch', 'Confidence 78%, continue collection and trend for change.'],
+        queue2: ['Ready', 'Cross-Cue Relay', 'Available for cueing from companion sensor layer if needed.'],
+        orbitRadius: 1.66,
+        inclination: 52,
+        speed: 0.9,
+        phase: 5.1,
+        color: 0xb08cff,
+        footprintColor: 0xd1b8ff,
+        workflowStage: 2
+      },
+      {
+        id: 'SV-501',
+        name: 'SV-501 Atlas',
+        orbitClass: 'GEO',
+        region: 'INDOPACOM',
+        health: 'Nominal',
+        status: 'Available',
+        latency: '1.9 sec',
+        payload: 'Protected relay and wide-area command distribution',
+        task: 'Persistent command dissemination and backstop routing',
+        coverage: 'Projected over broad INDOPACOM with overlap into CENTCOM east',
+        power: '97%, nominal',
+        thermal: 'Stable',
+        comms: 'Protected relay nominal',
+        autonomy: 'Recommendation package generation enabled',
+        detect: 'No immediate anomaly, backstop routing available',
+        assess: 'Asset ready to absorb load if companion mission thread escalates',
+        recommend: 'Hold in reserve as alternate relay endpoint',
+        queue1: ['Ready', 'Reserve Relay Slot', 'Confidence 94%, available to absorb redirected mission traffic.'],
+        queue2: ['Staged', 'Protected Route Align', 'Precompute route if regional queue is approved.'],
+        orbitRadius: 2.86,
+        inclination: 4,
+        speed: 0.1,
+        phase: 0.95,
+        color: 0x63f2ff,
+        footprintColor: 0x9dd6ff,
+        workflowStage: 1
+      }
+    ];
+
+    let selectedAssetIndex = 0;
+    let focusedAssetIndex = 0;
+    let userHasFocused = false;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    camera.position.set(0, 0, 8.8);
+
+    const root = new THREE.Group();
+    scene.add(root);
+
+    const globeGroup = new THREE.Group();
+    root.add(globeGroup);
+
+    const ambient = new THREE.AmbientLight(0x9fbfff, 1.1);
+    scene.add(ambient);
+
+    const dirLight = new THREE.DirectionalLight(0xc8e6ff, 1.8);
+    dirLight.position.set(5, 3, 8);
+    scene.add(dirLight);
+
+    const backLight = new THREE.DirectionalLight(0x2c78ff, 1.2);
+    backLight.position.set(-6, -2, -6);
+    scene.add(backLight);
+
+    const earthRadius = 1.28;
+    const earthGeometry = new THREE.SphereGeometry(earthRadius, 96, 96);
+
+    const earthMaterial = new THREE.MeshPhongMaterial({
+      color: 0x1b6fd3,
+      shininess: 18,
+      specular: 0x1f3b69,
+      emissive: 0x05131f,
+      emissiveIntensity: 0.8
+    });
+
+    const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+    globeGroup.add(earthMesh);
+
+    const atmosphereGeometry = new THREE.SphereGeometry(earthRadius * 1.06, 64, 64);
+    const atmosphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0x57a7ff,
+      transparent: true,
+      opacity: 0.11,
+      side: THREE.BackSide
+    });
+    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    globeGroup.add(atmosphere);
+
+    const glowGeometry = new THREE.SphereGeometry(earthRadius * 1.18, 64, 64);
+    const glowMaterial = new THREE.MeshBasicMaterial({
+      color: 0x2568ff,
+      transparent: true,
+      opacity: 0.08,
+      side: THREE.BackSide
+    });
+    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+    globeGroup.add(glow);
+
+    const earthLineMaterial = new THREE.LineBasicMaterial({ color: 0x98c8ff, transparent: true, opacity: 0.18 });
+
+    function createLatitudeRing(latitudeDeg) {
+      const lat = THREE.MathUtils.degToRad(latitudeDeg);
+      const y = Math.sin(lat) * earthRadius * 0.998;
+      const radius = Math.cos(lat) * earthRadius * 0.998;
+      const points = [];
+      for (let i = 0; i <= 128; i++) {
+        const a = (i / 128) * Math.PI * 2;
+        points.push(new THREE.Vector3(Math.cos(a) * radius, y, Math.sin(a) * radius));
+      }
+      return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), earthLineMaterial);
+    }
+
+    function createLongitudeRing(longitudeDeg) {
+      const lon = THREE.MathUtils.degToRad(longitudeDeg);
+      const points = [];
+      for (let i = 0; i <= 128; i++) {
+        const a = (i / 128) * Math.PI * 2;
+        const x = Math.cos(a) * earthRadius * Math.cos(lon);
+        const y = Math.sin(a) * earthRadius;
+        const z = Math.cos(a) * earthRadius * Math.sin(lon);
+        points.push(new THREE.Vector3(x, y, z));
+      }
+      return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), earthLineMaterial);
+    }
+
+    [-60, -30, 0, 30, 60].forEach((lat) => globeGroup.add(createLatitudeRing(lat)));
+    [-120, -60, 0, 60, 120].forEach((lon) => globeGroup.add(createLongitudeRing(lon)));
+
+    const landShapes = [
+      { color: 0x3ce59a, points: [[-0.95,0.48],[ -0.72,0.64],[-0.35,0.56],[-0.26,0.31],[-0.44,0.06],[-0.67,-0.1],[-0.85,0.12]] },
+      { color: 0x2fd286, points: [[-0.28,0.16],[-0.16,0.05],[-0.21,-0.18],[-0.12,-0.42],[-0.21,-0.72],[-0.42,-0.82],[-0.5,-0.46],[-0.44,-0.12]] },
+      { color: 0x58f2b4, points: [[0.02,0.56],[0.28,0.68],[0.56,0.59],[0.7,0.42],[0.58,0.18],[0.28,0.16],[0.08,0.28]] },
+      { color: 0x50e6ac, points: [[0.22,0.1],[0.42,0.08],[0.54,-0.04],[0.42,-0.24],[0.24,-0.2],[0.12,-0.04]] },
+      { color: 0x46db9d, points: [[0.58,-0.22],[0.78,-0.3],[0.92,-0.54],[0.82,-0.82],[0.62,-0.74],[0.51,-0.44]] }
+    ];
+
+    function createLandMesh(shape) {
+      const pts = shape.points.map(([x, y]) => new THREE.Vector2(x, y));
+      const geo = new THREE.ShapeGeometry(new THREE.Shape(pts), 12);
+      const mat = new THREE.MeshBasicMaterial({ color: shape.color, transparent: true, opacity: 0.85 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.z = earthRadius * 0.92;
+      mesh.scale.set(0.92, 0.92, 1);
+      return mesh;
+    }
+
+    const mapGroup = new THREE.Group();
+    landShapes.forEach((shape) => mapGroup.add(createLandMesh(shape)));
+    globeGroup.add(mapGroup);
+
+    const starsGroup = new THREE.Group();
+    scene.add(starsGroup);
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = 1400;
+    const starPositions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const radius = 22 + Math.random() * 38;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = radius * Math.cos(phi);
+      starPositions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    const starMat = new THREE.PointsMaterial({ color: 0xd7e8ff, size: 0.08, transparent: true, opacity: 0.86 });
+    starsGroup.add(new THREE.Points(starGeo, starMat));
+
+    const orbitGroup = new THREE.Group();
+    root.add(orbitGroup);
+    const footprintGroup = new THREE.Group();
+    root.add(footprintGroup);
+    const satelliteGroup = new THREE.Group();
+    root.add(satelliteGroup);
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const satelliteMeshes = [];
+
+    function latLonToVector3(latDeg, lonDeg, radius) {
+      const lat = THREE.MathUtils.degToRad(latDeg);
+      const lon = THREE.MathUtils.degToRad(lonDeg);
+      const x = radius * Math.cos(lat) * Math.sin(lon);
+      const y = radius * Math.sin(lat);
+      const z = radius * Math.cos(lat) * Math.cos(lon);
+      return new THREE.Vector3(x, y, z);
+    }
+
+    function createOrbitLine(radius, inclinationDeg, color) {
+      const points = [];
+      const inclination = THREE.MathUtils.degToRad(inclinationDeg);
+      for (let i = 0; i <= 256; i++) {
+        const a = (i / 256) * Math.PI * 2;
+        const base = new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius);
+        base.applyAxisAngle(new THREE.Vector3(1, 0, 0), inclination);
+        points.push(base);
+      }
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineDashedMaterial({
+        color,
+        transparent: true,
+        opacity: 0.38,
+        dashSize: 0.18,
+        gapSize: 0.12
+      });
+      const line = new THREE.Line(geometry, material);
+      line.computeLineDistances();
+      return line;
+    }
+
+    function createCoverageDisc(color) {
+      const geometry = new THREE.CircleGeometry(0.42, 60);
+      const material = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.16,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      return new THREE.Mesh(geometry, material);
+    }
+
+    function createSatelliteMesh(color) {
+      const group = new THREE.Group();
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 0.08, 0.16),
+        new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.28 })
+      );
+      const wingMat = new THREE.MeshBasicMaterial({ color: 0x9fd4ff, transparent: true, opacity: 0.85 });
+      const leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.09), wingMat);
+      const rightWing = leftWing.clone();
+      leftWing.position.x = -0.14;
+      rightWing.position.x = 0.14;
+      group.add(body, leftWing, rightWing);
+      return group;
+    }
+
+    assets.forEach((asset, index) => {
+      const orbit = createOrbitLine(asset.orbitRadius, asset.inclination, asset.color);
+      orbit.userData.assetIndex = index;
+      orbitGroup.add(orbit);
+
+      const coverage = createCoverageDisc(asset.footprintColor);
+      footprintGroup.add(coverage);
+
+      const sat = createSatelliteMesh(asset.color);
+      sat.userData.assetIndex = index;
+      sat.userData.selectable = true;
+      satelliteGroup.add(sat);
+      satelliteMeshes.push({ sat, coverage, orbit, tagEl: null });
+
+      const tag = document.createElement('div');
+      tag.className = 'sat-tag';
+      tag.textContent = asset.id;
+      tagsLayer.appendChild(tag);
+      satelliteMeshes[index].tagEl = tag;
+    });
+
+    function setStepState(stage) {
+      [ui.stepDetect, ui.stepAssess, ui.stepRecommend, ui.stepQueue, ui.stepApprove].forEach((el, idx) => {
+        el.classList.toggle('active', idx < stage);
+      });
+    }
+
+    function applyAssetToInspector(asset) {
+      ui.vehicleName.textContent = asset.name;
+      ui.vehicleBadge.textContent = asset.status;
+      ui.orbitClass.textContent = asset.orbitClass;
+      ui.groundTrack.textContent = asset.region;
+      ui.vehicleHealth.textContent = asset.health;
+      ui.vehicleLatency.textContent = asset.latency;
+      ui.payloadText.textContent = asset.payload;
+      ui.taskText.textContent = asset.task;
+      ui.coverageText.textContent = asset.coverage;
+      ui.powerText.textContent = asset.power;
+      ui.thermalText.textContent = asset.thermal;
+      ui.commsText.textContent = asset.comms;
+      ui.autonomyText.textContent = asset.autonomy;
+      ui.detectText.textContent = asset.detect;
+      ui.assessText.textContent = asset.assess;
+      ui.recommendText.textContent = asset.recommend;
+      ui.stepDetectText.textContent = asset.detect;
+      ui.stepAssessText.textContent = asset.assess;
+      ui.stepRecommendText.textContent = asset.recommend;
+      ui.stepQueueText.textContent = asset.queue1[1] + ' prepared for operator review.';
+      ui.stepApproveText.textContent = 'Operator approval required before execution on ' + asset.name + '.';
+      ui.currentThread.textContent = 'Current thread: ' + asset.id + ' / ' + asset.recommend.toLowerCase();
+      ui.queueTag1.textContent = asset.queue1[0];
+      ui.queueTitle1.textContent = asset.queue1[1];
+      ui.queueBody1.textContent = asset.queue1[2];
+      ui.queueTag2.textContent = asset.queue2[0];
+      ui.queueTitle2.textContent = asset.queue2[1];
+      ui.queueBody2.textContent = asset.queue2[2];
+      ui.statusDot.className = 'dot' + (asset.health === 'Degraded' ? ' warn' : '');
+      setStepState(asset.workflowStage);
+    }
+
+    function selectAsset(index, shouldFocus = false) {
+      selectedAssetIndex = index;
+      if (shouldFocus) {
+        focusedAssetIndex = index;
+        userHasFocused = true;
+      }
+      applyAssetToInspector(assets[index]);
+    }
+
+    function resizeRenderer() {
+      const width = stage.clientWidth;
+      const height = stage.clientHeight;
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+
+    function updateScenarioClock(deltaSeconds) {
+      scenario.elapsedSeconds += deltaSeconds * scenario.multiplier;
+      const time = new Date(scenario.start.getTime() + scenario.elapsedSeconds * 1000);
+      ui.headerClock.textContent = time.toISOString().slice(11, 19) + ' Z';
+
+      const total = Math.floor(scenario.elapsedSeconds);
+      const hours = String(Math.floor(total / 3600)).padStart(2, '0');
+      const minutes = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+      const seconds = String(total % 60).padStart(2, '0');
+      ui.scenarioClock.textContent = `T+${hours}:${minutes}:${seconds}`;
+      ui.playbackRate.textContent = `${scenario.multiplier}x`;
+      ui.headerRate.textContent = `${scenario.multiplier}x`;
+      const progress = 20 + ((total / 6) % 80);
+      ui.clockBar.style.width = progress + '%';
+    }
+
+    function updateSatellitePositions(elapsed) {
+      const stageRect = stage.getBoundingClientRect();
+      assets.forEach((asset, index) => {
+        const item = satelliteMeshes[index];
+        const angle = asset.phase + elapsed * asset.speed * 0.18;
+        const pos = new THREE.Vector3(
+          Math.cos(angle) * asset.orbitRadius,
+          0,
+          Math.sin(angle) * asset.orbitRadius
+        );
+        pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(asset.inclination));
+        item.sat.position.copy(pos);
+        item.sat.lookAt(0, 0, 0);
+        item.sat.rotateY(elapsed * 0.6 + index);
+
+        const ground = pos.clone().normalize().multiplyScalar(earthRadius * 1.001);
+        item.coverage.position.copy(ground);
+        item.coverage.lookAt(new THREE.Vector3(0, 0, 0));
+        item.coverage.rotateZ(elapsed * 0.12 + index);
+
+        const pulse = index === selectedAssetIndex ? 0.26 : 0.16;
+        item.coverage.material.opacity = pulse + (Math.sin(elapsed * 2.2 + index) * 0.03);
+        item.orbit.material.opacity = index === selectedAssetIndex ? 0.65 : 0.28;
+
+        const projected = item.sat.position.clone().project(camera);
+        const visible = projected.z < 1 && projected.z > -1;
+        if (visible) {
+          const x = ((projected.x + 1) / 2) * stageRect.width;
+          const y = ((-projected.y + 1) / 2) * stageRect.height;
+          item.tagEl.style.display = 'block';
+          item.tagEl.style.left = `${x}px`;
+          item.tagEl.style.top = `${y - 18}px`;
+          item.tagEl.style.opacity = index === selectedAssetIndex ? '1' : '0.82';
+          item.tagEl.style.borderColor = index === selectedAssetIndex ? 'rgba(99,242,255,0.5)' : 'rgba(99,242,255,0.22)';
+        } else {
+          item.tagEl.style.display = 'none';
+        }
+      });
+    }
+
+    function updateCamera(elapsed) {
+      const focusAsset = assets[focusedAssetIndex];
+      const focusAngle = focusAsset.phase + elapsed * focusAsset.speed * 0.18;
+      const focusPos = new THREE.Vector3(
+        Math.cos(focusAngle) * focusAsset.orbitRadius,
+        0,
+        Math.sin(focusAngle) * focusAsset.orbitRadius
+      ).applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(focusAsset.inclination));
+
+      const targetX = userHasFocused ? focusPos.x * 0.18 : 0;
+      const targetY = userHasFocused ? focusPos.y * 0.14 : 0;
+      root.rotation.y += ((-0.28 + targetX) - root.rotation.y) * 0.018;
+      root.rotation.x += ((0.18 + targetY) - root.rotation.x) * 0.018;
+
+      globeGroup.rotation.y += 0.0018 * scenario.multiplier / 8;
+      mapGroup.rotation.y = globeGroup.rotation.y;
+    }
+
+    function handlePointer(event) {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const intersections = raycaster.intersectObjects(satelliteGroup.children, true);
+      if (!intersections.length) return;
+      let obj = intersections[0].object;
+      while (obj && typeof obj.userData.assetIndex === 'undefined') obj = obj.parent;
+      if (obj && typeof obj.userData.assetIndex !== 'undefined') {
+        selectAsset(obj.userData.assetIndex, true);
+      }
+    }
+
+    canvas.addEventListener('click', handlePointer);
+
+    document.getElementById('focusBtn').addEventListener('click', () => {
+      selectAsset(selectedAssetIndex, true);
+    });
+
+    document.getElementById('nextVehicleBtn').addEventListener('click', () => {
+      const next = (selectedAssetIndex + 1) % assets.length;
+      selectAsset(next, true);
+    });
+
+    document.querySelectorAll('.tool-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const view = btn.dataset.view;
+        if (view === 'zones') document.getElementById('zoneOverlay').style.display = btn.classList.contains('active') ? 'block' : 'none';
+        if (view === 'orbits') orbitGroup.visible = btn.classList.contains('active');
+        if (view === 'coverage') footprintGroup.visible = btn.classList.contains('active');
+        if (view === 'earth') globeGroup.visible = btn.classList.contains('active');
       });
     });
+
+    let lastTime = performance.now();
+
+    function animate(now) {
+      const delta = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      updateScenarioClock(delta);
+      updateCamera(now * 0.001);
+      updateSatellitePositions(now * 0.001);
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resizeRenderer);
+    resizeRenderer();
+    selectAsset(0, false);
+    requestAnimationFrame(animate);
   </script>
 </body>
 </html>
