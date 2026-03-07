@@ -860,7 +860,7 @@
       controls.lastX = e.clientX;
       controls.lastY = e.clientY;
       controls.targetLon += dx * 0.22;
-      controls.targetLat -= dy * 0.18;
+      controls.targetLat += dy * 0.18;
       controls.targetLat = clamp(controls.targetLat, -85, 85);
     });
     renderer.domElement.addEventListener("wheel", (e) => {
