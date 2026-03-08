@@ -54,7 +54,7 @@ body::before{
   z-index:0;
 }
 
-/* BACKGROUND EARTH */
+/* Background Earth */
 
 .earth-stage{
   position:fixed;
@@ -66,35 +66,35 @@ body::before{
 
 .earth-glow{
   position:absolute;
-  left:50%;
-  top:41%;
-  width:min(900px, 64vw);
-  height:min(900px, 64vw);
+  left:44%;
+  top:38%;
+  width:min(940px, 68vw);
+  height:min(940px, 68vw);
   transform:translate(-50%,-50%);
   border-radius:50%;
   background:
     radial-gradient(circle,
-      rgba(100,170,255,.14) 0%,
-      rgba(100,170,255,.06) 32%,
-      rgba(100,170,255,0) 64%);
+      rgba(90,165,255,.12) 0%,
+      rgba(90,165,255,.05) 34%,
+      rgba(90,165,255,0) 66%);
   filter:blur(34px);
-  opacity:.58;
+  opacity:.52;
 }
 
 .earth-container{
-  width:min(640px, 46vw);
-  height:min(640px, 46vw);
   position:absolute;
-  left:50%;
-  top:41%;
+  left:44%;
+  top:38%;
+  width:min(720px,52vw);
+  height:min(720px,52vw);
   transform:translate(-50%,-50%) rotateZ(23.5deg);
   border-radius:50%;
   overflow:hidden;
-  opacity:.30;
+  opacity:.26;
   box-shadow:
-    inset -34px -34px 78px rgba(0,0,0,.88),
-    inset 12px 12px 34px rgba(255,255,255,.18),
-    0 0 26px rgba(50,100,255,.18);
+    inset -34px -34px 82px rgba(0,0,0,.88),
+    inset 12px 12px 34px rgba(255,255,255,.16),
+    0 0 26px rgba(50,100,255,.14);
 }
 
 .earth-container::before{
@@ -103,8 +103,8 @@ body::before{
   inset:-1px;
   border-radius:50%;
   box-shadow:
-    inset 0 0 14px rgba(160,215,255,.18),
-    0 0 20px rgba(90,160,255,.10);
+    inset 0 0 14px rgba(160,215,255,.16),
+    0 0 20px rgba(90,160,255,.08);
   z-index:3;
 }
 
@@ -114,14 +114,14 @@ body::before{
   inset:0;
   border-radius:50%;
   background:
-    radial-gradient(circle at 32% 32%,
-      rgba(255,255,255,.18) 0%,
-      rgba(255,255,255,.07) 16%,
+    radial-gradient(circle at 30% 28%,
+      rgba(255,255,255,.16) 0%,
+      rgba(255,255,255,.06) 16%,
       rgba(255,255,255,0) 34%),
     linear-gradient(90deg,
       rgba(255,255,255,.10) 0%,
       rgba(255,255,255,.03) 24%,
-      rgba(0,0,0,.04) 46%,
+      rgba(0,0,0,.05) 46%,
       rgba(0,0,0,.42) 68%,
       rgba(0,0,0,.84) 100%);
   z-index:2;
@@ -132,15 +132,16 @@ body::before{
   inset:0;
   width:200%;
   height:100%;
-  background:url('https://w3bits.com/wp-content/uploads/earth-map.jpg') repeat-x;
+  background:url("earth-map-4096.jpg") repeat-x;
   background-size:auto 100%;
-  animation:rotateEarth 28s linear infinite;
+  animation:rotateEarth 60s linear infinite;
   z-index:1;
+  filter:saturate(1.04) contrast(1.05) brightness(.96);
 }
 
 @keyframes rotateEarth{
-  0%   { background-position:0 0; }
-  100% { background-position:-1024px 0; }
+  0% { background-position:0 0; }
+  100% { background-position:-4096px 0; }
 }
 
 .shell{
@@ -313,13 +314,18 @@ h1{
   }
 
   .earth-container{
+    left:50%;
+    top:35%;
     width:min(560px, 58vw);
     height:min(560px, 58vw);
+    opacity:.24;
   }
 
   .earth-glow{
-    width:min(740px, 78vw);
-    height:min(740px, 78vw);
+    left:50%;
+    top:35%;
+    width:min(760px, 80vw);
+    height:min(760px, 80vw);
   }
 }
 
@@ -333,13 +339,15 @@ h1{
   }
 
   .earth-container{
+    left:50%;
     top:35%;
     width:min(460px, 74vw);
     height:min(460px, 74vw);
-    opacity:.24;
+    opacity:.20;
   }
 
   .earth-glow{
+    left:50%;
     top:35%;
     width:min(620px, 94vw);
     height:min(620px, 94vw);
@@ -369,13 +377,15 @@ h1{
   }
 
   .earth-container{
+    left:50%;
     top:29%;
     width:88vw;
     height:88vw;
-    opacity:.18;
+    opacity:.14;
   }
 
   .earth-glow{
+    left:50%;
     top:29%;
     width:110vw;
     height:110vw;
