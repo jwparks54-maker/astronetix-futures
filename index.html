@@ -245,7 +245,7 @@ h1{
 
 .domain-grid{
   display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:16px;
   padding:28px 0 42px;
 }
@@ -269,6 +269,7 @@ h1{
     border-color .22s ease,
     background .22s ease,
     box-shadow .22s ease;
+  cursor:pointer;
 }
 
 .domain-card:hover{
@@ -383,6 +384,33 @@ h1{
   transform:translateX(4px);
 }
 
+/* training card special */
+.training-card .card-bg{
+  object-fit:cover;
+  object-position:center;
+  filter:brightness(.42) saturate(1.05);
+}
+
+.training-card .card-content{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+
+.training-logo{
+  width:min(220px, 72%);
+  max-height:90px;
+  object-fit:contain;
+  margin:0 0 14px;
+  filter:
+    drop-shadow(0 0 18px rgba(75,160,255,.16))
+    drop-shadow(0 0 36px rgba(75,160,255,.10));
+}
+
+.training-card .card-content p{
+  min-height:72px;
+}
+
 /* optional subtle corner accents */
 .domain-card .corner{
   position:absolute;
@@ -406,6 +434,195 @@ h1{
   right:10px;
   border-top:1px solid;
   border-right:1px solid;
+}
+
+/* modal */
+.training-modal{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+  background:rgba(2,8,16,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .24s ease, visibility .24s ease;
+  z-index:50;
+}
+
+.training-modal.active{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+
+.training-panel{
+  width:min(980px, 100%);
+  max-height:min(88vh, 900px);
+  overflow:auto;
+  border-radius:24px;
+  border:1px solid rgba(127,197,255,.24);
+  background:
+    linear-gradient(180deg, rgba(8,18,30,.96) 0%, rgba(4,10,18,.97) 100%);
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative;
+}
+
+.training-panel::-webkit-scrollbar{
+  width:10px;
+}
+
+.training-panel::-webkit-scrollbar-thumb{
+  background:rgba(125,185,255,.22);
+  border-radius:10px;
+}
+
+.training-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:12px;
+  background:rgba(255,255,255,.06);
+  color:#d9ecff;
+  font-size:24px;
+  cursor:pointer;
+  transition:background .2s ease, transform .2s ease;
+}
+
+.training-close:hover{
+  background:rgba(127,197,255,.14);
+  transform:scale(1.04);
+}
+
+.training-head{
+  padding:28px 28px 20px;
+  border-bottom:1px solid rgba(127,197,255,.12);
+  background:
+    radial-gradient(circle at top right, rgba(80,160,255,.12), transparent 36%);
+}
+
+.training-head-top{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+
+.training-head-logo{
+  width:min(210px, 48vw);
+  max-height:92px;
+  object-fit:contain;
+  filter:
+    drop-shadow(0 0 20px rgba(75,160,255,.18))
+    drop-shadow(0 0 40px rgba(75,160,255,.10));
+}
+
+.training-kicker{
+  color:var(--blue);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+.training-title{
+  margin:0 0 10px;
+  font-family:"Orbitron",sans-serif;
+  font-size:clamp(24px,3vw,40px);
+  line-height:1.05;
+  text-transform:uppercase;
+}
+
+.training-text{
+  margin:0;
+  color:#c9dcee;
+  font-size:18px;
+  line-height:1.3;
+  max-width:760px;
+}
+
+.training-body{
+  padding:24px 28px 30px;
+}
+
+.training-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.training-option{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+  border:1px solid rgba(127,197,255,.16);
+  border-radius:18px;
+  padding:18px;
+  background:
+    linear-gradient(180deg, rgba(12,24,38,.92), rgba(7,15,26,.92));
+  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.training-option:hover{
+  transform:translateY(-4px);
+  border-color:rgba(127,197,255,.34);
+  box-shadow:0 18px 36px rgba(0,0,0,.28);
+}
+
+.training-option .option-code{
+  color:var(--blue);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+.training-option h3{
+  margin:0 0 8px;
+  font-family:"Orbitron",sans-serif;
+  font-size:20px;
+  text-transform:uppercase;
+  line-height:1.1;
+}
+
+.training-option p{
+  margin:0 0 14px;
+  color:#d4e3f2;
+  font-size:15px;
+  line-height:1.32;
+}
+
+.training-option .option-enter{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:#eff7ff;
+  font-weight:700;
+}
+
+.training-footer{
+  margin-top:10px;
+  padding:18px 20px;
+  border-radius:18px;
+  border:1px solid rgba(127,197,255,.12);
+  background:rgba(255,255,255,.03);
+  color:#cfe0f0;
+  line-height:1.35;
+  font-size:16px;
 }
 
 /* responsive */
@@ -452,6 +669,10 @@ h1{
     top:34%;
     width:min(620px, 94vw);
     height:min(620px, 94vw);
+  }
+
+  .training-grid{
+    grid-template-columns:1fr;
   }
 }
 
@@ -504,6 +725,17 @@ h1{
 
   .card-content p{
     min-height:auto;
+  }
+
+  .training-head,
+  .training-body{
+    padding-left:18px;
+    padding-right:18px;
+  }
+
+  .training-close{
+    top:10px;
+    right:10px;
   }
 }
 </style>
@@ -605,8 +837,122 @@ h1{
         </div>
       </div>
     </a>
+
+    <button class="domain-card training-card" id="openTraining" aria-label="Open AX-LEAD training">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <img class="card-bg" src="combined.png" alt="AX-LEAD training background">
+      <div class="card-content">
+        <div class="card-code">Domain 06</div>
+        <img class="training-logo" src="AX-LEAD no background (Standard).png" alt="AX-LEAD logo">
+        <h2>Training</h2>
+        <p>Interactive leadership, mission planning, operational decision-making, and education pathways.</p>
+        <div class="enter">
+          <span>Open Training</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </button>
   </section>
 </div>
+
+<div class="training-modal" id="trainingModal" aria-hidden="true">
+  <div class="training-panel" role="dialog" aria-modal="true" aria-labelledby="trainingTitle">
+    <button class="training-close" id="closeTraining" aria-label="Close training panel">×</button>
+
+    <div class="training-head">
+      <div class="training-head-top">
+        <img class="training-head-logo" src="AX-LEAD no background (Standard).png" alt="AX-LEAD logo">
+      </div>
+      <div class="training-kicker">Interactive Learning Environment</div>
+      <h2 class="training-title" id="trainingTitle">AX-LEAD Training Portal</h2>
+      <p class="training-text">
+        Build an interactive training hub for leadership development, mission planning, operational rehearsal, and decision support. This is where AX-Futures stops being a brochure and starts acting like a tool.
+      </p>
+    </div>
+
+    <div class="training-body">
+      <div class="training-grid">
+        <a class="training-option" href="training-leadership.html">
+          <div class="option-code">Track 01</div>
+          <h3>Leadership Development</h3>
+          <p>Scenario-based leadership modules, command decision drills, communication reps, and executive development pathways.</p>
+          <div class="option-enter">
+            <span>Open Track</span>
+            <span>→</span>
+          </div>
+        </a>
+
+        <a class="training-option" href="training-mission.html">
+          <div class="option-code">Track 02</div>
+          <h3>Mission Planning</h3>
+          <p>Interactive planning sequences for campaign design, operational synchronization, risk framing, and mission execution planning.</p>
+          <div class="option-enter">
+            <span>Open Track</span>
+            <span>→</span>
+          </div>
+        </a>
+
+        <a class="training-option" href="training-wargaming.html">
+          <div class="option-code">Track 03</div>
+          <h3>Wargaming & Rehearsal</h3>
+          <p>Red-blue event flows, inject-driven decision exercises, branch and sequel development, and post-action learning loops.</p>
+          <div class="option-enter">
+            <span>Open Track</span>
+            <span>→</span>
+          </div>
+        </a>
+
+        <a class="training-option" href="training-education.html">
+          <div class="option-code">Track 04</div>
+          <h3>Education & Concepts</h3>
+          <p>Operational primers, future force concepts, CJADC2 learning modules, and mission-focused professional education content.</p>
+          <div class="option-enter">
+            <span>Open Track</span>
+            <span>→</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="training-footer">
+        You can turn each track into its own page, or wire this panel to expand with embedded videos, lesson tiles, downloadable products, instructor bios, or student dashboards. Right now this gives you a strong interactive entry point without turning the homepage into a clown car.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const openTraining = document.getElementById('openTraining');
+const trainingModal = document.getElementById('trainingModal');
+const closeTraining = document.getElementById('closeTraining');
+
+function showTrainingModal(){
+  trainingModal.classList.add('active');
+  trainingModal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideTrainingModal(){
+  trainingModal.classList.remove('active');
+  trainingModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+openTraining.addEventListener('click', showTrainingModal);
+closeTraining.addEventListener('click', hideTrainingModal);
+
+trainingModal.addEventListener('click', function(e){
+  if(e.target === trainingModal){
+    hideTrainingModal();
+  }
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && trainingModal.classList.contains('active')){
+    hideTrainingModal();
+  }
+});
+</script>
 
 </body>
 </html>
