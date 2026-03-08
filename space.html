@@ -271,6 +271,40 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 .stitle{font-family:var(--head);font-size:8px;font-weight:700;letter-spacing:.18em;color:var(--cyan2);}
 .ssub{font-family:var(--mono);font-size:6px;color:var(--muted);}
 
+/* ═══ SV TELEMETRY PANEL (pinned in SV list on selection) ═══ */
+#sv-telem{
+  display:none;flex-direction:column;gap:0;
+  background:var(--bg1);border-bottom:1px solid var(--border2);
+  flex:none;overflow:hidden;
+}
+#sv-telem.open{display:flex;}
+.tl-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px 5px;border-bottom:1px solid var(--border);
+}
+.tl-name{font-family:var(--cond);font-size:16px;font-weight:700;letter-spacing:.4px;}
+.tl-close{font-family:var(--mono);font-size:8px;color:var(--muted);cursor:pointer;padding:2px 6px;
+  border:1px solid var(--border);border-radius:3px;background:transparent;}
+.tl-close:hover{color:var(--text);border-color:var(--border2);}
+.tl-eye{font-family:var(--mono);font-size:6px;letter-spacing:.18em;color:var(--blue2);padding:0 10px 4px;}
+.tl-status-bar{display:flex;align-items:center;gap:6px;padding:4px 10px;
+  border-bottom:1px solid var(--border);}
+.tl-badge{font-family:var(--mono);font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.1em;}
+.tl-section{padding:6px 10px;border-bottom:1px solid var(--border);}
+.tl-seclbl{font-family:var(--mono);font-size:5px;letter-spacing:.2em;color:var(--muted);margin-bottom:5px;}
+.tl-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.tl-cell{background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:3px;padding:4px 6px;}
+.tl-key{font-family:var(--mono);font-size:5px;letter-spacing:.12em;color:var(--muted);margin-bottom:2px;}
+.tl-val{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--text);}
+.tl-bar-row{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.tl-bar{flex:1;height:4px;background:rgba(0,0,0,.5);border-radius:2px;overflow:hidden;}
+.tl-bar-fill{height:100%;border-radius:2px;transition:width .6s;}
+.tl-pct{font-family:var(--mono);font-size:8px;font-weight:700;}
+.tl-mission{padding:6px 10px;font-size:8px;line-height:1.6;color:#8fbcd4;
+  border-bottom:1px solid var(--border);}
+.tl-loc{display:flex;align-items:center;gap:8px;padding:5px 10px 6px;font-family:var(--mono);font-size:7px;color:var(--muted);}
+.tl-coord{color:#8fbcd4;font-size:8px;}
+
 /* ═══ SV HOVER TOOLTIP ═══ */
 #sv-tooltip{
   position:fixed;z-index:9000;pointer-events:none;
@@ -385,6 +419,59 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
       <button class="sb" onclick="setS(this,'health')">HEALTH</button>
       <button class="sb" onclick="setS(this,'status')">STATUS</button>
       <button class="sb" onclick="setS(this,'load')">LOAD</button>
+    </div>
+  </div>
+  <!-- SV Telemetry Panel — shown when an SV is selected -->
+  <div id="sv-telem">
+    <div class="tl-hdr">
+      <div>
+        <div class="tl-name" id="tl-name">—</div>
+      </div>
+      <button class="tl-close" onclick="selSVFn(selSV)">✕ CLOSE</button>
+    </div>
+    <div class="tl-eye" id="tl-eye"></div>
+    <div class="tl-status-bar">
+      <div class="tl-badge" id="tl-vbadge">—</div>
+      <div class="tl-badge" id="tl-mbadge">—</div>
+      <div class="tl-badge" id="tl-sigbadge">—</div>
+    </div>
+    <div class="tl-section">
+      <div class="tl-seclbl">HEALTH &amp; LOAD</div>
+      <div class="tl-bar-row">
+        <div style="font-family:var(--mono);font-size:6px;color:var(--muted);width:36px">HEALTH</div>
+        <div class="tl-bar"><div class="tl-bar-fill" id="tl-hbar"></div></div>
+        <div class="tl-pct" id="tl-hpct"></div>
+      </div>
+      <div class="tl-bar-row" style="margin-top:4px">
+        <div style="font-family:var(--mono);font-size:6px;color:var(--muted);width:36px">LOAD</div>
+        <div class="tl-bar"><div class="tl-bar-fill" id="tl-lbar" style="background:var(--blue2)"></div></div>
+        <div class="tl-pct" id="tl-lpct" style="color:var(--blue2)"></div>
+      </div>
+    </div>
+    <div class="tl-section">
+      <div class="tl-seclbl">TELEMETRY</div>
+      <div class="tl-grid">
+        <div class="tl-cell"><div class="tl-key">REGIME</div><div class="tl-val" id="tl-regime"></div></div>
+        <div class="tl-cell"><div class="tl-key">ALTITUDE</div><div class="tl-val" id="tl-alt"></div></div>
+        <div class="tl-cell"><div class="tl-key">INCLINATION</div><div class="tl-val" id="tl-inc"></div></div>
+        <div class="tl-cell"><div class="tl-key">PERIOD</div><div class="tl-val" id="tl-per"></div></div>
+        <div class="tl-cell"><div class="tl-key">LATITUDE</div><div class="tl-val" id="tl-lat"></div></div>
+        <div class="tl-cell"><div class="tl-key">LONGITUDE</div><div class="tl-val" id="tl-lon"></div></div>
+        <div class="tl-cell"><div class="tl-key">SIGNAL</div><div class="tl-val" id="tl-sig"></div></div>
+        <div class="tl-cell"><div class="tl-key">LAST UPD</div><div class="tl-val" id="tl-upd"></div></div>
+      </div>
+    </div>
+    <div class="tl-section">
+      <div class="tl-seclbl">TASKING</div>
+      <div class="tl-grid">
+        <div class="tl-cell"><div class="tl-key">CCMD</div><div class="tl-val" id="tl-ccmd"></div></div>
+        <div class="tl-cell"><div class="tl-key">TASKS</div><div class="tl-val" id="tl-tasks"></div></div>
+      </div>
+    </div>
+    <div class="tl-mission" id="tl-mission"></div>
+    <div class="tl-loc">
+      <span>POS</span>
+      <span class="tl-coord" id="tl-pos">—</span>
     </div>
   </div>
   <div id="svl"></div>
@@ -625,6 +712,8 @@ function setS(btn,val){fSo=val;document.querySelectorAll('.sb').forEach(b=>b.cla
 document.getElementById('srch').addEventListener('input',e=>{fSr=e.target.value.toLowerCase();rSV();});
 
 function filtSV(){
+  // When a single SV is selected, show only that SV in the list
+  if(selSV)return SV.filter(x=>x.id===selSV);
   let s=[...SV];
   if(selCC)s=s.filter(x=>x.cc===selCC);
   if(fSt!=='all')s=s.filter(x=>x.s===fSt);
@@ -721,14 +810,29 @@ function showCCMDTip(e,id){
 function hideCCMDTip(){document.getElementById('ccmd-tooltip').classList.remove('show');}
 
 function rSV(){
-  const svs=filtSV(),ccname=selCC?ccmd(selCC)?.name:'';
-  document.getElementById('svclbl').textContent=svs.length+' SVs'+(ccname?' · '+ccname:'');
+  const svs=filtSV();
+  const ccname=selCC&&!selSV?ccmd(selCC)?.name:'';
+  const selSVobj=selSV?SV.find(x=>x.id===selSV):null;
+  const lbl=selSVobj?`${selSVobj.n} · SELECTED`:svs.length+' SVs'+(ccname?' · '+ccname:'');
+  document.getElementById('svclbl').textContent=lbl;
   document.getElementById('svl').innerHTML=svs.map(sv=>{
     const scl=sc(sv.s),m=ccmd(sv.cc);
-    return `<div class="svc${sv.s==='Critical'?' crit':''}${sv.id===selSV?' sel':''}"
+    const isSel=sv.id===selSV;
+    // When selected, show a minimal "selected" card — full info is in telem panel
+    if(isSel){
+      return `<div class="svc sel" style="border-left-color:${scl};opacity:0.6;cursor:pointer"
+        onclick="selSVFn('${sv.id}')">
+        <div class="sv-r1">
+          <div class="svnm" style="color:${scl}">${sv.n}</div>
+          <div class="svsb" style="color:var(--muted);border-color:var(--border)">↑ DETAIL</div>
+        </div>
+        <div class="sv-r2"><span class="svic">${IC[sv.t]||'●'}</span><span class="svtp">${sv.t}</span></div>
+      </div>`;
+    }
+    return `<div class="svc${sv.s==='Critical'?' crit':''}"
       style="border-left-color:${scl}"
       onclick="selSVFn('${sv.id}')"
-      onmouseenter="showSVTip(event,'${sv.id}')"
+      onmouseenter="if(!selSV)showSVTip(event,'${sv.id}')"
       onmouseleave="hideSVTip()">
       <div class="sv-r1">
         <div class="svnm" style="color:${scl}">${sv.n}</div>
@@ -771,6 +875,15 @@ function moveTip(tip,cx,cy){
   if(y<10)y=10;if(y+th>vh-10)y=vh-th-10;
   tip.style.left=x+'px';tip.style.top=y+'px';
 }
+// Auto-hide SV tooltip when cursor moves outside both the SV panel and the tooltip itself
+document.addEventListener('mousemove',e=>{
+  const tip=document.getElementById('sv-tooltip');
+  if(!tip.classList.contains('show'))return;
+  const svPanel=document.getElementById('svs');
+  const inPanel=svPanel&&svPanel.contains(e.target);
+  const inTip=tip.contains(e.target);
+  if(!inPanel&&!inTip)hideSVTip();
+});
 
 function rAL(){
   const al=selCC?AL.filter(a=>a.cc===selCC):AL;
@@ -784,14 +897,97 @@ function rAL(){
 }
 
 function selCCFn(id){
-  selCC=selCC===id?null:id;selSV=null;renderAll();
+  selCC=selCC===id?null:id;
+  selSV=null; // clear SV selection when CCMD is clicked
+  document.getElementById('sv-telem').classList.remove('open');
+  renderAll();
   if(typeof setCCMDActive==='function')setCCMDActive(selCC);
 }
 function selSVFn(id){
-  selSV=selSV===id?null:id;
-  if(selSV){const sv=SV.find(x=>x.id===id);if(sv)selCC=sv.cc;}
+  const wasSelected=selSV===id;
+  selSV=wasSelected?null:id;
   renderAll();
-  if(typeof setCCMDActive==='function')setCCMDActive(selCC);
+  if(typeof window.focusSV==='function')window.focusSV(selSV);
+  // Switch to 3D globe so the camera fly-to is visible
+  if(selSV&&typeof setView==='function')setView(false);
+  if(selSV){
+    const panel=document.getElementById('svs');
+    if(panel)panel.scrollTop=0;
+  }
+}
+
+// Populate and show/hide the telemetry panel
+function renderTelemPanel(){
+  const panel=document.getElementById('sv-telem');
+  if(!selSV){panel.classList.remove('open');return;}
+  const sv=SV.find(x=>x.id===selSV);if(!sv){panel.classList.remove('open');return;}
+
+  // Find matching sat in globe engine for live position
+  const globeSat=typeof SATS!=='undefined'?SATS.find(s=>s.id===sv.id):null;
+  const reg=globeSat?REGIMES[globeSat.regime]:null;
+
+  const scl=sc(sv.s),hclr=hc(sv.h);
+  const m=ccmd(sv.cc);
+  const c=CC.find(x=>x.id===sv.cc);
+
+  document.getElementById('tl-name').textContent=sv.n;
+  document.getElementById('tl-name').style.color=scl;
+  document.getElementById('tl-eye').textContent=sv.t+' · '+sv.id;
+
+  // Status badges
+  const vbadge=document.getElementById('tl-vbadge');
+  vbadge.textContent=sv.s.toUpperCase();
+  vbadge.style.background=scl+'22';vbadge.style.color=scl;vbadge.style.border='1px solid '+scl+'55';
+
+  const sig=sv.s==='Operational'?'STRONG':sv.s==='Degraded'?'MODERATE':'WEAK';
+  const sigCol=sv.s==='Operational'?'var(--green2)':sv.s==='Degraded'?'var(--amber2)':'var(--red2)';
+  const mbadge=document.getElementById('tl-mbadge');
+  mbadge.textContent=(sv.s==='Critical'?'DEGRADED MISSION':sv.s==='Degraded'?'REDUCED OPS':'MISSION ACTIVE');
+  mbadge.style.background='rgba(0,0,0,.3)';mbadge.style.color='var(--muted)';mbadge.style.border='1px solid var(--border)';
+
+  const sigbadge=document.getElementById('tl-sigbadge');
+  sigbadge.textContent='SIG: '+sig;
+  sigbadge.style.background=sigCol+'22';sigbadge.style.color=sigCol;sigbadge.style.border='1px solid '+sigCol+'55';
+
+  // Health bar
+  document.getElementById('tl-hbar').style.width=sv.h+'%';
+  document.getElementById('tl-hbar').style.background=hclr;
+  document.getElementById('tl-hpct').textContent=sv.h+'%';
+  document.getElementById('tl-hpct').style.color=hclr;
+
+  // Load bar (max 5 tasks = 100%)
+  const loadPct=Math.min(100,sv.l/5*100);
+  document.getElementById('tl-lbar').style.width=loadPct+'%';
+  document.getElementById('tl-lpct').textContent=sv.l+' tasks';
+
+  // Telemetry fields
+  if(reg){
+    document.getElementById('tl-regime').textContent=globeSat.regime;
+    document.getElementById('tl-alt').textContent=reg.altKm.toLocaleString()+' km';
+    document.getElementById('tl-inc').textContent=reg.inc+'°';
+    const periodStr=reg.period<3600?`${(reg.period/60).toFixed(1)} min`:`${(reg.period/3600).toFixed(2)} hr`;
+    document.getElementById('tl-per').textContent=periodStr;
+    document.getElementById('tl-lat').textContent=(globeSat.lat>=0?'+':'')+globeSat.lat.toFixed(2)+'°';
+    document.getElementById('tl-lon').textContent=(globeSat.lon>=0?'+':'')+globeSat.lon.toFixed(2)+'°';
+    document.getElementById('tl-pos').textContent=
+      `${Math.abs(globeSat.lat).toFixed(2)}°${globeSat.lat>=0?'N':'S'} / ${Math.abs(globeSat.lon).toFixed(2)}°${globeSat.lon>=0?'E':'W'} · ${reg.altKm.toLocaleString()} km`;
+  } else {
+    ['tl-regime','tl-alt','tl-inc','tl-per','tl-lat','tl-lon'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('tl-pos').textContent='—';
+  }
+
+  document.getElementById('tl-sig').textContent=sig;
+  document.getElementById('tl-sig').style.color=sigCol;
+  document.getElementById('tl-upd').textContent=sv.u+' ago';
+
+  // Tasking
+  document.getElementById('tl-ccmd').textContent=m?m.name:sv.cc;
+  if(m)document.getElementById('tl-ccmd').style.color=m.color;
+  document.getElementById('tl-tasks').textContent=sv.l+(c?' / '+c.req+' req':'');
+
+  document.getElementById('tl-mission').textContent=sv.m;
+
+  panel.classList.add('open');
 }
 
 (function tick(){
@@ -800,7 +996,7 @@ function selSVFn(id){
   setTimeout(tick,1000);
 })();
 
-function renderAll(){rRib();rCMD();rSV();rAL();}
+function renderAll(){rRib();rCMD();rSV();rAL();renderTelemPanel();}
 renderAll();
 console.log('[ASTRONETIX] Initial render complete. Unified command band active.');
 
@@ -872,6 +1068,22 @@ PRIORITY_ORDER.forEach(pid=>{
 });
 
 window.setCCMDActive=function(id){activeCCMD_globe=id;setCCMDHighlight3D(id);};
+
+// Fly camera to a satellite's current lat/lon and zoom in
+window.focusSV=function(satId){
+  if(!satId){
+    // Sync ctrl to current camera position so deselect doesn't snap
+    const pos=camera.position;
+    const dist=pos.length();
+    const lat=Math.asin(pos.y/dist)*180/Math.PI;
+    const lon=(Math.atan2(pos.z,-pos.x)*180/Math.PI);
+    ctrl.lon=lon;ctrl.lat=lat;ctrl.dist=dist;
+    ctrl.targetLon=lon;ctrl.targetLat=lat;ctrl.targetDist=18;
+    ctrl.autoRotate=true;
+    return;
+  }
+  ctrl.autoRotate=false;
+};
 
 function setCCMDHighlight3D(cmdId){
   Object.entries(ccmdMeshes3D).forEach(([id,grp])=>{
@@ -1090,8 +1302,17 @@ USERS.forEach(ut=>{
 const coneObjects={};
 SATS.filter(s=>s.regime==='MEO'||s.regime==='GEO').forEach(s=>{
   const altKm=s.altKm,rho=RE/(RE+altKm),earthHA=Math.acos(rho)-5*Math.PI/180,visAngle=Math.PI/2-earthHA+0.15;
-  const ch=s.smaKm*SCALE,cr=ch*Math.tan(visAngle*0.5);
+  // ch = full slant height from Earth center to sat; base radius at Earth surface level
+  const ch=s.smaKm*SCALE, cr=ch*Math.tan(visAngle*0.5);
   const mesh=new THREE.Mesh(new THREE.ConeGeometry(cr,ch,32,1,true),new THREE.MeshBasicMaterial({color:s.color,transparent:true,opacity:.045,side:THREE.DoubleSide,depthWrite:false}));
+  // Cone default: tip at top (+Y), base at bottom (-Y)
+  // We want tip pointing OUTWARD (toward sat), base toward Earth center.
+  // In updateSats we position at p3 (sat pos) and lookAt(0,0,0).
+  // After lookAt, local -Z points toward Earth.
+  // We'll offset the cone so tip (top of cone in local Y) is at origin of the group,
+  // then rotate so +Y (tip) points away from Earth.
+  // Shift cone down by ch/2 so tip is at local origin:
+  mesh.geometry.translate(0, -ch/2, 0);
   mesh.userData.regime=s.regime;gCones.add(mesh);coneObjects[s.id]=mesh;
 });
 
@@ -1156,8 +1377,18 @@ function handleClick3D(cx,cy){
   const m2=new THREE.Vector2(((cx-rect.left)/rect.width)*2-1,-((cy-rect.top)/rect.height)*2+1);
   raycaster.setFromCamera(m2,camera);
   const hits=raycaster.intersectObjects(clickMeshes(),false);
-  if(hits.length){const s=SATS.find(x=>x.id===hits[0].object.userData.satId);if(s)showTip(s,cx,cy);}
-  else hideTip();
+  if(hits.length){
+    const s=SATS.find(x=>x.id===hits[0].object.userData.satId);
+    if(s){
+      // Toggle: click selected SV again to deselect
+      if(typeof selSVFn==='function')selSVFn(s.id);
+      hideTip();
+    }
+  } else {
+    hideTip();
+    // Click empty space on globe — deselect SV if one is selected
+    if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
+  }
 }
 renderer.domElement.addEventListener('mousemove',e=>{if(e.pointerType==='touch')return;handleHover3D(e.clientX,e.clientY);});
 renderer.domElement.addEventListener('mouseleave',()=>{_hoverTipSat=null;hideTip();});
@@ -1213,9 +1444,13 @@ c2d.addEventListener('mousemove',e=>{
 c2d.addEventListener('click',e=>{
   const rect=c2d.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top,W=c2d.width,H=c2d.height;
   const hitCmd=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
-  if(hitCmd){selCCFn(hitCmd);return;}
+  // Check sat proximity first
   let best=null,bd=20;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
-  if(best)showTip(best,e.clientX,e.clientY);else hideTip();
+  if(best){if(typeof selSVFn==='function')selSVFn(best.id);hideTip();return;}
+  if(hitCmd){selCCFn(hitCmd);return;}
+  // Click empty space — deselect SV
+  if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
+  hideTip();
 });
 
 const CONTINENTS=[
@@ -1320,7 +1555,8 @@ function drawMap(W,H,t){
   let linkCount=0;
   if(show.ground||show.users){
     const allSt=[...(show.ground?GND:[]),...(show.users?USERS:[])];
-    SATS.filter(s=>show[s.regime]).forEach(s=>{
+    const activeSats=SATS.filter(s=>show[s.regime]&&(selSV?s.id===selSV:true));
+    activeSats.forEach(s=>{
       const rho=RE/(RE+s.altKm),maxGc=Math.acos(rho)*180/Math.PI;let bestSt=null,bestGc=9999;
       allSt.forEach(st=>{const dLat=(s.lat-st.lat)*Math.PI/180,dLon=(s.lon-st.lon)*Math.PI/180;const ha=Math.sin(dLat/2)**2+Math.cos(st.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;if(gc<maxGc*0.92&&gc<bestGc){bestGc=gc;bestSt=st;}});
       if(bestSt){const gp=ll2px(bestSt.lat,bestSt.lon,W,H),sp=ll2px(s.lat,s.lon,W,H);const col=bestSt.status==='g'?'#39ff9a':bestSt.status==='a'?'#f4c96b':'#ff5050';const phase=(t*1.4+s.ta0)%(Math.PI*2),alpha=0.15+Math.abs(Math.sin(phase))*0.52;ctx.save();ctx.strokeStyle=col;ctx.lineWidth=0.8;ctx.globalAlpha=alpha;ctx.setLineDash([3,8]);ctx.beginPath();ctx.moveTo(gp.x,gp.y);ctx.lineTo(sp.x,sp.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();linkCount++;}
@@ -1331,9 +1567,16 @@ function drawMap(W,H,t){
   if(show.users){USERS.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H),amber='#f4c96b',pulse=Math.sin(t*1.6+ut.lon*.04)*.5+.5;ctx.save();ctx.fillStyle=amber;ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();});}
   SATS.forEach(s=>{
     if(!show[s.regime])return;
+    // When SV selected, dim all others — only draw selected at full brightness
+    const isSel=selSV&&s.id===selSV;
+    const isDimmed=selSV&&!isSel;
+    if(isDimmed)return; // skip non-selected entirely
     const p=ll2px(s.lat,s.lon,W,H);
     if(s.trail.length>2){ctx.save();for(let ti=1;ti<s.trail.length;ti++){const a=s.trail[ti-1],b=s.trail[ti];if(Math.abs(a.lon-b.lon)>160)continue;const pa=ll2px(a.lat,a.lon,W,H),pb=ll2px(b.lat,b.lon,W,H);ctx.strokeStyle=s.hex;ctx.lineWidth=0.8;ctx.globalAlpha=(ti/s.trail.length)*0.45;ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();}ctx.restore();}
-    ctx.save();ctx.strokeStyle=s.hex;ctx.fillStyle=s.hex;ctx.shadowColor=s.hex;ctx.shadowBlur=hoverSat===s?14:7;ctx.globalAlpha=hoverSat===s?1:0.9;ctx.lineWidth=hoverSat===s?1.8:1.2;
+    ctx.save();ctx.strokeStyle=s.hex;ctx.fillStyle=s.hex;ctx.shadowColor=s.hex;
+    ctx.shadowBlur=isSel?18:hoverSat===s?14:7;
+    ctx.globalAlpha=isSel?1:hoverSat===s?1:0.9;
+    ctx.lineWidth=isSel?2.2:hoverSat===s?1.8:1.2;
     const sz=s.regime==='GEO'?5:s.regime==='MEO'?4:3.5;
     if(s.regime==='LEO'){ctx.beginPath();ctx.moveTo(p.x-sz,p.y);ctx.lineTo(p.x+sz,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y-sz);ctx.lineTo(p.x,p.y+sz);ctx.stroke();}
     else if(s.regime==='MEO'){ctx.beginPath();ctx.rect(p.x-sz*.7,p.y-sz*.7,sz*1.4,sz*1.4);ctx.stroke();}
@@ -1357,7 +1600,7 @@ document.getElementById('b2d').addEventListener('click',()=>setView(true));
 ['LEO','MEO','GEO'].forEach(rg=>{
   document.getElementById('rr-'+rg).addEventListener('click',()=>{
     show[rg]=!show[rg];document.getElementById('rr-'+rg).classList.toggle('off',!show[rg]);
-    orbitTrackObjects[rg].forEach(l=>l.visible=show.tracks&&show[rg]);
+    // orbit track visibility handled per-frame in updateSats
     SATS.filter(s=>s.regime===rg).forEach(s=>s.mesh.visible=show[rg]);
     Object.entries(coneObjects).filter(([id])=>SATS.find(s=>s.id===id&&s.regime===rg)).forEach(([,m])=>{m.visible=show.cones&&show[rg];});
   });
@@ -1365,7 +1608,7 @@ document.getElementById('b2d').addEventListener('click',()=>setView(true));
 ['tracks','ground','users','cones','terminator','gcc'].forEach(key=>{
   document.getElementById('lr-'+key).addEventListener('click',()=>{
     show[key]=!show[key];document.getElementById('lr-'+key).classList.toggle('off',!show[key]);
-    if(key==='tracks')Object.keys(orbitTrackObjects).forEach(rg=>orbitTrackObjects[rg].forEach(l=>l.visible=show.tracks&&show[rg]));
+    if(key==='tracks'){/* visibility handled per-frame in updateSats */}
     if(key==='ground')gGnd.visible=show.ground;
     if(key==='users')gUsr.visible=show.users;
     if(key==='cones'){const v=show.cones;Object.entries(coneObjects).forEach(([id,m])=>{const s=SATS.find(x=>x.id===id);m.visible=v&&show[s.regime];});}
@@ -1391,17 +1634,42 @@ function updateHUD(t){
 
 const TRAIL_MAX=100;
 function updateSats(simTime){
+  const svSelected=typeof selSV!=='undefined'&&selSV;
+  // Orbit tracks: hide all when an SV is selected, show the selected SV's regime track only
+  Object.entries(orbitTrackObjects).forEach(([rg,lines])=>{
+    lines.forEach(l=>{
+      if(svSelected){
+        const selSat=SATS.find(s=>s.id===selSV);
+        l.visible=show.tracks&&show[rg]&&selSat&&selSat.regime===rg;
+      } else {
+        l.visible=show.tracks&&show[rg];
+      }
+    });
+  });
   let linkCount3D=0;linkLines.forEach(l=>l.line.visible=false);
   SATS.forEach(s=>{
     const ta=s.ta0+s.angSpeed*simTime*SIM_SPD,p3=orbitPos(s.sma,s.inc,s.raan,ta);
-    s.mesh.position.copy(p3);s.mesh.visible=show[s.regime];s.pos3.copy(p3);
+    s.mesh.position.copy(p3);
+    s.mesh.visible=svSelected?(s.id===selSV):show[s.regime];
+    s.pos3.copy(p3);
     const p3b=orbitPos(s.sma,s.inc,s.raan,ta+0.002);s.mesh.lookAt(p3b);s.mesh.rotateX(Math.PI/2);s.mesh.rotateZ(simTime*0.3*(s.regime==='LEO'?1:s.regime==='MEO'?0.3:0.08));
-    const cone=coneObjects[s.id];if(cone){cone.position.copy(p3);cone.lookAt(0,0,0);cone.rotateX(-Math.PI/2);}
+    const cone=coneObjects[s.id];
+    if(cone){
+      // Place cone at sat position; lookAt(0,0,0) makes local -Z point toward Earth center.
+      // After geometry.translate(0,-ch/2,0), tip is at local origin (sat pos).
+      // Rotate so the cone's -Y (base direction after translate) points toward Earth:
+      // lookAt gives us -Z toward Earth, so rotateX(π/2) makes -Y toward Earth.
+      cone.position.copy(p3);
+      cone.lookAt(0,0,0);
+      cone.rotateX(-Math.PI/2);
+      cone.visible=show.cones&&(svSelected?s.id===selSV:show[s.regime]);
+    }
     const r=p3.length();s.lat=Math.asin(p3.y/r)*180/Math.PI;
     const rawLon=Math.atan2(p3.z,-p3.x)*180/Math.PI-180;s.lon=((rawLon+540)%360)-180;
     if(s.lastLon!==null&&Math.abs(s.lon-s.lastLon)>160)s.trail=[];
     s.trail.push({lat:s.lat,lon:s.lon});if(s.trail.length>TRAIL_MAX)s.trail.shift();s.lastLon=s.lon;
-    if(show.ground&&show[s.regime]&&linkCount3D<MAX_LINKS){
+    // Ground links: only draw for the selected SV (or all if none selected)
+    if(show.ground&&show[s.regime]&&linkCount3D<MAX_LINKS&&(!svSelected||s.id===selSV)){
       let bestGs=null,bestElev=-999;GND.forEach(gs=>{const gpos=ll2v3(gs.lat,gs.lon,R_EARTH);const surfN=gpos.clone().normalize();const toSat=p3.clone().sub(gpos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.08&&elev>bestElev){bestElev=elev;bestGs=gs;}});
       if(bestGs){const gpos=ll2v3(bestGs.lat,bestGs.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,gpos.x,gpos.y,gpos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.6+s.ta0)%(Math.PI*2);ll.mat.opacity=0.18+Math.abs(Math.sin(ph))*0.48;ll.line.visible=true;linkCount3D++;}
     }
@@ -1423,6 +1691,26 @@ function animate(){
   const dt=clock.getDelta(),t=clock.getElapsedTime();
   updateHUD(t);updateSats(t);clouds.rotation.y+=dt*0.016;
   if(ctrl.autoRotate&&!ctrl.rotating)ctrl.targetLon+=dt*3.5;
+
+  // SV tracking: place camera behind the sat (further from Earth on same radial line)
+  // so sat is in foreground, Earth fills the background
+  if(typeof selSV!=='undefined'&&selSV&&!ctrl.rotating){
+    const tracked=SATS.find(s=>s.id===selSV);
+    if(tracked&&tracked.pos3.length()>0){
+      // Camera offset behind sat — how far past the sat to place the camera
+      const camOffset=sat=>sat.regime==='LEO'?1.8:sat.regime==='MEO'?3.5:6.0;
+      const satPos=tracked.pos3.clone();
+      const satDist=satPos.length();
+      const camDist=satDist+camOffset(tracked);
+      // Camera sits on the same outward radial vector as the sat
+      const camPos=satPos.clone().normalize().multiplyScalar(camDist);
+      // Smoothly lerp actual camera position toward target (bypass ctrl lon/lat/dist for this mode)
+      camera.position.lerp(camPos,0.055);
+      camera.lookAt(0,0,0);
+      return; // skip normal ctrl camera math this frame
+    }
+  }
+
   ctrl.lon+=(ctrl.targetLon-ctrl.lon)*0.07;ctrl.lat+=(ctrl.targetLat-ctrl.lat)*0.07;ctrl.dist+=(ctrl.targetDist-ctrl.dist)*0.08;
   const phi=THREE.MathUtils.degToRad(90-ctrl.lat),th=THREE.MathUtils.degToRad(ctrl.lon);
   camera.position.set(ctrl.dist*Math.sin(phi)*Math.cos(th),ctrl.dist*Math.cos(phi),ctrl.dist*Math.sin(phi)*Math.sin(th));
@@ -1456,6 +1744,16 @@ function animate(){
   });
   USERS.forEach(ut=>{if(ut._ring&&ut._ring.material)ut._ring.material.opacity=pulse*.75;});
   if(!is2D)renderer.render(scene,camera);else drawMap(c2d.width,c2d.height,t);
+  // Live-update selected SV position in telemetry panel
+  if(typeof selSV!=='undefined'&&selSV){
+    const gs=SATS.find(s=>s.id===selSV);
+    if(gs){
+      const latEl=document.getElementById('tl-lat'),lonEl=document.getElementById('tl-lon'),posEl=document.getElementById('tl-pos');
+      if(latEl)latEl.textContent=(gs.lat>=0?'+':'')+gs.lat.toFixed(2)+'°';
+      if(lonEl)lonEl.textContent=(gs.lon>=0?'+':'')+gs.lon.toFixed(2)+'°';
+      if(posEl)posEl.textContent=`${Math.abs(gs.lat).toFixed(2)}°${gs.lat>=0?'N':'S'} / ${Math.abs(gs.lon).toFixed(2)}°${gs.lon>=0?'E':'W'} · ${gs.altKm.toLocaleString()} km`;
+    }
+  }
 }
 requestAnimationFrame(()=>requestAnimationFrame(()=>{onResize();console.log('[ASTRONETIX] Animation loop started. Canvas: '+c2d.width+'x'+c2d.height);animate();}));
 
@@ -1487,7 +1785,8 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{onResize();console.log('[AS
       return;
     }
     if(k==='escape'){
-      if(selCC){selCCFn(selCC);} // toggle off current selection
+      if(selSV){selSVFn(selSV);}       // clear SV first
+      else if(selCC){selCCFn(selCC);}  // then CCMD
       return;
     }
   });
