@@ -66,35 +66,36 @@ body::before{
 
 .earth-glow{
   position:absolute;
-  left:44%;
-  top:38%;
+  left:50%;
+  top:39%;
   width:min(940px, 68vw);
   height:min(940px, 68vw);
   transform:translate(-50%,-50%);
   border-radius:50%;
   background:
     radial-gradient(circle,
-      rgba(90,165,255,.12) 0%,
-      rgba(90,165,255,.05) 34%,
+      rgba(90,165,255,.11) 0%,
+      rgba(90,165,255,.045) 34%,
       rgba(90,165,255,0) 66%);
   filter:blur(34px);
-  opacity:.52;
+  opacity:.48;
 }
 
 .earth-container{
   position:absolute;
-  left:44%;
-  top:38%;
+  left:50%;
+  top:39%;
   width:min(720px,52vw);
   height:min(720px,52vw);
   transform:translate(-50%,-50%) rotateZ(23.5deg);
   border-radius:50%;
   overflow:hidden;
-  opacity:.26;
+  opacity:.28;
   box-shadow:
-    inset -34px -34px 82px rgba(0,0,0,.88),
-    inset 12px 12px 34px rgba(255,255,255,.16),
-    0 0 26px rgba(50,100,255,.14);
+    inset -18px -18px 34px rgba(255,255,255,.06),
+    inset 48px 12px 110px rgba(0,0,0,.72),
+    inset -30px -24px 76px rgba(0,0,0,.55),
+    0 0 26px rgba(50,100,255,.12);
 }
 
 .earth-container::before{
@@ -103,8 +104,8 @@ body::before{
   inset:-1px;
   border-radius:50%;
   box-shadow:
-    inset 0 0 14px rgba(160,215,255,.16),
-    0 0 20px rgba(90,160,255,.08);
+    inset 0 0 14px rgba(160,215,255,.14),
+    0 0 20px rgba(90,160,255,.06);
   z-index:3;
 }
 
@@ -114,16 +115,17 @@ body::before{
   inset:0;
   border-radius:50%;
   background:
-    radial-gradient(circle at 30% 28%,
+    radial-gradient(circle at 66% 30%,
       rgba(255,255,255,.16) 0%,
-      rgba(255,255,255,.06) 16%,
-      rgba(255,255,255,0) 34%),
+      rgba(255,255,255,.05) 14%,
+      rgba(255,255,255,0) 32%),
     linear-gradient(90deg,
-      rgba(255,255,255,.10) 0%,
-      rgba(255,255,255,.03) 24%,
-      rgba(0,0,0,.05) 46%,
-      rgba(0,0,0,.42) 68%,
-      rgba(0,0,0,.84) 100%);
+      rgba(0,0,0,.88) 0%,
+      rgba(0,0,0,.58) 18%,
+      rgba(0,0,0,.22) 36%,
+      rgba(255,255,255,.02) 58%,
+      rgba(255,255,255,.08) 78%,
+      rgba(255,255,255,.10) 100%);
   z-index:2;
 }
 
@@ -134,9 +136,9 @@ body::before{
   height:100%;
   background:url("earth-map-4096.jpg") repeat-x;
   background-size:auto 100%;
-  animation:rotateEarth 60s linear infinite;
+  animation:rotateEarth 95s linear infinite;
   z-index:1;
-  filter:saturate(1.04) contrast(1.05) brightness(.96);
+  filter:saturate(1.04) contrast(1.05) brightness(.95);
 }
 
 @keyframes rotateEarth{
@@ -318,7 +320,7 @@ h1{
     top:35%;
     width:min(560px, 58vw);
     height:min(560px, 58vw);
-    opacity:.24;
+    opacity:.25;
   }
 
   .earth-glow{
