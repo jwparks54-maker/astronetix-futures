@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AstroNetix Futures</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+background:#02050b;
+color:white;
+font-family:Rajdhani;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:80px 20px;
+text-align:center;
+}
+
+h1{
+font-family:Orbitron;
+font-size:56px;
+letter-spacing:2px;
+margin-bottom:10px;
+}
+
+.subtitle{
+color:#9bb3c9;
+font-size:20px;
+margin-bottom:60px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+}
+
+.card{
+background:#07121e;
+border:1px solid #1e3d5c;
+border-radius:12px;
+padding:40px 20px;
+transition:all .25s ease;
+cursor:pointer;
+}
+
+.card:hover{
+border-color:#4da3ff;
+transform:translateY(-6px);
+box-shadow:0 0 25px rgba(77,163,255,.3);
+}
+
+.card h2{
+font-family:Orbitron;
+margin-bottom:10px;
+}
+
+.card p{
+color:#9bb3c9;
+font-size:15px;
+}
+
+a{
+text-decoration:none;
+color:white;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>AstroNetix Futures</h1>
+
+<div class="subtitle">
+Select a mission environment to explore operational concepts
+</div>
+
+<div class="grid">
+
+<a href="space.html">
+<div class="card">
+<h2>SPACE</h2>
+<p>Orbital operations and space domain awareness</p>
+</div>
+</a>
+
+<a href="#">
+<div class="card">
+<h2>AIR</h2>
+<p>ISR, air defense, and airborne sensing</p>
+</div>
+</a>
+
+<a href="#">
+<div class="card">
+<h2>MARITIME</h2>
+<p>Fleet awareness and sea control</p>
+</div>
+</a>
+
+<a href="#">
+<div class="card">
+<h2>LAND</h2>
+<p>Tactical maneuver and ground operations</p>
+</div>
+</a>
+
+<a href="#">
+<div class="card">
+<h2>COMBINED</h2>
+<p>Joint all-domain mission integration</p>
+</div>
+</a>
+
+</div>
+
+</div>
+
+</body>
+</html>
