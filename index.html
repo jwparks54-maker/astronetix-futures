@@ -48,7 +48,7 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 .rstats{display:flex;flex-wrap:wrap;}
 .rs{display:flex;flex-direction:column;align-items:center;padding:0 10px;border-right:1px solid var(--border);min-width:60px;}
 .rsv{font-family:var(--head);font-size:13px;font-weight:700;}
-.rsl{font-family:var(--mono);font-size:6px;color:var(--muted);letter-spacing:.1em;margin-top:1px;}
+.rsl{font-family:var(--mono);font-size:8px;color:#8fbcd4;letter-spacing:.1em;margin-top:1px;}
 .rsv.ok{color:var(--green2)}.rsv.warn{color:var(--amber2)}.rsv.crit{color:var(--red2);animation:blink 1.4s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .rr{display:flex;align-items:center;gap:7px;margin-left:auto;flex-wrap:wrap;}
@@ -94,15 +94,15 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 .svnm{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.3px;}
 .svsb{font-family:var(--mono);font-size:5px;letter-spacing:.1em;padding:1px 3px;border-radius:2px;border:1px solid;}
 .sv-r2{display:flex;align-items:center;gap:4px;margin-bottom:1px;}
-.svic{font-size:9px;}
-.svtp{font-family:var(--mono);font-size:6px;color:var(--muted);}
-.svct{font-family:var(--mono);font-size:6px;padding:1px 3px;border-radius:2px;}
-.svms{font-size:8px;color:var(--muted);line-height:1.2;margin-bottom:2px;font-weight:500;
+.svic{font-size:10px;}
+.svtp{font-family:var(--mono);font-size:8px;color:#8fbcd4;}
+.svct{font-family:var(--mono);font-size:7px;padding:1px 3px;border-radius:2px;}
+.svms{font-size:10px;color:#8fbcd4;line-height:1.2;margin-bottom:2px;font-weight:500;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sv-r3{display:flex;align-items:center;gap:4px;}
 .svhb{flex:1;height:2px;background:var(--bg0);border-radius:2px;}
 .svhf{height:100%;border-radius:2px;transition:width .5s;}
-.svmt{font-family:var(--mono);font-size:5px;color:var(--dim);}
+.svmt{font-family:var(--mono);font-size:7px;color:#5a7a99;}
 
 /* ═══ CENTER GLOBE AREA ═══ */
 #mapzone{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative;}
@@ -149,16 +149,16 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 .regime-row.off{opacity:.3;}
 .rr-left{display:flex;align-items:center;gap:7px;}
 .rr-swatch{width:7px;height:7px;border-radius:50%;flex:none;}
-.rr-name{font-size:10px;font-weight:700;}
-.rr-count{font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:1px;}
-.rr-badge{font-family:var(--mono);font-size:7px;padding:1px 4px;border-radius:3px;border:1px solid;opacity:.7;}
+.rr-name{font-size:11px;font-weight:700;}
+.rr-count{font-family:var(--mono);font-size:8px;color:#7aaac8;margin-top:1px;}
+.rr-badge{font-family:var(--mono);font-size:8px;padding:2px 5px;border-radius:3px;border:1px solid;opacity:.9;}
 .sp-div{height:1px;background:rgba(255,255,255,.06);margin:8px 0;}
 .layer-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0;cursor:pointer;user-select:none;transition:opacity .2s;}
 .layer-row.off{opacity:.3;}
 .lr-left{display:flex;align-items:center;gap:6px;}
 .lr-ico{font-size:10px;line-height:1;}
 .lr-label{font-size:9px;font-weight:600;color:var(--text);}
-.lr-sub{font-family:var(--mono);font-size:6px;color:var(--muted);}
+.lr-sub{font-family:var(--mono);font-size:7px;color:#7aaac8;}
 .sdot{width:6px;height:6px;border-radius:50%;flex:none;}
 .sdot.g{background:var(--green)}.sdot.a{background:var(--amber)}.sdot.r{background:var(--red)}
 .sp-title-sm{font-family:var(--mono);font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
@@ -235,35 +235,35 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 .cbm{font-family:var(--mono);font-size:7px;color:var(--muted);}
 .cbm span{font-family:var(--head);font-size:10px;font-weight:700;margin-right:3px;}
 .cbm span.ok{color:var(--green2)}.cbm span.warn{color:var(--amber2)}.cbm span.crit{color:var(--red2)}
-#cmdcards{display:flex;gap:5px;padding:5px 10px;overflow-x:auto;}
+#cmdcards{display:flex;gap:7px;padding:7px 14px;overflow-x:auto;justify-content:center;}
 #cmdcards::-webkit-scrollbar{height:3px;}
 #cmdcards::-webkit-scrollbar-thumb{background:var(--dim);}
 /* merged CCMD card */
-.cc{flex:none;min-width:115px;max-width:145px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:5px;padding:6px 8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+.cc{flex:none;min-width:148px;max-width:168px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:9px 11px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
   border-top:2px solid var(--ccc,var(--cyan2));}
 .cc:hover{background:var(--bg3);border-color:var(--ccc,var(--cyan2));}
 .cc.sel{border-color:var(--ccc,var(--cyan2));box-shadow:0 0 0 1px var(--ccc,var(--cyan2));}
-.cc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
-.cc-nm{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.4px;}
-.cc-ctrl{display:flex;align-items:center;gap:2px;}
-.pbdg{font-family:var(--head);font-size:8px;font-weight:700;padding:1px 4px;border-radius:2px;border:1px solid;}
-.pab{display:flex;flex-direction:column;gap:1px;}
-.pab-b{width:12px;height:10px;border-radius:2px;border:1px solid var(--border2);
-  background:rgba(0,0,0,.5);color:var(--muted);font-size:6px;cursor:pointer;
+.cc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.cc-nm{font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.5px;}
+.cc-ctrl{display:flex;align-items:center;gap:3px;}
+.pbdg{font-family:var(--head);font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;border:1px solid;}
+.pab{display:flex;flex-direction:column;gap:2px;}
+.pab-b{width:14px;height:12px;border-radius:2px;border:1px solid var(--border2);
+  background:rgba(0,0,0,.5);color:var(--muted);font-size:7px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:all .14s;}
 .pab-b:hover{background:rgba(0,180,255,.2);color:var(--text);}
-.cc-rg{font-family:var(--mono);font-size:5px;color:var(--muted);margin-bottom:3px;letter-spacing:.05em;
+.cc-rg{font-family:var(--mono);font-size:7px;color:#6a8aaa;margin-bottom:5px;letter-spacing:.05em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bw{height:2px;background:rgba(0,0,0,.4);border-radius:2px;overflow:hidden;margin-bottom:3px;}
+.bw{height:3px;background:rgba(0,0,0,.4);border-radius:2px;overflow:hidden;margin-bottom:4px;}
 .bf{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1);}
-.cc-st{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:3px;}
-.st{background:rgba(0,0,0,.3);border-radius:2px;padding:2px 1px;text-align:center;}
-.stv{font-family:var(--head);font-size:10px;font-weight:700;}
-.stl{font-family:var(--mono);font-size:4px;color:var(--muted);letter-spacing:.08em;margin-top:1px;}
+.cc-st{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:4px;}
+.st{background:rgba(0,0,0,.3);border-radius:3px;padding:4px 2px;text-align:center;}
+.stv{font-family:var(--head);font-size:13px;font-weight:700;}
+.stl{font-family:var(--mono);font-size:6px;color:#5a7a99;letter-spacing:.08em;margin-top:2px;}
 .cc-ft{display:flex;align-items:center;justify-content:space-between;}
-.fpct{font-family:var(--head);font-size:9px;font-weight:700;}
-.csvc{font-family:var(--mono);font-size:5px;color:var(--muted);}
+.fpct{font-family:var(--head);font-size:12px;font-weight:700;}
+.csvc{font-family:var(--mono);font-size:7px;color:#6a8aaa;}
 
 /* ═══ SECTION HEADER ═══ */
 .shdr{display:flex;align-items:center;justify-content:space-between;
@@ -888,10 +888,16 @@ window.setCCMDActive=function(id){activeCCMD_globe=id;setCCMDHighlight3D(id);};
 function setCCMDHighlight3D(cmdId){
   Object.entries(ccmdMeshes3D).forEach(([id,grp])=>{
     const isActive=(id===cmdId);
+    const anyActive=!!cmdId;
     grp.children.forEach(child=>{
-      if(child.material){
-        if(child instanceof THREE.Mesh)child.material.opacity=isActive?0.30:cmdId?0.06:0.13;
-        else child.material.opacity=isActive?1.0:cmdId?0.35:0.7;
+      if(!child.material)return;
+      const isFill=child instanceof THREE.Mesh;
+      if(isActive){
+        child.material.opacity=isFill?0.35:1.0;
+      } else if(anyActive){
+        child.material.opacity=isFill?0.03:0.25;
+      } else {
+        child.material.opacity=isFill?CCMD3D_FILL_BASE:CCMD3D_LINE_BASE;
       }
     });
   });
@@ -951,14 +957,15 @@ scene.add(gEarth,gOrbits,gSats,gGnd,gUsr,gLinks,gCones,gCCMD,gStars);
 function latLonTo3D(lat,lon,r){const phi=(90-lat)*Math.PI/180,theta=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta));}
 function ll2v3(lat,lon,r){return latLonTo3D(lat,lon,r);}
 
+// Base opacities — used by highlight logic too
+const CCMD3D_FILL_BASE=0.10, CCMD3D_LINE_BASE=0.85, CCMD3D_MARITIME_BASE=0.50;
+
 function buildCCMD3D(){
   gCCMD.clear();ccmdMeshes3D={};
   if(!show_gcc)return;
   combatantCommands.filter(c=>c.type==='geographic').forEach(cmd=>{
     const feats=ccmdFeatures[cmd.id];if(!feats||!feats.length)return;
     const col=new THREE.Color(cmd.color);
-    const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.13,side:THREE.FrontSide,depthWrite:false,blending:THREE.AdditiveBlending});
-    const lineMat=new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.7,linewidth:1,depthWrite:false});
     const group=new THREE.Group();const R=R_EARTH*1.003;
     feats.forEach(geom=>{
       const rings=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates.flat():[];
@@ -967,13 +974,19 @@ function buildCCMD3D(){
         const verts=[];ring.forEach(([lo,la])=>{const v=latLonTo3D(la,lo,R);verts.push(v.x,v.y,v.z);});
         const n=ring.length,indices=[];for(let i=1;i<n-1;i++)indices.push(0,i,i+1);
         const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setIndex(indices);
-        group.add(new THREE.Mesh(geo,mat));
+        // Each child gets its OWN material clone so opacity can be set independently
+        const fillMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:CCMD3D_FILL_BASE,side:THREE.FrontSide,depthWrite:false,blending:THREE.AdditiveBlending});
+        fillMat.userData.isFill=true;
+        group.add(new THREE.Mesh(geo,fillMat));
         const pts=ring.map(([lo,la])=>latLonTo3D(la,lo,R*1.001));
+        const lineMat=new THREE.LineBasicMaterial({color:col,transparent:true,opacity:CCMD3D_LINE_BASE,depthWrite:false});
+        lineMat.userData.isLine=true;
         group.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),lineMat));
       });
     });
     if(cmd.maritime&&cmd.maritime.length){
-      const mMat=new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.22,depthWrite:false});
+      const mMat=new THREE.LineBasicMaterial({color:col,transparent:true,opacity:CCMD3D_MARITIME_BASE,depthWrite:false});
+      mMat.userData.isLine=true;
       const pts=cmd.maritime.map(([lo,la])=>latLonTo3D(la,lo,R*1.002));
       group.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),mMat));
     }
