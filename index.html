@@ -346,7 +346,7 @@ h1{
   margin:0 0 10px;
   font-family:"Orbitron",sans-serif;
   font-size:24px;
-  line-height:1;
+  line-height:1.02;
   text-transform:uppercase;
   letter-spacing:.04em;
 }
@@ -384,7 +384,7 @@ h1{
   transform:translateX(4px);
 }
 
-/* optional subtle corner accents */
+/* subtle corner accents */
 .domain-card .corner{
   position:absolute;
   z-index:3;
@@ -409,21 +409,17 @@ h1{
   border-right:1px solid;
 }
 
-/* training section below cards */
+/* AX-LEAD section */
 .training-section{
-  padding:18px 0 42px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
+  padding:24px 0 46px;
 }
 
 .training-logo-wrap{
   display:flex;
   justify-content:center;
   align-items:center;
-  margin-bottom:18px;
   width:100%;
+  margin:0 0 18px;
 }
 
 .training-logo-top{
@@ -436,211 +432,198 @@ h1{
     drop-shadow(0 0 42px rgba(75,160,255,.10));
 }
 
-.training-card{
-  width:min(280px, 100%);
-}
-
-.training-card .card-bg{
-  filter:saturate(1.02) contrast(1.04) brightness(.62);
-}
-
-.training-card:hover .card-bg{
-  filter:saturate(1.05) contrast(1.08) brightness(.72);
-}
-
-/* modal */
-.training-modal{
-  position:fixed;
-  inset:0;
+.training-feature{
   display:flex;
-  align-items:center;
   justify-content:center;
-  padding:22px;
-  background:rgba(2,8,16,.72);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-  transition:opacity .24s ease, visibility .24s ease;
-  z-index:50;
-}
-
-.training-modal.active{
-  opacity:1;
-  visibility:visible;
-  pointer-events:auto;
-}
-
-.training-panel{
-  width:min(980px, 100%);
-  max-height:min(88vh, 900px);
-  overflow:auto;
-  border-radius:24px;
-  border:1px solid rgba(127,197,255,.24);
-  background:
-    linear-gradient(180deg, rgba(8,18,30,.96) 0%, rgba(4,10,18,.97) 100%);
-  box-shadow:
-    0 30px 80px rgba(0,0,0,.55),
-    inset 0 1px 0 rgba(255,255,255,.04);
-  position:relative;
-}
-
-.training-panel::-webkit-scrollbar{
-  width:10px;
-}
-
-.training-panel::-webkit-scrollbar-thumb{
-  background:rgba(125,185,255,.22);
-  border-radius:10px;
-}
-
-.training-close{
-  position:absolute;
-  top:14px;
-  right:14px;
-  width:42px;
-  height:42px;
-  border:none;
-  border-radius:12px;
-  background:rgba(255,255,255,.06);
-  color:#d9ecff;
-  font-size:24px;
-  cursor:pointer;
-  transition:background .2s ease, transform .2s ease;
-}
-
-.training-close:hover{
-  background:rgba(127,197,255,.14);
-  transform:scale(1.04);
-}
-
-.training-head{
-  padding:28px 28px 20px;
-  border-bottom:1px solid rgba(127,197,255,.12);
-  background:
-    radial-gradient(circle at top right, rgba(80,160,255,.12), transparent 36%);
-}
-
-.training-head-top{
-  display:flex;
-  align-items:center;
-  gap:18px;
-  margin-bottom:14px;
-  flex-wrap:wrap;
-}
-
-.training-head-logo{
-  width:min(210px, 48vw);
-  max-height:92px;
-  object-fit:contain;
-  filter:
-    drop-shadow(0 0 20px rgba(75,160,255,.18))
-    drop-shadow(0 0 40px rgba(75,160,255,.10));
-}
-
-.training-kicker{
-  color:var(--blue);
-  font-size:12px;
-  font-weight:700;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  margin-bottom:8px;
-}
-
-.training-title{
-  margin:0 0 10px;
-  font-family:"Orbitron",sans-serif;
-  font-size:clamp(24px,3vw,40px);
-  line-height:1.05;
-  text-transform:uppercase;
-}
-
-.training-text{
-  margin:0;
-  color:#c9dcee;
-  font-size:18px;
-  line-height:1.3;
-  max-width:760px;
-}
-
-.training-body{
-  padding:24px 28px 30px;
-}
-
-.training-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:16px;
   margin-bottom:18px;
 }
 
-.training-option{
-  display:block;
-  text-decoration:none;
-  color:inherit;
-  border:1px solid rgba(127,197,255,.16);
-  border-radius:18px;
-  padding:18px;
+.training-feature .domain-card{
+  width:min(430px, 100%);
+  min-height:390px;
+}
+
+/* slick hub card */
+.ax-lead-hub-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(127,197,255,.30);
   background:
-    linear-gradient(180deg, rgba(12,24,38,.92), rgba(7,15,26,.92));
-  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    linear-gradient(180deg, rgba(9,20,34,.72), rgba(7,15,25,.86));
+  box-shadow:
+    0 18px 48px rgba(0,0,0,.34),
+    0 0 0 1px rgba(127,197,255,.06),
+    0 0 36px rgba(89,184,255,.10);
 }
 
-.training-option:hover{
-  transform:translateY(-4px);
-  border-color:rgba(127,197,255,.34);
-  box-shadow:0 18px 36px rgba(0,0,0,.28);
+.ax-lead-hub-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(120,190,255,.18), transparent 32%),
+    linear-gradient(180deg, rgba(120,190,255,.08), rgba(120,190,255,0) 24%);
+  pointer-events:none;
 }
 
-.training-option .option-code{
-  color:var(--blue);
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  margin-bottom:8px;
+.ax-lead-hub-card .card-bg{
+  filter:saturate(1.06) contrast(1.08) brightness(.56);
+  transform:scale(1.03);
 }
 
-.training-option h3{
-  margin:0 0 8px;
-  font-family:"Orbitron",sans-serif;
-  font-size:20px;
-  text-transform:uppercase;
-  line-height:1.1;
+.ax-lead-hub-card:hover{
+  border-color:rgba(127,197,255,.44);
+  box-shadow:
+    0 26px 60px rgba(0,0,0,.42),
+    0 0 0 1px rgba(127,197,255,.10),
+    0 0 44px rgba(89,184,255,.18);
 }
 
-.training-option p{
-  margin:0 0 14px;
-  color:#d4e3f2;
-  font-size:15px;
-  line-height:1.32;
+.ax-lead-hub-card:hover .card-bg{
+  filter:saturate(1.1) contrast(1.1) brightness(.64);
+  transform:scale(1.06);
 }
 
-.training-option .option-enter{
+.ax-lead-overlay-grid{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  background-image:
+    linear-gradient(rgba(115,180,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(115,180,255,.08) 1px, transparent 1px);
+  background-size:28px 28px;
+  opacity:.18;
+  pointer-events:none;
+}
+
+.ax-lead-overlay-scan{
+  position:absolute;
+  left:-10%;
+  right:-10%;
+  top:0;
+  height:110px;
+  z-index:2;
+  background:linear-gradient(180deg,
+    rgba(115,180,255,.18) 0%,
+    rgba(115,180,255,.06) 45%,
+    rgba(115,180,255,0) 100%);
+  filter:blur(8px);
+  animation:axScan 4.8s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes axScan{
+  0%{ transform:translateY(-130px); opacity:0; }
+  12%{ opacity:.65; }
+  50%{ opacity:.3; }
+  100%{ transform:translateY(430px); opacity:0; }
+}
+
+.ax-lead-statusbar{
+  position:absolute;
+  top:14px;
+  left:14px;
+  right:14px;
+  z-index:3;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  color:#eff7ff;
+  gap:12px;
+  padding:8px 10px;
+  border:1px solid rgba(127,197,255,.16);
+  border-radius:12px;
+  background:rgba(6,14,24,.54);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  color:#dbeeff;
+  font-size:11px;
   font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
 }
 
-.training-footer{
-  margin-top:10px;
-  padding:18px 20px;
-  border-radius:18px;
-  border:1px solid rgba(127,197,255,.12);
-  background:rgba(255,255,255,.03);
-  color:#cfe0f0;
-  line-height:1.35;
-  font-size:16px;
+.ax-lead-content{
+  z-index:4;
+}
+
+.ax-lead-content h2{
+  font-size:30px;
+  letter-spacing:.08em;
+  text-shadow:0 0 16px rgba(110,185,255,.10);
+}
+
+.ax-lead-content p{
+  min-height:auto;
+  margin-bottom:14px;
+}
+
+.ax-lead-pill-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:0 0 14px;
+}
+
+.ax-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(127,197,255,.20);
+  background:rgba(127,197,255,.08);
+  color:#dceeff;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+/* training track cards */
+.training-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+}
+
+.training-track-card{
+  min-height:340px;
+}
+
+.training-track-card .card-bg{
+  filter:saturate(1.02) contrast(1.05) brightness(.62);
+}
+
+.training-track-card:hover .card-bg{
+  filter:saturate(1.05) contrast(1.08) brightness(.72);
+}
+
+.training-track-card:hover{
+  box-shadow:
+    var(--shadow-strong),
+    0 0 0 1px rgba(127,197,255,.08),
+    0 0 28px rgba(89,184,255,.10);
+}
+
+.training-track-card .card-content h2{
+  font-size:20px;
+  line-height:1.06;
+}
+
+.training-track-card .card-content p{
+  min-height:68px;
 }
 
 /* responsive */
 @media (max-width:1220px){
   .domain-grid{
     grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  .training-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
 
   .earth-container{
@@ -668,6 +651,14 @@ h1{
     min-height:370px;
   }
 
+  .training-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .training-track-card{
+    min-height:320px;
+  }
+
   .earth-container{
     left:50%;
     top:34%;
@@ -681,10 +672,6 @@ h1{
     top:34%;
     width:min(620px, 94vw);
     height:min(620px, 94vw);
-  }
-
-  .training-grid{
-    grid-template-columns:1fr;
   }
 }
 
@@ -739,20 +726,31 @@ h1{
     min-height:auto;
   }
 
-  .training-card{
+  .training-feature .domain-card{
     width:100%;
     max-width:360px;
   }
 
-  .training-head,
-  .training-body{
-    padding-left:18px;
-    padding-right:18px;
+  .training-grid{
+    grid-template-columns:1fr;
+    gap:14px;
   }
 
-  .training-close{
-    top:10px;
-    right:10px;
+  .training-track-card{
+    min-height:300px;
+  }
+
+  .training-logo-top{
+    width:min(240px, 70vw);
+  }
+
+  .ax-lead-statusbar{
+    font-size:10px;
+    letter-spacing:.12em;
+  }
+
+  .ax-lead-content h2{
+    font-size:26px;
   }
 }
 </style>
@@ -861,120 +859,121 @@ h1{
       <img class="training-logo-top" src="ax-lead-white.png" alt="AX-LEAD logo">
     </div>
 
-    <button class="domain-card training-card" id="openTraining" aria-label="Open AX-LEAD training">
-      <span class="corner tl"></span>
-      <span class="corner tr"></span>
-      <img class="card-bg" src="training.jpeg" alt="AX-LEAD training concept">
-      <div class="card-content">
-        <div class="card-code">Training</div>
-        <h2>AX-LEAD</h2>
-        <p>Leadership development, mission planning, rehearsal, and operational learning environments.</p>
-        <div class="enter">
-          <span>Open Training</span>
-          <span class="arrow">→</span>
+    <div class="training-feature">
+      <a class="domain-card ax-lead-hub-card" href="training.html" aria-label="Enter AX-LEAD training hub">
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+
+        <img class="card-bg" src="training.jpg" alt="AX-LEAD training concept">
+
+        <div class="ax-lead-overlay-grid"></div>
+        <div class="ax-lead-overlay-scan"></div>
+        <div class="ax-lead-statusbar">
+          <span>AX-LEAD HUB</span>
+          <span>ACTIVE</span>
         </div>
-      </div>
-    </button>
+
+        <div class="card-content ax-lead-content">
+          <div class="card-code">Training Hub</div>
+          <h2>AX-LEAD</h2>
+          <p>
+            Leadership development, mission planning, rehearsal,
+            and operational learning environments.
+          </p>
+
+          <div class="ax-lead-pill-row">
+            <span class="ax-pill">Leadership</span>
+            <span class="ax-pill">Planning</span>
+            <span class="ax-pill">Rehearsal</span>
+            <span class="ax-pill">Education</span>
+          </div>
+
+          <div class="enter">
+            <span>Enter AX-LEAD</span>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="training-grid">
+      <a class="domain-card training-track-card" href="leadership.html" aria-label="Open Leadership Development">
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <img class="card-bg" src="leadership.jpg" alt="Leadership Development">
+        <div class="card-content">
+          <div class="card-code">Track 01</div>
+          <h2>Leadership Development</h2>
+          <p>
+            Scenario-based leadership modules, command decision drills,
+            communication reps, and executive development pathways.
+          </p>
+          <div class="enter">
+            <span>Open Track</span>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="domain-card training-track-card" href="mission-planning.html" aria-label="Open Mission Planning">
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <img class="card-bg" src="mission-planning.jpg" alt="Mission Planning">
+        <div class="card-content">
+          <div class="card-code">Track 02</div>
+          <h2>Mission Planning</h2>
+          <p>
+            Interactive planning sequences for campaign design,
+            operational synchronization, risk framing,
+            and mission execution planning.
+          </p>
+          <div class="enter">
+            <span>Open Track</span>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="domain-card training-track-card" href="wargaming.html" aria-label="Open Wargaming and Rehearsal">
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <img class="card-bg" src="wargaming.jpg" alt="Wargaming and Rehearsal">
+        <div class="card-content">
+          <div class="card-code">Track 03</div>
+          <h2>Wargaming & Rehearsal</h2>
+          <p>
+            Red-blue event flows, inject-driven decision exercises,
+            branch and sequel development,
+            and post-action learning loops.
+          </p>
+          <div class="enter">
+            <span>Open Track</span>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="domain-card training-track-card" href="education.html" aria-label="Open Education and Concepts">
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <img class="card-bg" src="education.jpg" alt="Education and Concepts">
+        <div class="card-content">
+          <div class="card-code">Track 04</div>
+          <h2>Education & Concepts</h2>
+          <p>
+            Operational primers, future force concepts,
+            CJADC2 learning modules,
+            and mission-focused professional education.
+          </p>
+          <div class="enter">
+            <span>Open Track</span>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </a>
+    </div>
   </section>
 </div>
-
-<div class="training-modal" id="trainingModal" aria-hidden="true">
-  <div class="training-panel" role="dialog" aria-modal="true" aria-labelledby="trainingTitle">
-    <button class="training-close" id="closeTraining" aria-label="Close training panel">×</button>
-
-    <div class="training-head">
-      <div class="training-head-top">
-        <img class="training-head-logo" src="ax-lead-white.png" alt="AX-LEAD logo">
-      </div>
-      <div class="training-kicker">Interactive Learning Environment</div>
-      <h2 class="training-title" id="trainingTitle">AX-LEAD Training Portal</h2>
-      <p class="training-text">
-        Build an interactive training hub for leadership development, mission planning, operational rehearsal, and decision support.
-      </p>
-    </div>
-
-    <div class="training-body">
-      <div class="training-grid">
-        <a class="training-option" href="training-leadership.html">
-          <div class="option-code">Track 01</div>
-          <h3>Leadership Development</h3>
-          <p>Scenario-based leadership modules, command decision drills, communication reps, and executive development pathways.</p>
-          <div class="option-enter">
-            <span>Open Track</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <a class="training-option" href="training-mission.html">
-          <div class="option-code">Track 02</div>
-          <h3>Mission Planning</h3>
-          <p>Interactive planning sequences for campaign design, operational synchronization, risk framing, and mission execution planning.</p>
-          <div class="option-enter">
-            <span>Open Track</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <a class="training-option" href="training-wargaming.html">
-          <div class="option-code">Track 03</div>
-          <h3>Wargaming & Rehearsal</h3>
-          <p>Red-blue event flows, inject-driven decision exercises, branch and sequel development, and post-action learning loops.</p>
-          <div class="option-enter">
-            <span>Open Track</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <a class="training-option" href="training-education.html">
-          <div class="option-code">Track 04</div>
-          <h3>Education & Concepts</h3>
-          <p>Operational primers, future force concepts, CJADC2 learning modules, and mission-focused professional education content.</p>
-          <div class="option-enter">
-            <span>Open Track</span>
-            <span>→</span>
-          </div>
-        </a>
-      </div>
-
-      <div class="training-footer">
-        This gives AX-LEAD a distinct entry point without wrecking the domain grid. Cleaner, sharper, and way less crowded.
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-const openTraining = document.getElementById('openTraining');
-const trainingModal = document.getElementById('trainingModal');
-const closeTraining = document.getElementById('closeTraining');
-
-function showTrainingModal(){
-  trainingModal.classList.add('active');
-  trainingModal.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-}
-
-function hideTrainingModal(){
-  trainingModal.classList.remove('active');
-  trainingModal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-}
-
-openTraining.addEventListener('click', showTrainingModal);
-closeTraining.addEventListener('click', hideTrainingModal);
-
-trainingModal.addEventListener('click', function(e){
-  if(e.target === trainingModal){
-    hideTrainingModal();
-  }
-});
-
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape' && trainingModal.classList.contains('active')){
-    hideTrainingModal();
-  }
-});
-</script>
 
 </body>
 </html>
