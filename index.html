@@ -245,9 +245,9 @@ h1{
 
 .domain-grid{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
   gap:16px;
-  padding:28px 0 42px;
+  padding:28px 0 18px;
 }
 
 .domain-card{
@@ -384,33 +384,6 @@ h1{
   transform:translateX(4px);
 }
 
-/* training card special */
-.training-card .card-bg{
-  object-fit:cover;
-  object-position:center;
-  filter:brightness(.42) saturate(1.05);
-}
-
-.training-card .card-content{
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-}
-
-.training-logo{
-  width:min(220px, 72%);
-  max-height:90px;
-  object-fit:contain;
-  margin:0 0 14px;
-  filter:
-    drop-shadow(0 0 18px rgba(75,160,255,.16))
-    drop-shadow(0 0 36px rgba(75,160,255,.10));
-}
-
-.training-card .card-content p{
-  min-height:72px;
-}
-
 /* optional subtle corner accents */
 .domain-card .corner{
   position:absolute;
@@ -434,6 +407,45 @@ h1{
   right:10px;
   border-top:1px solid;
   border-right:1px solid;
+}
+
+/* training section below cards */
+.training-section{
+  padding:18px 0 42px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.training-logo-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:18px;
+  width:100%;
+}
+
+.training-logo-top{
+  width:min(280px, 40vw);
+  max-height:110px;
+  object-fit:contain;
+  display:block;
+  filter:
+    drop-shadow(0 0 18px rgba(75,160,255,.18))
+    drop-shadow(0 0 42px rgba(75,160,255,.10));
+}
+
+.training-card{
+  width:min(280px, 100%);
+}
+
+.training-card .card-bg{
+  filter:saturate(1.02) contrast(1.04) brightness(.62);
+}
+
+.training-card:hover .card-bg{
+  filter:saturate(1.05) contrast(1.08) brightness(.72);
 }
 
 /* modal */
@@ -716,7 +728,7 @@ h1{
   .domain-grid{
     grid-template-columns:1fr;
     gap:14px;
-    padding:18px 0 24px;
+    padding:18px 0 12px;
   }
 
   .domain-card{
@@ -725,6 +737,11 @@ h1{
 
   .card-content p{
     min-height:auto;
+  }
+
+  .training-card{
+    width:100%;
+    max-width:360px;
   }
 
   .training-head,
@@ -837,16 +854,21 @@ h1{
         </div>
       </div>
     </a>
+  </section>
+
+  <section class="training-section">
+    <div class="training-logo-wrap">
+      <img class="training-logo-top" src="AX-LEAD no background (Standard).png" alt="AX-LEAD logo">
+    </div>
 
     <button class="domain-card training-card" id="openTraining" aria-label="Open AX-LEAD training">
       <span class="corner tl"></span>
       <span class="corner tr"></span>
-      <img class="card-bg" src="combined.png" alt="AX-LEAD training background">
+      <img class="card-bg" src="training.jpeg" alt="AX-LEAD training concept">
       <div class="card-content">
-        <div class="card-code">Domain 06</div>
-        <img class="training-logo" src="AX-LEAD no background (Standard).png" alt="AX-LEAD logo">
-        <h2>Training</h2>
-        <p>Interactive leadership, mission planning, operational decision-making, and education pathways.</p>
+        <div class="card-code">Training</div>
+        <h2>AX-LEAD</h2>
+        <p>Leadership development, mission planning, rehearsal, and operational learning environments.</p>
         <div class="enter">
           <span>Open Training</span>
           <span class="arrow">→</span>
@@ -867,7 +889,7 @@ h1{
       <div class="training-kicker">Interactive Learning Environment</div>
       <h2 class="training-title" id="trainingTitle">AX-LEAD Training Portal</h2>
       <p class="training-text">
-        Build an interactive training hub for leadership development, mission planning, operational rehearsal, and decision support. This is where AX-Futures stops being a brochure and starts acting like a tool.
+        Build an interactive training hub for leadership development, mission planning, operational rehearsal, and decision support.
       </p>
     </div>
 
@@ -915,7 +937,7 @@ h1{
       </div>
 
       <div class="training-footer">
-        You can turn each track into its own page, or wire this panel to expand with embedded videos, lesson tiles, downloadable products, instructor bios, or student dashboards. Right now this gives you a strong interactive entry point without turning the homepage into a clown car.
+        This gives AX-LEAD a distinct entry point without wrecking the domain grid. Cleaner, sharper, and way less crowded.
       </div>
     </div>
   </div>
