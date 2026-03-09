@@ -432,155 +432,6 @@ h1{
     drop-shadow(0 0 42px rgba(75,160,255,.10));
 }
 
-.training-feature{
-  display:flex;
-  justify-content:center;
-  margin-bottom:18px;
-}
-
-.training-feature .domain-card{
-  width:min(430px, 100%);
-  min-height:390px;
-}
-
-/* slick hub card */
-.ax-lead-hub-card{
-  position:relative;
-  overflow:hidden;
-  border:1px solid rgba(127,197,255,.30);
-  background:
-    linear-gradient(180deg, rgba(9,20,34,.72), rgba(7,15,25,.86));
-  box-shadow:
-    0 18px 48px rgba(0,0,0,.34),
-    0 0 0 1px rgba(127,197,255,.06),
-    0 0 36px rgba(89,184,255,.10);
-}
-
-.ax-lead-hub-card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:1;
-  background:
-    radial-gradient(circle at 50% 18%, rgba(120,190,255,.18), transparent 32%),
-    linear-gradient(180deg, rgba(120,190,255,.08), rgba(120,190,255,0) 24%);
-  pointer-events:none;
-}
-
-.ax-lead-hub-card .card-bg{
-  filter:saturate(1.06) contrast(1.08) brightness(.56);
-  transform:scale(1.03);
-}
-
-.ax-lead-hub-card:hover{
-  border-color:rgba(127,197,255,.44);
-  box-shadow:
-    0 26px 60px rgba(0,0,0,.42),
-    0 0 0 1px rgba(127,197,255,.10),
-    0 0 44px rgba(89,184,255,.18);
-}
-
-.ax-lead-hub-card:hover .card-bg{
-  filter:saturate(1.1) contrast(1.1) brightness(.64);
-  transform:scale(1.06);
-}
-
-.ax-lead-overlay-grid{
-  position:absolute;
-  inset:0;
-  z-index:2;
-  background-image:
-    linear-gradient(rgba(115,180,255,.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(115,180,255,.08) 1px, transparent 1px);
-  background-size:28px 28px;
-  opacity:.18;
-  pointer-events:none;
-}
-
-.ax-lead-overlay-scan{
-  position:absolute;
-  left:-10%;
-  right:-10%;
-  top:0;
-  height:110px;
-  z-index:2;
-  background:linear-gradient(180deg,
-    rgba(115,180,255,.18) 0%,
-    rgba(115,180,255,.06) 45%,
-    rgba(115,180,255,0) 100%);
-  filter:blur(8px);
-  animation:axScan 4.8s linear infinite;
-  pointer-events:none;
-}
-
-@keyframes axScan{
-  0%{ transform:translateY(-130px); opacity:0; }
-  12%{ opacity:.65; }
-  50%{ opacity:.3; }
-  100%{ transform:translateY(430px); opacity:0; }
-}
-
-.ax-lead-statusbar{
-  position:absolute;
-  top:14px;
-  left:14px;
-  right:14px;
-  z-index:3;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  padding:8px 10px;
-  border:1px solid rgba(127,197,255,.16);
-  border-radius:12px;
-  background:rgba(6,14,24,.54);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-  color:#dbeeff;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-}
-
-.ax-lead-content{
-  z-index:4;
-}
-
-.ax-lead-content h2{
-  font-size:30px;
-  letter-spacing:.08em;
-  text-shadow:0 0 16px rgba(110,185,255,.10);
-}
-
-.ax-lead-content p{
-  min-height:auto;
-  margin-bottom:14px;
-}
-
-.ax-lead-pill-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:0 0 14px;
-}
-
-.ax-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:7px 10px;
-  border-radius:999px;
-  border:1px solid rgba(127,197,255,.20);
-  background:rgba(127,197,255,.08);
-  color:#dceeff;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
-}
-
 /* training track cards */
 .training-grid{
   display:grid;
@@ -726,11 +577,6 @@ h1{
     min-height:auto;
   }
 
-  .training-feature .domain-card{
-    width:100%;
-    max-width:360px;
-  }
-
   .training-grid{
     grid-template-columns:1fr;
     gap:14px;
@@ -742,15 +588,6 @@ h1{
 
   .training-logo-top{
     width:min(240px, 70vw);
-  }
-
-  .ax-lead-statusbar{
-    font-size:10px;
-    letter-spacing:.12em;
-  }
-
-  .ax-lead-content h2{
-    font-size:26px;
   }
 }
 </style>
@@ -857,43 +694,6 @@ h1{
   <section class="training-section">
     <div class="training-logo-wrap">
       <img class="training-logo-top" src="ax-lead-white.png" alt="AX-LEAD logo">
-    </div>
-
-    <div class="training-feature">
-      <a class="domain-card ax-lead-hub-card" href="training.html" aria-label="Enter AX-LEAD training hub">
-        <span class="corner tl"></span>
-        <span class="corner tr"></span>
-
-        <img class="card-bg" src="training.jpg" alt="AX-LEAD training concept">
-
-        <div class="ax-lead-overlay-grid"></div>
-        <div class="ax-lead-overlay-scan"></div>
-        <div class="ax-lead-statusbar">
-          <span>AX-LEAD HUB</span>
-          <span>ACTIVE</span>
-        </div>
-
-        <div class="card-content ax-lead-content">
-          <div class="card-code">Training Hub</div>
-          <h2>AX-LEAD</h2>
-          <p>
-            Leadership development, mission planning, rehearsal,
-            and operational learning environments.
-          </p>
-
-          <div class="ax-lead-pill-row">
-            <span class="ax-pill">Leadership</span>
-            <span class="ax-pill">Planning</span>
-            <span class="ax-pill">Rehearsal</span>
-            <span class="ax-pill">Education</span>
-          </div>
-
-          <div class="enter">
-            <span>Enter AX-LEAD</span>
-            <span class="arrow">→</span>
-          </div>
-        </div>
-      </a>
     </div>
 
     <div class="training-grid">
