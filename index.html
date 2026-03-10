@@ -775,128 +775,80 @@ h1{
     </div>
   </section>
 </div>
-<canvas id="domain-network"></canvas>
-
-<style>
-.domain-grid{
-position:relative;
+.domain-card{
+  position:relative;
 }
 
-#domain-network{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
-pointer-events:none;
-z-index:3;
-opacity:0;
-transition:opacity .35s ease;
+.domain-card.is-linked{
+  transform:translateY(-4px);
+  border-color:rgba(127,197,255,.42);
+  box-shadow:
+    0 0 0 1px rgba(127,197,255,.10),
+    0 0 24px rgba(89,184,255,.16),
+    0 18px 42px rgba(0,0,0,.30);
 }
 
-.network-active #domain-network{
-opacity:1;
-}
-</style>
-
-<script>
-
-const grid = document.querySelector(".domain-grid")
-const canvas = document.getElementById("domain-network")
-const ctx = canvas.getContext("2d")
-
-function resizeCanvas(){
-canvas.width = grid.offsetWidth
-canvas.height = grid.offsetHeight
+.domain-card.is-linked .card-bg{
+  filter:saturate(1.08) contrast(1.08) brightness(.84);
 }
 
-resizeCanvas()
-window.addEventListener("resize",resizeCanvas)
-
-const cards = grid.querySelectorAll(".domain-card")
-const combinedCard = grid.querySelector('[href="domain/combined.html"]')
-
-combinedCard.addEventListener("mouseenter",()=>{
-document.body.classList.add("network-active")
-active = true
-})
-
-combinedCard.addEventListener("mouseleave",()=>{
-document.body.classList.remove("network-active")
-active = false
-})
-
-let active=false
-let progress=0
-
-function getCardCenter(card){
-
-const r = card.getBoundingClientRect()
-const g = grid.getBoundingClientRect()
-
-return{
-x:(r.left - g.left) + r.width/2,
-y:(r.top - g.top) + r.height/2
+.domain-card.is-linked::before{
+  background:
+    linear-gradient(180deg,
+      rgba(130,200,255,.10) 0%,
+      rgba(130,200,255,.03) 30%,
+      rgba(130,200,255,0) 100%);
 }
 
+.domain-card .link-indicator{
+  position:absolute;
+  top:14px;
+  left:14px;
+  z-index:4;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:rgba(134,203,255,.18);
+  box-shadow:0 0 0 1px rgba(134,203,255,.14);
+  transition:
+    background .22s ease,
+    box-shadow .22s ease,
+    transform .22s ease;
 }
 
-function drawStructuredLine(start,end,alpha){
-
-const midX = end.x - 80
-
-ctx.strokeStyle = "rgba(120,200,255,"+alpha+")"
-ctx.lineWidth = 2
-ctx.shadowColor = "rgba(120,200,255,.8)"
-ctx.shadowBlur = 10
-
-ctx.beginPath()
-
-ctx.moveTo(start.x,start.y)
-ctx.lineTo(midX,start.y)
-ctx.lineTo(midX,end.y)
-ctx.lineTo(end.x,end.y)
-
-ctx.stroke()
-
-ctx.shadowBlur = 0
-
+.domain-card.is-linked .link-indicator{
+  background:rgba(134,203,255,.95);
+  box-shadow:
+    0 0 0 1px rgba(134,203,255,.28),
+    0 0 12px rgba(89,184,255,.65);
+  transform:scale(1.15);
 }
 
-function animate(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-if(active){
-progress += .03
-if(progress>1)progress=1
-}else{
-progress -= .05
-if(progress<0)progress=0
+.domain-card.combined-card .combined-overlay{
+  position:absolute;
+  inset:auto 16px 86px 16px;
+  z-index:4;
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid rgba(127,197,255,.16);
+  background:rgba(6,14,24,.62);
+  color:#cfe7ff;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  opacity:0;
+  transform:translateY(6px);
+  transition:
+    opacity .22s ease,
+    transform .22s ease;
+  pointer-events:none;
 }
 
-if(progress>0){
-
-const space = getCardCenter(cards[0])
-const air = getCardCenter(cards[1])
-const maritime = getCardCenter(cards[2])
-const land = getCardCenter(cards[3])
-const combined = getCardCenter(cards[4])
-
-drawStructuredLine(space,combined,progress)
-drawStructuredLine(air,combined,progress)
-drawStructuredLine(maritime,combined,progress)
-drawStructuredLine(land,combined,progress)
-
+.domain-card.combined-card.is-active .combined-overlay{
+  opacity:1;
+  transform:translateY(0);
 }
-
-requestAnimationFrame(animate)
-
-}
-
-animate()
-
-</script>
   
 </body>
 </html>
