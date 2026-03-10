@@ -779,76 +779,28 @@ h1{
   position:relative;
 }
 
-.domain-card.is-linked{
-  transform:translateY(-4px);
-  border-color:rgba(127,197,255,.42);
-  box-shadow:
-    0 0 0 1px rgba(127,197,255,.10),
-    0 0 24px rgba(89,184,255,.16),
-    0 18px 42px rgba(0,0,0,.30);
-}
+<script>
+  const domainCards = document.querySelectorAll('.domain-grid .domain-card');
+  const combinedCard = document.querySelector('.domain-grid .domain-card[href="domain/combined.html"]');
 
-.domain-card.is-linked .card-bg{
-  filter:saturate(1.08) contrast(1.08) brightness(.84);
-}
+  if (combinedCard && domainCards.length >= 5) {
+    combinedCard.classList.add('combined-card');
 
-.domain-card.is-linked::before{
-  background:
-    linear-gradient(180deg,
-      rgba(130,200,255,.10) 0%,
-      rgba(130,200,255,.03) 30%,
-      rgba(130,200,255,0) 100%);
-}
+    const linkedCards = Array.from(domainCards).filter(card => card !== combinedCard);
 
-.domain-card .link-indicator{
-  position:absolute;
-  top:14px;
-  left:14px;
-  z-index:4;
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:rgba(134,203,255,.18);
-  box-shadow:0 0 0 1px rgba(134,203,255,.14);
-  transition:
-    background .22s ease,
-    box-shadow .22s ease,
-    transform .22s ease;
-}
+    combinedCard.addEventListener('mouseenter', () => {
+      combinedCard.classList.add('is-active');
+      linkedCards.forEach((card, index) => {
+        setTimeout(() => card.classList.add('is-linked'), index * 60);
+      });
+    });
 
-.domain-card.is-linked .link-indicator{
-  background:rgba(134,203,255,.95);
-  box-shadow:
-    0 0 0 1px rgba(134,203,255,.28),
-    0 0 12px rgba(89,184,255,.65);
-  transform:scale(1.15);
-}
-
-.domain-card.combined-card .combined-overlay{
-  position:absolute;
-  inset:auto 16px 86px 16px;
-  z-index:4;
-  padding:8px 10px;
-  border-radius:10px;
-  border:1px solid rgba(127,197,255,.16);
-  background:rgba(6,14,24,.62);
-  color:#cfe7ff;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  opacity:0;
-  transform:translateY(6px);
-  transition:
-    opacity .22s ease,
-    transform .22s ease;
-  pointer-events:none;
-}
-
-.domain-card.combined-card.is-active .combined-overlay{
-  opacity:1;
-  transform:translateY(0);
-}
+    combinedCard.addEventListener('mouseleave', () => {
+      combinedCard.classList.remove('is-active');
+      linkedCards.forEach(card => card.classList.remove('is-linked'));
+    });
+  }
+</script>
   
 </body>
 </html>
