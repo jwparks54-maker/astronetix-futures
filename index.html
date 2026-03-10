@@ -14,20 +14,13 @@
   --bg-top:#02060d;
   --bg-mid:#07111d;
   --bg-bot:#02050a;
-
   --text:#eef6ff;
   --muted:#a7bbcf;
-
   --blue:#86cbff;
-  --blue-2:#59b8ff;
-  --blue-soft:rgba(134,203,255,.10);
-
   --line:rgba(108,170,255,.15);
   --line-strong:rgba(127,197,255,.28);
-
   --panel:rgba(8,17,28,.56);
   --panel-hover:rgba(8,17,28,.72);
-
   --shadow:0 16px 42px rgba(0,0,0,.28);
   --shadow-strong:0 24px 54px rgba(0,0,0,.42);
 }
@@ -52,7 +45,6 @@ body{
   position:relative;
 }
 
-/* subtle grid */
 body::before{
   content:"";
   position:fixed;
@@ -67,7 +59,6 @@ body::before{
   z-index:0;
 }
 
-/* faint star field */
 body::after{
   content:"";
   position:fixed;
@@ -84,7 +75,6 @@ body::after{
     radial-gradient(circle at 90% 72%, rgba(255,255,255,.8) 0 1px, transparent 1.5px);
 }
 
-/* Background Earth */
 .earth-stage{
   position:fixed;
   inset:0;
@@ -243,7 +233,8 @@ h1{
   line-height:1.3;
 }
 
-.domain-grid{
+.domain-grid,
+.training-grid{
   display:grid;
   grid-template-columns:repeat(5,minmax(0,1fr));
   gap:16px;
@@ -384,7 +375,6 @@ h1{
   transform:translateX(4px);
 }
 
-/* subtle corner accents */
 .domain-card .corner{
   position:absolute;
   z-index:3;
@@ -409,7 +399,6 @@ h1{
   border-right:1px solid;
 }
 
-/* AX-LEAD section */
 .training-section{
   padding:24px 0 46px;
 }
@@ -432,49 +421,10 @@ h1{
     drop-shadow(0 0 42px rgba(75,160,255,.10));
 }
 
-/* training track cards */
-.training-grid{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:16px;
-}
-
-.training-track-card{
-  min-height:340px;
-}
-
-.training-track-card .card-bg{
-  filter:saturate(1.02) contrast(1.05) brightness(.62);
-}
-
-.training-track-card:hover .card-bg{
-  filter:saturate(1.05) contrast(1.08) brightness(.72);
-}
-
-.training-track-card:hover{
-  box-shadow:
-    var(--shadow-strong),
-    0 0 0 1px rgba(127,197,255,.08),
-    0 0 28px rgba(89,184,255,.10);
-}
-
-.training-track-card .card-content h2{
-  font-size:20px;
-  line-height:1.06;
-}
-
-.training-track-card .card-content p{
-  min-height:68px;
-}
-
-/* responsive */
 @media (max-width:1220px){
-  .domain-grid{
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
-
+  .domain-grid,
   .training-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-columns:repeat(3,minmax(0,1fr));
   }
 
   .earth-container{
@@ -494,20 +444,13 @@ h1{
 }
 
 @media (max-width:920px){
-  .domain-grid{
+  .domain-grid,
+  .training-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 
   .domain-card{
     min-height:370px;
-  }
-
-  .training-grid{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-
-  .training-track-card{
-    min-height:320px;
   }
 
   .earth-container{
@@ -563,7 +506,8 @@ h1{
     height:112vw;
   }
 
-  .domain-grid{
+  .domain-grid,
+  .training-grid{
     grid-template-columns:1fr;
     gap:14px;
     padding:18px 0 12px;
@@ -575,15 +519,6 @@ h1{
 
   .card-content p{
     min-height:auto;
-  }
-
-  .training-grid{
-    grid-template-columns:1fr;
-    gap:14px;
-  }
-
-  .training-track-card{
-    min-height:300px;
   }
 
   .training-logo-top{
@@ -610,81 +545,81 @@ h1{
     <h1>AX-Futures</h1>
 
     <p class="sub">
-      Explore domain-specific operational concepts and enter each environment independently.
+      Explore domain-specific operational concepts and mission-focused learning environments.
     </p>
   </section>
 
   <section class="domain-grid">
-    <a class="domain-card" href="space.html" aria-label="Enter Space domain">
+    <a class="domain-card" href="domain/space.html" aria-label="Enter Space domain">
       <span class="corner tl"></span>
       <span class="corner tr"></span>
       <img class="card-bg" src="space.png" alt="Space operations concept">
       <div class="card-content">
         <div class="card-code">Domain 01</div>
         <h2>Space</h2>
-        <p>Orbital operations, missile warning, domain awareness, mission assurance.</p>
+        <p>Orbital operations, missile warning, domain awareness.</p>
         <div class="enter">
-          <span>Enter Space</span>
+          <span>Enter Domain</span>
           <span class="arrow">→</span>
         </div>
       </div>
     </a>
 
-    <a class="domain-card" href="air.html" aria-label="Enter Air domain">
+    <a class="domain-card" href="domain/air.html" aria-label="Enter Air domain">
       <span class="corner tl"></span>
       <span class="corner tr"></span>
-      <img class="card-bg" src="air.png" alt="Air operations concept">
+      <img class="card-bg" src="domain/air.png" alt="Air operations concept">
       <div class="card-content">
         <div class="card-code">Domain 02</div>
         <h2>Air</h2>
-        <p>ISR, air defense, airborne sensing, battle management, air picture.</p>
+        <p>ISR, air defense, battle management.</p>
         <div class="enter">
-          <span>Enter Air</span>
+          <span>Enter Domain</span>
           <span class="arrow">→</span>
         </div>
       </div>
     </a>
 
-    <a class="domain-card" href="maritime.html" aria-label="Enter Maritime domain">
+    <a class="domain-card" href="domain/maritime.html" aria-label="Enter Maritime domain">
       <span class="corner tl"></span>
       <span class="corner tr"></span>
-      <img class="card-bg" src="maritime.png" alt="Maritime operations concept">
+      <img class="card-bg" src="domain/maritime.png" alt="Maritime operations concept">
       <div class="card-content">
         <div class="card-code">Domain 03</div>
         <h2>Maritime</h2>
-        <p>Fleet awareness, sea control, chokepoint monitoring, maritime ISR.</p>
+        <p>Fleet awareness, sea control, chokepoint monitoring.</p>
         <div class="enter">
-          <span>Enter Maritime</span>
+          <span>Enter Domain</span>
           <span class="arrow">→</span>
         </div>
       </div>
     </a>
 
-    <a class="domain-card" href="land.html" aria-label="Enter Land domain">
+    <a class="domain-card" href="domain/land.html" aria-label="Enter Land domain">
       <span class="corner tl"></span>
       <span class="corner tr"></span>
-      <img class="card-bg" src="land.png" alt="Land operations concept">
+      <img class="card-bg" src="domain/land.png" alt="Land operations concept">
       <div class="card-content">
         <div class="card-code">Domain 04</div>
         <h2>Land</h2>
-        <p>Tactical maneuver, fires integration, sustainment awareness, ground control.</p>
+        <p>Tactical maneuver, fires integration, ground control.</p>
         <div class="enter">
-          <span>Enter Land</span>
+          <span>Enter Domain</span>
           <span class="arrow">→</span>
         </div>
       </div>
     </a>
 
-    <a class="domain-card" href="combined.html" aria-label="Enter Combined domain">
+    <a class="domain-card" href="domain/combined.html" aria-label="Enter Combined domain">
       <span class="corner tl"></span>
       <span class="corner tr"></span>
-      <img class="card-bg" src="combined.png" alt="Combined operations concept">
+      <img class="card-bg" src="domain/combined.png" alt="Combined operations concept">
       <div class="card-content">
         <div class="card-code">Domain 05</div>
         <h2>Combined</h2>
-        <p>Joint all-domain integration, synchronized effects, decision advantage.</p>
+        <p>Joint multi-domain integration and synchronized effects.</p>
         <div class="enter">
-          <span>Enter Combined</span>
+          <span>Enter Domain</span>
           <span class="arrow">→</span>
         </div>
       </div>
@@ -693,99 +628,80 @@ h1{
 
   <section class="training-section">
     <div class="training-logo-wrap">
-      <img class="training-logo-top" src="ax-lead-white.png" alt="AX-LEAD logo">
+      <img class="training-logo-top" src="ax-lead/ax-lead-white.png" alt="AX-LEAD logo">
     </div>
 
     <div class="training-grid">
-      <a class="domain-card training-track-card" href="ax-lead/leadership.html" aria-label="Open Leadership Development">
+      <a class="domain-card" href="ax-lead/leadership.html" aria-label="Open Leadership">
         <span class="corner tl"></span>
         <span class="corner tr"></span>
-        <img class="card-bg" src="ax-lead/leadership.jpg" alt="Leadership Development">
+        <img class="card-bg" src="ax-lead/leadership.jpg" alt="Leadership">
         <div class="card-content">
           <div class="card-code">Track 01</div>
-          <h2>Leadership Development</h2>
-          <p>
-            Scenario-based leadership modules, command decision drills,
-            communication reps, and executive development pathways.
-          </p>
+          <h2>Leadership</h2>
+          <p>Command decisions and communication.</p>
           <div class="enter">
-            <span>Open Track</span>
+            <span>Enter Track</span>
             <span class="arrow">→</span>
           </div>
         </div>
       </a>
 
-      <a class="domain-card training-track-card" href="ax-lead/mission-planning.html" aria-label="Open Mission Planning">
+      <a class="domain-card" href="ax-lead/mission-planning.html" aria-label="Open Mission Planning">
         <span class="corner tl"></span>
         <span class="corner tr"></span>
         <img class="card-bg" src="ax-lead/mission-planning.jpg" alt="Mission Planning">
         <div class="card-content">
           <div class="card-code">Track 02</div>
           <h2>Mission Planning</h2>
-          <p>
-            Interactive planning sequences for campaign design,
-            operational synchronization, risk framing,
-            and mission execution planning.
-          </p>
+          <p>Campaign design and execution.</p>
           <div class="enter">
-            <span>Open Track</span>
+            <span>Enter Track</span>
             <span class="arrow">→</span>
           </div>
         </div>
       </a>
 
-      <a class="domain-card training-track-card" href="ax-lead/training.html" aria-label="Open Training">
+      <a class="domain-card" href="ax-lead/training.html" aria-label="Open Training">
         <span class="corner tl"></span>
         <span class="corner tr"></span>
         <img class="card-bg" src="ax-lead/training.jpeg" alt="Training">
         <div class="card-content">
           <div class="card-code">Track 03</div>
           <h2>Training</h2>
-          <p>
-            Repetition-driven instruction, operational readiness development,
-            guided learning pathways,
-            and mission-focused skill reinforcement.
-          </p>
+          <p>Readiness drills and skill development.</p>
           <div class="enter">
-            <span>Open Track</span>
+            <span>Enter Track</span>
             <span class="arrow">→</span>
           </div>
         </div>
       </a>
 
-      <a class="domain-card training-track-card" href="ax-lead/wargaming.html" aria-label="Open Wargaming and Rehearsal">
+      <a class="domain-card" href="ax-lead/wargaming.html" aria-label="Open Wargaming">
         <span class="corner tl"></span>
         <span class="corner tr"></span>
-        <img class="card-bg" src="ax-lead/wargaming.jpg" alt="Wargaming and Rehearsal">
+        <img class="card-bg" src="ax-lead/wargaming.jpg" alt="Wargaming">
         <div class="card-content">
           <div class="card-code">Track 04</div>
-          <h2>Wargaming & Rehearsal</h2>
-          <p>
-            Red-blue event flows, inject-driven decision exercises,
-            branch and sequel development,
-            and post-action learning loops.
-          </p>
+          <h2>Wargaming</h2>
+          <p>Decision exercises and scenario drills.</p>
           <div class="enter">
-            <span>Open Track</span>
+            <span>Enter Track</span>
             <span class="arrow">→</span>
           </div>
         </div>
       </a>
 
-      <a class="domain-card training-track-card" href="ax-lead/education.html" aria-label="Open Education and Concepts">
+      <a class="domain-card" href="ax-lead/education.html" aria-label="Open Education">
         <span class="corner tl"></span>
         <span class="corner tr"></span>
-        <img class="card-bg" src="ax-lead/education.jpg" alt="Education and Concepts">
+        <img class="card-bg" src="ax-lead/education.jpg" alt="Education">
         <div class="card-content">
           <div class="card-code">Track 05</div>
-          <h2>Education & Concepts</h2>
-          <p>
-            Operational primers, future force concepts,
-            CJADC2 learning modules,
-            and mission-focused professional education.
-          </p>
+          <h2>Education</h2>
+          <p>Concepts, primers, and learning modules.</p>
           <div class="enter">
-            <span>Open Track</span>
+            <span>Enter Track</span>
             <span class="arrow">→</span>
           </div>
         </div>
