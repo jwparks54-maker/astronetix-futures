@@ -775,6 +775,120 @@ h1{
     </div>
   </section>
 </div>
+<canvas id="domain-network"></canvas>
 
+<style>
+#domain-network{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+z-index:2;
+opacity:0;
+transition:opacity .4s ease;
+}
+
+.network-active #domain-network{
+opacity:1;
+}
+</style>
+
+<script>
+const canvas = document.getElementById("domain-network");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas(){
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize",resizeCanvas);
+
+let progress = 0;
+let active = false;
+
+const cards = document.querySelectorAll(".domain-card");
+const combinedCard = document.querySelector('[href="domain/combined.html"]');
+
+combinedCard.addEventListener("mouseenter",()=>{
+document.body.classList.add("network-active");
+active = true;
+});
+
+combinedCard.addEventListener("mouseleave",()=>{
+document.body.classList.remove("network-active");
+active = false;
+});
+
+function getCardCenter(card){
+const r = card.getBoundingClientRect();
+return {
+x: r.left + r.width/2,
+y: r.top + r.height/2
+};
+}
+
+function drawLine(a,b,alpha){
+ctx.beginPath();
+ctx.moveTo(a.x,a.y);
+ctx.lineTo(b.x,b.y);
+ctx.strokeStyle = "rgba(120,190,255,"+alpha+")";
+ctx.lineWidth = 2;
+ctx.shadowColor = "rgba(120,190,255,.7)";
+ctx.shadowBlur = 10;
+ctx.stroke();
+ctx.shadowBlur = 0;
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+if(active){
+
+progress += .02;
+if(progress>1)progress=1;
+
+const space = getCardCenter(cards[0]);
+const air = getCardCenter(cards[1]);
+const maritime = getCardCenter(cards[2]);
+const land = getCardCenter(cards[3]);
+const combined = getCardCenter(cards[4]);
+
+drawLine(space,combined,progress);
+drawLine(air,combined,progress);
+drawLine(maritime,combined,progress);
+drawLine(land,combined,progress);
+
+}else{
+
+progress -= .04;
+if(progress<0)progress=0;
+
+if(progress>0){
+
+const space = getCardCenter(cards[0]);
+const air = getCardCenter(cards[1]);
+const maritime = getCardCenter(cards[2]);
+const land = getCardCenter(cards[3]);
+const combined = getCardCenter(cards[4]);
+
+drawLine(space,combined,progress);
+drawLine(air,combined,progress);
+drawLine(maritime,combined,progress);
+drawLine(land,combined,progress);
+
+}
+
+}
+
+requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+  
 </body>
 </html>
