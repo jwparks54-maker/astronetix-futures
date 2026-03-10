@@ -778,29 +778,6 @@ h1{
 .domain-card{
   position:relative;
 }
-
-<script>
-  const domainCards = document.querySelectorAll('.domain-grid .domain-card');
-  const combinedCard = document.querySelector('.domain-grid .domain-card[href="domain/combined.html"]');
-
-  if (combinedCard && domainCards.length >= 5) {
-    combinedCard.classList.add('combined-card');
-
-    const linkedCards = Array.from(domainCards).filter(card => card !== combinedCard);
-
-    combinedCard.addEventListener('mouseenter', () => {
-      combinedCard.classList.add('is-active');
-      linkedCards.forEach((card, index) => {
-        setTimeout(() => card.classList.add('is-linked'), index * 60);
-      });
-    });
-
-    combinedCard.addEventListener('mouseleave', () => {
-      combinedCard.classList.remove('is-active');
-      linkedCards.forEach(card => card.classList.remove('is-linked'));
-    });
-  }
-</script>
   
 </body>
 </html>
