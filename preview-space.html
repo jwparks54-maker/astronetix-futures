@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>ASTRONETIX · Mission COP</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<style>
+:root{
+  --bg:#02050b;--bg0:#020509;--bg1:#060c14;--bg2:#0a1420;--bg3:#0f1e2e;--bg4:#152436;
+  --panel:rgba(4,10,22,.88);--panel-s:rgba(3,7,18,.97);
+  --border:rgba(0,180,255,.12);--border2:rgba(0,180,255,.22);--border3:rgba(84,142,255,.18);
+  --text:#e8f2ff;--muted:#4a6a88;--dim:#1e3448;
+  --cyan:#00e8ff;--cyan2:#00d4ff;--green:#39ff9a;--green2:#00e87a;
+  --amber:#f4c96b;--amber2:#ffb830;--red:#ff5050;--red2:#ff3a4a;--blue:#1a5cff;--blue2:#75a8ff;
+  --shadow:0 24px 70px rgba(0,0,0,.75);
+  --mono:'Share Tech Mono',monospace;
+  --head:'Orbitron',sans-serif;
+  --body:'Rajdhani',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:var(--body);overflow:hidden;}
+body{display:flex;flex-direction:column;}
+body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.018) 2px,rgba(0,0,0,.018) 3px);}
+
+/* ═══ TOP RIBBON ═══ */
+#rib{
+  background:linear-gradient(90deg,#020c18,#050f1e);
+  border-bottom:1px solid var(--border2);padding:6px 14px;
+  display:flex;align-items:center;flex-wrap:wrap;gap:6px;flex:none;
+  z-index:200;box-shadow:0 2px 24px rgba(0,0,0,.9);
+}
+.r-logo{display:flex;align-items:center;gap:10px;margin-right:10px;}
+.r-mark{width:38px;height:38px;flex:none;border-radius:50%;overflow:hidden;
+  background:#000;cursor:pointer;transition:box-shadow .2s,transform .15s;
+  box-shadow:0 0 12px rgba(0,100,220,.45);display:block;border:none;padding:0;}
+.r-mark:hover{box-shadow:0 0 22px rgba(0,180,255,.7),0 0 6px rgba(0,232,255,.4);transform:scale(1.07);}
+.r-mark img{width:100%;height:100%;object-fit:cover;display:block;}
+.r-ltext{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--cyan2);}
+.r-lsub{font-family:var(--mono);font-size:6px;color:var(--muted);letter-spacing:.18em;margin-top:1px;}
+.pbadge{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:3px;
+  border:1px solid rgba(255,80,80,.4);background:rgba(255,80,80,.07);
+  font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--red2);}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--red2);animation:pdot 1.2s ease-in-out infinite;}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.3}}
+.rstats{display:flex;flex-wrap:wrap;}
+.rs{display:flex;flex-direction:column;align-items:center;padding:0 10px;border-right:1px solid var(--border);min-width:60px;}
+.rsv{font-family:var(--head);font-size:13px;font-weight:700;}
+.rsl{font-family:var(--mono);font-size:8px;color:#8fbcd4;letter-spacing:.1em;margin-top:1px;}
+.rsv.ok{color:var(--green2)}.rsv.warn{color:var(--amber2)}.rsv.crit{color:var(--red2);animation:blink 1.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.rr{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+.rutc{
+  font-family:var(--mono);font-size:18px;font-weight:700;color:var(--cyan2);
+  letter-spacing:.12em;position:absolute;left:50%;transform:translateX(-50%);
+  text-shadow:0 0 14px rgba(0,232,255,.4);pointer-events:none;
+}
+.pmbadge{font-family:var(--mono);font-size:8px;padding:5px 11px;border-radius:3px;
+  background:rgba(26,108,255,.15);border:1px solid rgba(26,108,255,.5);color:var(--blue2);letter-spacing:.1em;}
+#rBtn{font-family:var(--mono);font-size:8px;padding:5px 11px;border-radius:3px;
+  border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.07);
+  color:rgba(255,255,255,.85);cursor:pointer;letter-spacing:.1em;transition:all .18s;}
+#rBtn:hover{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.5);}
+#rib{position:relative;}
+
+/* ═══ MAIN OPS ROW ═══ */
+#opsrow{flex:1;display:flex;min-height:0;overflow:hidden;}
+
+/* ═══ LEFT SV PANEL ═══ */
+#svs{width:18%;flex:none;display:flex;flex-direction:column;
+  border-right:1px solid var(--border2);background:var(--bg0);overflow:hidden;}
+#svc-ctrl{padding:6px 8px;border-bottom:1px solid var(--border);background:var(--bg1);flex:none;}
+.sbox{display:flex;align-items:center;gap:5px;background:var(--bg0);border:1px solid var(--border);
+  border-radius:4px;padding:4px 8px;margin-bottom:6px;}
+.sbox input{background:none;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:9px;flex:1;}
+.sbox input::placeholder{color:var(--muted);}
+.fr{display:flex;gap:3px;margin-bottom:4px;}
+.fb{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:5px 4px;
+  border-radius:3px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.05);color:rgba(255,255,255,.8);
+  cursor:pointer;flex:1;text-align:center;transition:all .15s;}
+.fb:hover{color:#fff;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1);}
+.fb.on{background:rgba(0,212,255,.15);border-color:var(--cyan2);color:var(--cyan2);}
+.sr{display:flex;gap:3px;}
+.sb{font-family:var(--mono);font-size:8px;padding:5px 4px;border-radius:3px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:rgba(255,255,255,.8);
+  cursor:pointer;flex:1;text-align:center;transition:all .15s;}
+.sb:hover{color:#fff;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1);}
+.sb.on{background:rgba(0,212,255,.13);border-color:rgba(0,212,255,.5);color:var(--cyan2);}
+#svl{flex:1;overflow-y:auto;padding:4px 6px;display:flex;flex-direction:column;gap:3px;}
+#svl::-webkit-scrollbar{width:3px;}
+#svl::-webkit-scrollbar-thumb{background:var(--dim);}
+
+/* SV cards — compact */
+.svc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;
+  padding:5px 7px;cursor:pointer;transition:all .2s;border-left:2px solid var(--sc,var(--muted));
+  position:relative;}
+.svc:hover{background:var(--bg3);}
+.svc.sel{background:var(--bg4);border-color:var(--cyan2);}
+.svc.crit .svnm::after{content:" ●";color:var(--red2);animation:blink 1s ease-in-out infinite;font-size:6px;}
+.sv-r1{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.svnm{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.3px;}
+.svsb{font-family:var(--mono);font-size:5px;letter-spacing:.1em;padding:1px 3px;border-radius:2px;border:1px solid;}
+.sv-r2{display:flex;align-items:center;gap:4px;margin-bottom:1px;}
+.svic{font-size:10px;}
+.svtp{font-family:var(--mono);font-size:8px;color:#8fbcd4;}
+.svct{font-family:var(--mono);font-size:7px;padding:1px 3px;border-radius:2px;}
+.svms{font-size:10px;color:#8fbcd4;line-height:1.2;margin-bottom:2px;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sv-r3{display:flex;align-items:center;gap:4px;}
+.svhb{flex:1;height:2px;background:var(--bg0);border-radius:2px;}
+.svhf{height:100%;border-radius:2px;transition:width .5s;}
+.svmt{font-family:var(--mono);font-size:7px;color:#5a7a99;}
+
+/* ═══ CENTER GLOBE AREA ═══ */
+#mapzone{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+/* ═══ GLOBE WRAPPER ═══ */
+#ax{
+  position:relative;flex:1;min-height:0;overflow:hidden;
+  border-bottom:1px solid rgba(84,142,255,.2);
+}
+#g3d,#g2d{position:absolute;inset:0;width:100%;height:100%;}
+#g3d canvas{display:block;width:100%!important;height:100%!important;}
+#g2d{display:none;}
+#g2d canvas{display:block;width:100%;height:100%;}
+#ax::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.016) 3px,rgba(0,0,0,.016) 4px);}
+#hud{position:absolute;inset:0;z-index:10;pointer-events:none;}
+
+/* Globe topbar */
+#gtopbar{position:absolute;top:0;left:0;right:0;z-index:11;
+  display:flex;align-items:center;justify-content:space-between;padding:7px 12px;
+  background:linear-gradient(180deg,rgba(2,5,11,.88) 0%,transparent 100%);pointer-events:none;}
+.g-logo{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--blue2);}
+.g-logo-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 10px var(--blue);animation:pd 2.2s ease-in-out infinite;}
+@keyframes pd{0%,100%{box-shadow:0 0 10px var(--blue)}50%{box-shadow:0 0 18px var(--blue),0 0 36px rgba(26,92,255,.9)}}
+
+/* View toggle */
+#vtog{position:absolute;top:9px;left:50%;transform:translateX(-50%);z-index:12;
+  display:flex;gap:2px;background:rgba(5,12,26,.9);
+  border:1px solid var(--border3);border-radius:10px;padding:3px;
+  pointer-events:auto;backdrop-filter:blur(16px);}
+.vbtn{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;
+  padding:5px 14px;border-radius:7px;border:none;cursor:pointer;
+  color:rgba(255,255,255,.8);background:transparent;transition:all .2s;}
+.vbtn.on{background:rgba(26,92,255,.3);color:#fff;box-shadow:0 0 0 1px rgba(26,92,255,.6);}
+
+/* Side panel */
+#sidepanel{position:absolute;top:48px;right:10px;width:165px;z-index:11;
+  background:var(--panel-s);border:1px solid var(--border3);
+  border-radius:12px;padding:10px;backdrop-filter:blur(22px);pointer-events:auto;}
+.sp-title{font-family:var(--mono);font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.regime-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;user-select:none;transition:opacity .2s;}
+.regime-row:last-of-type{border-bottom:none;}
+.regime-row.off{opacity:.3;}
+.rr-left{display:flex;align-items:center;gap:7px;}
+.rr-swatch{width:7px;height:7px;border-radius:50%;flex:none;}
+.rr-name{font-size:11px;font-weight:700;}
+.rr-count{font-family:var(--mono);font-size:8px;color:#7aaac8;margin-top:1px;}
+.rr-badge{font-family:var(--mono);font-size:8px;padding:2px 5px;border-radius:3px;border:1px solid;opacity:.9;}
+.sp-div{height:1px;background:rgba(255,255,255,.06);margin:8px 0;}
+.layer-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0;cursor:pointer;user-select:none;transition:opacity .2s;}
+.layer-row.off{opacity:.3;}
+.lr-left{display:flex;align-items:center;gap:6px;}
+.lr-ico{font-size:10px;line-height:1;}
+.lr-label{font-size:9px;font-weight:600;color:var(--text);}
+.lr-sub{font-family:var(--mono);font-size:7px;color:#7aaac8;}
+.sdot{width:6px;height:6px;border-radius:50%;flex:none;}
+.sdot.g{background:var(--green)}.sdot.a{background:var(--amber)}.sdot.r{background:var(--red)}
+.sp-title-sm{font-family:var(--mono);font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.cam-row{display:flex;flex-wrap:wrap;gap:2px;}
+.cbtn{font-family:var(--mono);font-size:7px;padding:3px 6px;border-radius:5px;
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);
+  cursor:pointer;transition:all .18s;pointer-events:auto;}
+.cbtn:hover,.cbtn.on{background:rgba(26,92,255,.25);border-color:rgba(26,92,255,.6);color:#fff;}
+
+/* Globe bot bar */
+#gbotbar{position:absolute;bottom:0;left:0;right:0;z-index:11;
+  display:flex;align-items:center;justify-content:space-around;padding:7px 12px 11px;
+  background:linear-gradient(0deg,rgba(2,5,11,.9) 0%,transparent 100%);pointer-events:none;}
+.bchip{display:flex;flex-direction:column;align-items:center;font-family:var(--mono);}
+.bv{font-size:12px;color:var(--cyan);letter-spacing:.04em;}
+.bl{font-size:6px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:1px;}
+
+/* Sat tooltip */
+#tip{position:absolute;background:var(--panel-s);border:1px solid var(--border3);
+  border-radius:12px;padding:12px;width:235px;pointer-events:auto;z-index:20;
+  backdrop-filter:blur(24px);display:none;box-shadow:var(--shadow);}
+#tip.show{display:block;}
+#tip-close{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.07);border:none;
+  color:var(--muted);font-size:11px;width:20px;height:20px;border-radius:5px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;}
+#tip-close:hover{background:rgba(255,255,255,.14);}
+.te{font-family:var(--mono);font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue2);margin-bottom:3px;}
+.tn{font-family:var(--cond);font-size:16px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;}
+.tc{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:5px 7px;}
+.tck{font-family:var(--mono);font-size:6px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.tcv{font-size:10px;font-weight:700;font-family:var(--mono);}
+.tcv.g{color:var(--green)}.tcv.a{color:var(--amber)}.tcv.r{color:var(--red)}.tcv.c{color:var(--cyan)}
+.td{font-size:8px;line-height:1.5;color:var(--muted);border-top:1px solid rgba(255,255,255,.07);padding-top:6px;}
+#hlabel{position:absolute;z-index:15;pointer-events:none;
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;
+  background:rgba(3,7,18,.9);border:1px solid var(--border3);
+  border-radius:4px;padding:3px 7px;color:var(--text);display:none;white-space:nowrap;}
+
+/* ═══ SECTION HEADER ═══ */
+.shdr{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg1);}
+.stitle{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--cyan2);}
+.ssub{font-family:var(--mono);font-size:7px;color:var(--muted);}
+
+/* ═══ RIGHT: ALERTS PANEL (expanded) ═══ */
+#rightcol{width:20%;flex:none;display:flex;flex-direction:column;
+  border-left:1px solid var(--border2);background:var(--bg0);overflow:hidden;}
+#alp{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#alf{flex:1;overflow-y:auto;padding:5px 7px;}
+#alf::-webkit-scrollbar{width:3px;}
+#alf::-webkit-scrollbar-thumb{background:var(--dim);}
+.al{background:var(--bg2);border:1px solid;border-radius:5px;padding:7px 9px;margin-bottom:4px;cursor:pointer;transition:all .2s;}
+.al:hover{background:var(--bg3);}
+.al.high{border-color:rgba(255,58,74,.35);background:rgba(255,58,74,.05);}
+.al.medium{border-color:rgba(255,184,48,.3);background:rgba(255,184,48,.04);}
+.al.low{border-color:rgba(0,232,122,.2);}
+.al-sv-link{cursor:pointer;}
+.al-sv-link:hover{background:rgba(0,232,255,.07)!important;border-color:rgba(0,232,255,.4)!important;}
+.al-svtag{font-family:var(--head);font-size:8px;font-weight:700;color:var(--cyan2);letter-spacing:.06em;margin-left:5px;opacity:.9;}
+.als{font-family:var(--mono);font-size:6px;letter-spacing:.14em;margin-bottom:2px;}
+.als.high{color:var(--red2)}.als.medium{color:var(--amber2)}.als.low{color:var(--green2)}
+.alt{font-family:var(--cond);font-size:11px;font-weight:600;line-height:1.3;margin-bottom:2px;}
+.altm{font-family:var(--mono);font-size:6px;color:var(--dim);}
+#stressc{border-top:1px solid var(--border);padding:6px 7px;flex:none;}
+.sc2{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px 8px;margin-bottom:4px;}
+.scl{font-family:var(--mono);font-size:5px;letter-spacing:.16em;color:var(--muted);margin-bottom:2px;}
+.scv{font-family:var(--cond);font-size:13px;font-weight:700;}
+.scs{font-family:var(--mono);font-size:6px;color:var(--muted);margin-top:1px;}
+
+/* ═══ UNIFIED CCMD COMMAND BAND (pinned bottom) ═══ */
+#cmdband{background:var(--bg1);flex:none;border-top:1px solid var(--border2);}
+#cmdband-hdr{display:flex;align-items:center;justify-content:center;gap:24px;
+  padding:5px 12px;border-bottom:1px solid var(--border);background:var(--bg0);}
+#cmdband-title{font-family:var(--head);font-size:7px;font-weight:700;letter-spacing:.2em;color:var(--cyan2);}
+#cmdband-meta{display:flex;align-items:center;gap:18px;}
+.cbm{font-family:var(--mono);font-size:7px;color:var(--muted);}
+.cbm span{font-family:var(--head);font-size:10px;font-weight:700;margin-right:3px;}
+.cbm span.ok{color:var(--green2)}.cbm span.warn{color:var(--amber2)}.cbm span.crit{color:var(--red2)}
+#cmdcards{display:flex;gap:7px;padding:7px 14px;overflow-x:auto;justify-content:center;}
+#cmdcards::-webkit-scrollbar{height:3px;}
+#cmdcards::-webkit-scrollbar-thumb{background:var(--dim);}
+/* merged CCMD card */
+.cc{flex:none;min-width:148px;max-width:168px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:9px 11px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+  border-top:2px solid var(--ccc,var(--cyan2));}
+.cc:hover{background:var(--bg3);border-color:var(--ccc,var(--cyan2));}
+.cc.sel{border-color:var(--ccc,var(--cyan2));box-shadow:0 0 0 1px var(--ccc,var(--cyan2));}
+.cc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.cc-nm{font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.5px;}
+.cc-ctrl{display:flex;align-items:center;gap:3px;}
+.pbdg{font-family:var(--head);font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;border:1px solid;}
+.pab{display:flex;flex-direction:column;gap:2px;}
+.pab-b{width:14px;height:12px;border-radius:2px;border:1px solid rgba(255,255,255,.25);
+  background:rgba(0,0,0,.5);color:rgba(255,255,255,.8);font-size:7px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .14s;}
+.pab-b:hover{background:rgba(0,180,255,.25);color:#fff;border-color:rgba(0,180,255,.5);}
+.cc-rg{font-family:var(--mono);font-size:7px;color:#6a8aaa;margin-bottom:5px;letter-spacing:.05em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bw{height:3px;background:rgba(0,0,0,.4);border-radius:2px;overflow:hidden;margin-bottom:4px;}
+.bf{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.cc-st{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:4px;}
+.st{background:rgba(0,0,0,.3);border-radius:3px;padding:4px 2px;text-align:center;}
+.stv{font-family:var(--head);font-size:13px;font-weight:700;}
+.stl{font-family:var(--mono);font-size:6px;color:#5a7a99;letter-spacing:.08em;margin-top:2px;}
+.cc-ft{display:flex;align-items:center;justify-content:space-between;}
+.fpct{font-family:var(--head);font-size:12px;font-weight:700;}
+.csvc{font-family:var(--mono);font-size:7px;color:#6a8aaa;}
+
+/* ═══ RIBBON ACTION BUTTONS ═══ */
+#declutterBtn,#fsBtn,#snapBtn{
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.28);color:rgba(255,255,255,.85);
+  border-radius:3px;padding:5px 11px;cursor:pointer;transition:all .18s;white-space:nowrap;
+}
+#declutterBtn:hover,#fsBtn:hover,#snapBtn:hover{color:var(--cyan2);border-color:var(--cyan2);background:rgba(0,232,255,.1);}
+#declutterBtn.on{color:var(--amber2);border-color:var(--amber2);background:rgba(244,201,107,.1);}
+:fullscreen #fsBtn,:-webkit-full-screen #fsBtn{color:var(--green2);border-color:var(--green2);}
+/* ═══ SV STATUS FLASH ANIMATION ═══ */
+@keyframes svFlash{0%{background:rgba(255,50,50,.35)}25%{background:transparent}50%{background:rgba(255,50,50,.28)}75%{background:transparent}100%{background:transparent}}
+.svc.flash-crit{animation:svFlash 1.1s ease-out forwards;}
+@keyframes svCardPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,50,50,0)}50%{box-shadow:0 0 14px 3px rgba(255,50,50,.55)}}
+.svc.crit{animation:svCardPulse 2s ease-in-out infinite;}
+
+/* ═══ SV COMPARISON PANEL ═══ */
+#sv-compare{display:none;flex-direction:column;background:var(--bg1);
+  border-bottom:1px solid var(--border2);flex:none;}
+#sv-compare.open{display:flex;}
+.cmp-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:5px 10px;border-bottom:1px solid var(--border);background:rgba(0,232,255,.03);}
+.cmp-title{font-family:var(--head);font-size:7px;font-weight:700;letter-spacing:.18em;color:var(--cyan2);}
+#cmp-body{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.cmp-col{padding:6px 8px;border-right:1px solid var(--border);}
+.cmp-col:last-child{border-right:none;}
+.cmp-sv-name{font-family:var(--cond);font-size:13px;font-weight:700;margin-bottom:2px;}
+.cmp-sv-type{font-family:var(--mono);font-size:6px;color:var(--muted);letter-spacing:.1em;margin-bottom:5px;}
+.cmp-row{display:flex;justify-content:space-between;align-items:center;
+  padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.cmp-k{font-family:var(--mono);font-size:5px;color:var(--dim);letter-spacing:.1em;}
+.cmp-v{font-family:var(--mono);font-size:8px;font-weight:600;color:var(--text);}
+.cmp-bar-wrap{margin:4px 0;}
+.cmp-bar{height:3px;background:rgba(0,0,0,.5);border-radius:2px;overflow:hidden;margin-top:2px;}
+.cmp-bar-fill{height:100%;border-radius:2px;}
+.cmp-better{color:var(--green2)!important;}
+.cmp-worse{color:var(--red2)!important;}
+.cmp-sel-btn{font-family:var(--mono);font-size:6px;letter-spacing:.08em;padding:2px 6px;
+  border:1px solid var(--border2);border-radius:3px;background:transparent;color:var(--muted);
+  cursor:pointer;margin-top:3px;width:100%;}
+.cmp-sel-btn:hover{color:var(--cyan2);border-color:var(--cyan2);}
+
+/* ═══ SPARKLINE ═══ */
+.cc-spark{display:block;margin-top:3px;opacity:.8;}
+
+/* ═══ HOTKEY LEGEND ═══ */
+#hotkey-legend{
+  position:fixed;bottom:10px;right:10px;z-index:7500;
+  background:rgba(2,6,18,.96);
+  border:1px solid rgba(0,232,255,.45);
+  border-radius:7px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 32px rgba(0,0,0,.8),0 0 12px rgba(0,232,255,.08),inset 0 0 0 1px rgba(0,232,255,.05);
+  user-select:none;
+  min-width:210px;
+  overflow:hidden;
+  transition:box-shadow .2s;
+}
+#hotkey-legend:hover{box-shadow:0 0 36px rgba(0,0,0,.9),0 0 18px rgba(0,232,255,.14),inset 0 0 0 1px rgba(0,232,255,.08);}
+#hk-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px 7px;
+  border-bottom:1px solid rgba(0,232,255,.2);
+  cursor:pointer;
+  background:rgba(0,232,255,.04);
+}
+#hk-header:hover{background:rgba(0,232,255,.08);}
+#hk-title-wrap{display:flex;align-items:center;gap:7px;}
+#hk-icon{font-size:11px;color:var(--cyan2);}
+#hk-title{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.22em;color:var(--cyan2);}
+#hk-chevron{
+  font-family:var(--mono);font-size:11px;color:rgba(0,232,255,.6);
+  transition:transform .25s;line-height:1;
+}
+#hk-chevron.collapsed{transform:rotate(180deg);}
+#hk-body{
+  padding:10px 12px 10px;
+  transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s;
+  max-height:400px;opacity:1;overflow:hidden;
+}
+#hk-body.collapsed{max-height:0;opacity:0;padding-top:0;padding-bottom:0;}
+#hotkey-legend .hk-group{margin-bottom:8px;}
+#hotkey-legend .hk-group:last-child{margin-bottom:0;}
+#hotkey-legend .hk-group-label{
+  font-family:var(--mono);font-size:7px;letter-spacing:.2em;
+  color:rgba(0,232,255,.45);margin-bottom:5px;
+  padding-bottom:3px;border-bottom:1px solid rgba(0,232,255,.1);
+}
+#hotkey-legend .hk-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:4px;
+}
+#hotkey-legend .hk-row:last-child{margin-bottom:0;}
+#hotkey-legend .hk-key{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;padding:0 6px;height:20px;
+  border:1px solid rgba(0,232,255,.55);border-radius:4px;
+  background:rgba(0,232,255,.1);
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--cyan2);letter-spacing:.04em;white-space:nowrap;flex-shrink:0;
+  box-shadow:0 2px 4px rgba(0,0,0,.6),inset 0 1px 0 rgba(0,232,255,.15);
+}
+#hotkey-legend .hk-keys{display:flex;gap:4px;align-items:center;}
+#hotkey-legend .hk-sep{font-family:var(--mono);font-size:9px;color:rgba(0,232,255,.35);}
+#hotkey-legend .hk-label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.07em;
+  color:rgba(255,255,255,.8);flex:1;text-align:right;
+}
+#hotkey-legend .hk-divider{
+  height:1px;background:rgba(0,232,255,.15);margin:7px 0;
+}
+
+/* ═══ ACCESSIBILITY ═══ */
+*:focus-visible{outline:2px solid var(--cyan2)!important;outline-offset:2px!important;}
+.svc:focus-visible,.cc:focus-visible,.al:focus-visible{outline:2px solid var(--cyan2)!important;}
+
+/* ═══ SECTION HEADER ═══ */
+.shdr{display:flex;align-items:center;justify-content:space-between;
+  padding:5px 10px;border-bottom:1px solid var(--border);background:var(--bg1);flex:none;}
+.stitle{font-family:var(--head);font-size:8px;font-weight:700;letter-spacing:.18em;color:var(--cyan2);}
+.ssub{font-family:var(--mono);font-size:6px;color:var(--muted);}
+
+/* ═══ SV TELEMETRY PANEL (pinned in SV list on selection) ═══ */
+#sv-telem{
+  display:none;flex-direction:column;gap:0;
+  background:var(--bg1);border-bottom:1px solid var(--border2);
+  flex:none;overflow:hidden;
+}
+#sv-telem.open{display:flex;}
+.tl-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px 5px;border-bottom:1px solid var(--border);
+}
+.tl-name{font-family:var(--cond);font-size:20px;font-weight:700;letter-spacing:.4px;}
+.tl-close{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.85);cursor:pointer;padding:3px 8px;
+  border:1px solid rgba(255,255,255,.3);border-radius:3px;background:transparent;}
+.tl-close:hover{color:#fff;border-color:rgba(255,255,255,.6);}
+.tl-eye{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--blue2);padding:3px 10px 5px;}
+.tl-status-bar{display:flex;align-items:center;gap:6px;padding:5px 10px;
+  border-bottom:1px solid var(--border);}
+.tl-badge{font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;letter-spacing:.1em;}
+.tl-section{padding:7px 10px;border-bottom:1px solid var(--border);}
+.tl-seclbl{font-family:var(--mono);font-size:7px;letter-spacing:.2em;color:rgba(255,255,255,.55);margin-bottom:6px;}
+.tl-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.tl-cell{background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:3px;padding:5px 7px;}
+.tl-key{font-family:var(--mono);font-size:7px;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:3px;}
+.tl-val{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;}
+.tl-bar-row{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.tl-bar-lbl{font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.55);width:40px;}
+.tl-bar{flex:1;height:5px;background:rgba(0,0,0,.5);border-radius:3px;overflow:hidden;}
+.tl-bar-fill{height:100%;border-radius:3px;transition:width .6s;}
+.tl-pct{font-family:var(--mono);font-size:10px;font-weight:700;min-width:38px;text-align:right;}
+.tl-mission{padding:8px 10px;font-size:10px;line-height:1.65;color:rgba(255,255,255,.8);
+  border-bottom:1px solid var(--border);font-family:var(--mono);}
+.tl-loc{display:flex;align-items:center;gap:8px;padding:5px 10px 6px;font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.5);}
+.tl-coord{color:#8fbcd4;font-size:9px;font-weight:600;}
+
+/* Remediation action button */
+#tl-remediate{
+  display:none;margin:0 10px 10px;
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;
+  padding:9px 14px;border-radius:4px;cursor:pointer;width:calc(100% - 20px);
+  border:1px solid rgba(255,80,80,.6);background:rgba(255,50,50,.12);color:#ff7070;
+  transition:all .22s;text-align:center;
+}
+#tl-remediate.deg{
+  border-color:rgba(244,201,107,.6);background:rgba(244,201,107,.1);color:var(--amber2);
+}
+#tl-remediate:hover{
+  background:rgba(255,50,50,.25);color:#fff;border-color:rgba(255,80,80,.9);
+  box-shadow:0 0 14px rgba(255,50,50,.3);
+}
+#tl-remediate.deg:hover{
+  background:rgba(244,201,107,.22);color:#fff;border-color:rgba(244,201,107,.9);
+  box-shadow:0 0 14px rgba(244,201,107,.25);
+}
+#tl-remediate.resolving{
+  border-color:rgba(0,232,255,.5);background:rgba(0,232,255,.08);color:var(--cyan2);
+  animation:remPulse 1.1s ease-in-out infinite;cursor:default;pointer-events:none;
+}
+@keyframes remPulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ═══ SV HOVER TOOLTIP ═══ */
+#sv-tooltip{
+  position:fixed;z-index:9000;pointer-events:none;
+  background:rgba(3,7,18,.97);border:1px solid rgba(0,212,255,.35);
+  border-radius:8px;padding:10px 12px;width:200px;
+  backdrop-filter:blur(20px);box-shadow:0 12px 40px rgba(0,0,0,.8),0 0 0 1px rgba(0,212,255,.08);
+  display:none;
+}
+#sv-tooltip.show{display:block;}
+.svt-eye{font-family:var(--mono);font-size:6px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue2);margin-bottom:3px;}
+.svt-name{font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.4px;margin-bottom:6px;}
+.svt-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px;}
+.svt-cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:4px;padding:4px 5px;}
+.svt-key{font-family:var(--mono);font-size:5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1px;}
+.svt-val{font-family:var(--mono);font-size:9px;font-weight:600;}
+.svt-desc{font-size:7px;line-height:1.5;color:var(--muted);border-top:1px solid rgba(255,255,255,.07);padding-top:5px;}
+
+/* ═══ CCMD HOVER TOOLTIP ═══ */
+#ccmd-tooltip{
+  position:fixed;z-index:9001;pointer-events:none;
+  background:rgba(3,7,18,.97);border:1px solid rgba(0,212,255,.3);
+  border-radius:8px;padding:10px 12px;width:185px;
+  backdrop-filter:blur(20px);box-shadow:0 12px 40px rgba(0,0,0,.8);
+  display:none;
+}
+#ccmd-tooltip.show{display:block;}
+.ccmdt-name{font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.4px;margin-bottom:2px;}
+.ccmdt-region{font-family:var(--mono);font-size:6px;color:var(--muted);letter-spacing:.12em;margin-bottom:6px;}
+.ccmdt-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.ccmdt-cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:4px;padding:4px 5px;}
+.ccmdt-key{font-family:var(--mono);font-size:5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1px;}
+.ccmdt-val{font-family:var(--mono);font-size:9px;font-weight:600;}
+
+@media(max-width:580px){
+  #sidepanel{width:130px;right:4px;padding:7px;}
+  #tip{width:calc(100vw - 16px);left:8px;right:8px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOOLTIP OVERLAYS ═══ -->
+<div id="sv-tooltip">
+  <div class="svt-eye" id="svt-eye"></div>
+  <div class="svt-name" id="svt-name"></div>
+  <div class="svt-grid">
+    <div class="svt-cell"><div class="svt-key">TYPE</div><div class="svt-val" id="svt-type"></div></div>
+    <div class="svt-cell"><div class="svt-key">STATUS</div><div class="svt-val" id="svt-status"></div></div>
+    <div class="svt-cell"><div class="svt-key">HEALTH</div><div class="svt-val" id="svt-health"></div></div>
+    <div class="svt-cell"><div class="svt-key">LOAD</div><div class="svt-val" id="svt-load"></div></div>
+    <div class="svt-cell"><div class="svt-key">CCMD</div><div class="svt-val" id="svt-ccmd"></div></div>
+    <div class="svt-cell"><div class="svt-key">UPDATE</div><div class="svt-val" id="svt-upd"></div></div>
+  </div>
+  <div class="svt-desc" id="svt-desc"></div>
+</div>
+<div id="ccmd-tooltip">
+  <div class="ccmdt-name" id="ccmdt-name"></div>
+  <div class="ccmdt-region" id="ccmdt-region"></div>
+  <div class="ccmdt-grid">
+    <div class="ccmdt-cell"><div class="ccmdt-key">PRIORITY</div><div class="ccmdt-val" id="ccmdt-p"></div></div>
+    <div class="ccmdt-cell"><div class="ccmdt-key">REQUESTED</div><div class="ccmdt-val" id="ccmdt-req"></div></div>
+    <div class="ccmdt-cell"><div class="ccmdt-key">FILLED</div><div class="ccmdt-val" id="ccmdt-fill"></div></div>
+    <div class="ccmdt-cell"><div class="ccmdt-key">OPEN</div><div class="ccmdt-val" id="ccmdt-open"></div></div>
+    <div class="ccmdt-cell"><div class="ccmdt-key">FILL RATE</div><div class="ccmdt-val" id="ccmdt-rate"></div></div>
+    <div class="ccmdt-cell"><div class="ccmdt-key">SVs</div><div class="ccmdt-val" id="ccmdt-svs"></div></div>
+  </div>
+</div>
+<div id="rib">
+  <div class="r-logo">
+    <a class="r-mark" href="https://futures.astronetix.us" title="Back to ASTRONETIX Home" target="_self"><img src="data:image/png;base64,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" alt="ASTRONETIX"></a>
+    <div><div class="r-ltext">ASTRONETIX</div><div class="r-lsub">MISSION COP · SV MANAGEMENT</div></div>
+  </div>
+  <div class="pbadge"><div class="pdot"></div>ELEVATED · POSTURE II</div>
+  <div class="rstats">
+    <div class="rs"><div class="rsv" id="r-sv">20</div><div class="rsl">SVs</div></div>
+    <div class="rs"><div class="rsv" id="r-req">--</div><div class="rsl">REQUESTED</div></div>
+    <div class="rs"><div class="rsv ok" id="r-fill">--</div><div class="rsl">FILLED</div></div>
+    <div class="rs"><div class="rsv" id="r-rate">--%</div><div class="rsl">FILL RATE</div></div>
+    <div class="rs"><div class="rsv warn" id="r-crit">--</div><div class="rsl">CRITICAL</div></div>
+    <div class="rs"><div class="rsv warn" id="r-alerts">--</div><div class="rsl">ALERTS</div></div>
+  </div>
+  <div class="rr">
+    <div class="pmbadge">⬡ PRIORITY MODE</div>
+    <button id="rBtn">↺ RESET</button>
+    <button id="declutterBtn" title="Declutter Mode (D)" aria-label="Toggle declutter mode">◻ DECLUTTER</button>
+    <button id="fsBtn" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶ FULLSCREEN</button>
+    <button id="snapBtn" title="Export Snapshot (P)" aria-label="Export PNG snapshot">📷 SNAPSHOT</button>
+  </div>
+  <div class="rutc" id="rutc">--:--:-- UTC</div>
+</div>
+
+<!-- ═══ MAIN OPS ROW ═══ -->
+<div id="opsrow">
+
+<!-- ═══ LEFT: SV PANEL ═══ -->
+<div id="svs">
+  <div class="shdr">
+    <div class="stitle">◈ SVs</div>
+    <div class="ssub" id="svclbl">20 SVs</div>
+  </div>
+  <div id="svc-ctrl">
+    <div class="sbox">
+      <span style="color:var(--muted)">⌕</span>
+      <input id="srch" type="text" placeholder="Search…"/>
+    </div>
+    <div class="fr">
+      <button class="fb on" onclick="setF(this,'all')">ALL</button>
+      <button class="fb" onclick="setF(this,'Operational')">OPER</button>
+      <button class="fb" onclick="setF(this,'Degraded')">DEG</button>
+      <button class="fb" onclick="setF(this,'Critical')">CRIT</button>
+      <button class="fb" onclick="setF(this,'Reserved')">RESV</button>
+    </div>
+    <div class="sr">
+      <button class="sb on" onclick="setS(this,'priority')">PRIORITY</button>
+      <button class="sb" onclick="setS(this,'health')">HEALTH</button>
+      <button class="sb" onclick="setS(this,'status')">STATUS</button>
+      <button class="sb" onclick="setS(this,'load')">LOAD</button>
+    </div>
+  </div>
+  <!-- SV Telemetry Panel — shown when an SV is selected -->
+  <div id="sv-telem">
+    <div class="tl-hdr">
+      <div>
+        <div class="tl-name" id="tl-name">—</div>
+      </div>
+      <button class="tl-close" onclick="selSVFn(selSV)">✕ CLOSE</button>
+    </div>
+    <div class="tl-eye" id="tl-eye"></div>
+    <div class="tl-status-bar">
+      <div class="tl-badge" id="tl-vbadge">—</div>
+      <div class="tl-badge" id="tl-mbadge">—</div>
+      <div class="tl-badge" id="tl-sigbadge">—</div>
+    </div>
+    <div class="tl-section">
+      <div class="tl-seclbl">HEALTH &amp; LOAD</div>
+      <div class="tl-bar-row">
+        <div style="font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.55);width:40px">HEALTH</div>
+        <div class="tl-bar"><div class="tl-bar-fill" id="tl-hbar"></div></div>
+        <div class="tl-pct" id="tl-hpct"></div>
+      </div>
+      <div class="tl-bar-row" style="margin-top:4px">
+        <div style="font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.55);width:40px">LOAD</div>
+        <div class="tl-bar"><div class="tl-bar-fill" id="tl-lbar" style="background:var(--blue2)"></div></div>
+        <div class="tl-pct" id="tl-lpct" style="color:var(--blue2)"></div>
+      </div>
+    </div>
+    <div class="tl-section">
+      <div class="tl-seclbl">TELEMETRY</div>
+      <div class="tl-grid">
+        <div class="tl-cell"><div class="tl-key">REGIME</div><div class="tl-val" id="tl-regime"></div></div>
+        <div class="tl-cell"><div class="tl-key">ALTITUDE</div><div class="tl-val" id="tl-alt"></div></div>
+        <div class="tl-cell"><div class="tl-key">INCLINATION</div><div class="tl-val" id="tl-inc"></div></div>
+        <div class="tl-cell"><div class="tl-key">PERIOD</div><div class="tl-val" id="tl-per"></div></div>
+        <div class="tl-cell"><div class="tl-key">LATITUDE</div><div class="tl-val" id="tl-lat"></div></div>
+        <div class="tl-cell"><div class="tl-key">LONGITUDE</div><div class="tl-val" id="tl-lon"></div></div>
+        <div class="tl-cell"><div class="tl-key">SIGNAL</div><div class="tl-val" id="tl-sig"></div></div>
+        <div class="tl-cell"><div class="tl-key">LAST UPD</div><div class="tl-val" id="tl-upd"></div></div>
+      </div>
+    </div>
+    <div class="tl-section">
+      <div class="tl-seclbl">TASKING</div>
+      <div class="tl-grid">
+        <div class="tl-cell"><div class="tl-key">CCMD</div><div class="tl-val" id="tl-ccmd"></div></div>
+        <div class="tl-cell"><div class="tl-key">TASKS</div><div class="tl-val" id="tl-tasks"></div></div>
+      </div>
+    </div>
+    <div class="tl-mission" id="tl-mission"></div>
+    <div class="tl-loc">
+      <span>POS</span>
+      <span class="tl-coord" id="tl-pos">—</span>
+    </div>
+    <button id="tl-remediate" onclick="triggerRemediate()">⚡ INITIATE AUTO-REMEDIATION</button>
+  </div>
+  <!-- SV Comparison Panel — shown when selSV2 is set -->
+  <div id="sv-compare">
+    <div class="cmp-hdr">
+      <span class="cmp-title">⇌ COMPARE</span>
+      <button class="tl-close" onclick="clearCompare()">✕</button>
+    </div>
+    <div id="cmp-body"></div>
+  </div>
+  <div id="svl"></div>
+</div>
+
+<!-- ═══ CENTER: GLOBE + CCMD STRIP ═══ -->
+<div id="mapzone">
+<div id="ax">
+  <div id="g3d"></div>
+  <div id="g2d"><canvas id="c2d"></canvas></div>
+  <div id="hud">
+    <div id="gtopbar">
+      <div class="g-logo"><div class="g-logo-dot"></div>CONSTELLATION DISPLAY · CMC</div>
+    </div>
+    <div id="vtog">
+      <button class="vbtn on" id="b3d">3D Globe</button>
+      <button class="vbtn" id="b2d">2D Map</button>
+    </div>
+    <div id="sidepanel">
+      <div class="sp-title">Orbital Regimes</div>
+      <div class="regime-row" id="rr-LEO" data-regime="LEO">
+        <div class="rr-left">
+          <div class="rr-swatch" style="background:var(--cyan);box-shadow:0 0 5px var(--cyan)"></div>
+          <div><div class="rr-name" style="color:var(--cyan)">LEO</div><div class="rr-count">12 · 550 km</div></div>
+        </div>
+        <div class="rr-badge" style="color:var(--cyan);border-color:var(--cyan)">53°</div>
+      </div>
+      <div class="regime-row" id="rr-MEO" data-regime="MEO">
+        <div class="rr-left">
+          <div class="rr-swatch" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div>
+          <div><div class="rr-name" style="color:var(--green)">MEO</div><div class="rr-count">12 · 20,200 km</div></div>
+        </div>
+        <div class="rr-badge" style="color:var(--green);border-color:var(--green)">56°</div>
+      </div>
+      <div class="regime-row" id="rr-GEO" data-regime="GEO">
+        <div class="rr-left">
+          <div class="rr-swatch" style="background:var(--amber);box-shadow:0 0 5px var(--amber)"></div>
+          <div><div class="rr-name" style="color:var(--amber)">GEO</div><div class="rr-count">12 · 35,786 km</div></div>
+        </div>
+        <div class="rr-badge" style="color:var(--amber);border-color:var(--amber)">0°</div>
+      </div>
+      <div class="sp-div"></div>
+      <div class="layer-row" id="lr-tracks" data-lkey="tracks">
+        <div class="lr-left"><div class="lr-ico">〰</div><div><div class="lr-label">Orbit Tracks</div><div class="lr-sub">3 regimes</div></div></div>
+        <div class="sdot g"></div>
+      </div>
+      <div class="layer-row" id="lr-ground" data-lkey="ground">
+        <div class="lr-left"><div class="lr-ico">📡</div><div><div class="lr-label">Ground Ant.</div><div class="lr-sub">13 stations</div></div></div>
+        <div class="sdot a"></div>
+      </div>
+      <div class="layer-row" id="lr-users" data-lkey="users">
+        <div class="lr-left"><div class="lr-ico">👤</div><div><div class="lr-label">Users</div><div class="lr-sub">6 terminals</div></div></div>
+        <div class="sdot g"></div>
+      </div>
+      <div class="layer-row" id="lr-cones" data-lkey="cones">
+        <div class="lr-left"><div class="lr-ico">📶</div><div><div class="lr-label">Cov. Cones</div><div class="lr-sub">MEO + GEO</div></div></div>
+        <div class="sdot g"></div>
+      </div>
+      <div class="layer-row" id="lr-gcc" data-lkey="gcc">
+        <div class="lr-left"><div class="lr-ico">🗺</div><div><div class="lr-label">CCMD AOR</div><div class="lr-sub">approx.</div></div></div>
+        <div class="sdot g"></div>
+      </div>
+      <div class="layer-row" id="lr-terminator" data-lkey="terminator">
+        <div class="lr-left"><div class="lr-ico">🌗</div><div><div class="lr-label">Terminator</div><div class="lr-sub">day/night</div></div></div>
+        <div class="sdot g"></div>
+      </div>
+      <div class="sp-div"></div>
+      <div class="sp-title-sm">Camera</div>
+      <div class="cam-row">
+        <button class="cbtn on" data-cam="default">Default</button>
+        <button class="cbtn" data-cam="top">Top</button>
+        <button class="cbtn" data-cam="equator">Equator</button>
+        <button class="cbtn" data-cam="leo">LEO</button>
+        <button class="cbtn" data-cam="geo">GEO Belt</button>
+      </div>
+    </div>
+    <div id="gbotbar">
+      <div class="bchip"><div class="bv" id="bSats">36</div><div class="bl">Satellites</div></div>
+      <div class="bchip"><div class="bv" id="bHealth">--</div><div class="bl">Health</div></div>
+      <div class="bchip"><div class="bv" id="bLinks">0</div><div class="bl">Links</div></div>
+      <div class="bchip"><div class="bv" id="bContact">--</div><div class="bl">Nxt Contact</div></div>
+    </div>
+    <div id="tip">
+      <button id="tip-close">✕</button>
+      <div class="te" id="t-eye"></div>
+      <div class="tn" id="t-name"></div>
+      <div class="tg">
+        <div class="tc"><div class="tck">Vehicle</div><div class="tcv" id="t-veh"></div></div>
+        <div class="tc"><div class="tck">Mission</div><div class="tcv" id="t-mis"></div></div>
+        <div class="tc"><div class="tck">Altitude</div><div class="tcv c" id="t-alt"></div></div>
+        <div class="tc"><div class="tck">Inclination</div><div class="tcv c" id="t-inc"></div></div>
+        <div class="tc"><div class="tck">Period</div><div class="tcv c" id="t-per"></div></div>
+        <div class="tc"><div class="tck">Signal</div><div class="tcv" id="t-sig"></div></div>
+      </div>
+      <div class="td" id="t-desc"></div>
+    </div>
+    <div id="hlabel"></div>
+  </div>
+</div>
+
+</div><!-- end mapzone -->
+
+<!-- ═══ RIGHT: ALERTS (expanded) ═══ -->
+<div id="rightcol">
+  <div id="alp">
+    <div class="shdr">
+      <div class="stitle">⚡ ALERTS</div>
+      <div class="ssub" id="alclbl">0</div>
+    </div>
+    <div id="alf"></div>
+  </div>
+</div><!-- end rightcol -->
+
+</div><!-- end opsrow -->
+
+<!-- ═══ UNIFIED COMMAND BAND ═══ -->
+<div id="cmdband">
+  <div id="cmdband-hdr">
+    <div id="cmdband-meta">
+      <div class="cbm" id="cbm-req"></div>
+      <div class="cbm" id="cbm-fill"></div>
+      <div class="cbm" id="cbm-rate"></div>
+      <div class="cbm" id="cbm-crit"></div>
+      <div class="cbm" style="opacity:.5;font-size:6px">P1 = <span id="cbm-p1" style="font-family:var(--head);font-size:9px;font-weight:700;color:var(--cyan2)">—</span></div>
+    </div>
+  </div>
+  <div id="cmdcards"></div>
+</div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════════════════
+//  SHARED STATE MODEL
+// ════════════════════════════════════════════════════════
+
+const combatantCommands = [
+  {id:"centcom",  name:"CENTCOM",  color:"#ff9f43", defaultPriority:1,operatorPriority:1,type:"geographic",
+   region:"Middle East / Central Asia",
+   landISO3:["AFG","BHR","EGY","IRN","IRQ","JOR","KAZ","KWT","KGZ","LBN","OMN","PAK","QAT","SAU","SYR","TJK","TKM","ARE","UZB","YEM"],
+   maritime:[[20,42],[85,42],[85,0],[60,-5],[42,5],[32,15],[20,42]]},
+  {id:"indopacom",name:"INDOPACOM",color:"#4dabf7", defaultPriority:2,operatorPriority:2,type:"geographic",
+   region:"Indo-Pacific",
+   landISO3:["AUS","BGD","BRN","BTN","KHM","CHN","PRK","KOR","FJI","IND","IDN","JPN","KIR","LAO","MYS","MDV","MHL","FSM","MNG","MMR","NRU","NPL","NZL","PLW","PNG","PHL","WSM","SGP","SLB","LKA","THA","TLS","TON","TUV","VUT","VNM"],
+   maritime:[[25,35],[180,65],[180,-60],[95,-60],[60,-45],[25,-10],[25,35]]},
+  {id:"eucom",    name:"EUCOM",    color:"#e599f7", defaultPriority:3,operatorPriority:3,type:"geographic",
+   region:"Europe / Russia",
+   landISO3:["ALB","AND","ARM","AUT","AZE","BEL","BIH","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","GEO","DEU","GRC","HUN","ISL","IRL","ITA","LVA","LIE","LTU","LUX","MLT","MDA","MCO","MNE","NLD","MKD","NOR","POL","PRT","ROU","SMR","SRB","SVK","SVN","ESP","SWE","CHE","TUR","UKR","GBR","VAT","RUS","GRL"],
+   maritime:[[-45,82],[70,82],[70,25],[42,25],[20,30],[-10,35],[-30,55],[-45,82]]},
+  {id:"northcom", name:"NORTHCOM", color:"#51cf66", defaultPriority:4,operatorPriority:4,type:"geographic",
+   region:"North America / Arctic",
+   landISO3:["USA","CAN","MEX","GRL"],
+   maritime:[[-170,75],[-40,75],[-40,10],[-170,10],[-170,75]]},
+  {id:"africom",  name:"AFRICOM",  color:"#ffd43b", defaultPriority:5,operatorPriority:5,type:"geographic",
+   region:"Africa",
+   landISO3:["DZA","AGO","BEN","BWA","BFA","BDI","CMR","CPV","CAF","TCD","COM","COD","COG","CIV","DJI","GNQ","ERI","SWZ","ETH","GAB","GMB","GHA","GIN","GNB","KEN","LSO","LBR","LBY","MDG","MWI","MLI","MRT","MUS","MAR","MOZ","NAM","NER","NGA","RWA","STP","SEN","SYC","SLE","SOM","ZAF","SSD","SDN","TZA","TGO","TUN","UGA","ZMB","ZWE"],
+   maritime:[[-30,42],[65,42],[65,-48],[-30,-48],[-30,42]]},
+  {id:"southcom", name:"SOUTHCOM", color:"#20c997", defaultPriority:6,operatorPriority:6,type:"geographic",
+   region:"Latin America / Caribbean",
+   landISO3:["BLZ","CRI","SLV","GTM","HND","NIC","PAN","ATG","BHS","BRB","CUB","DMA","DOM","GRD","HTI","JAM","KNA","LCA","VCT","TTO","ARG","BOL","BRA","CHL","COL","ECU","GUY","PRY","PER","SUR","URY","VEN"],
+   maritime:[[-100,25],[-20,25],[-20,-60],[-90,-60],[-100,25]]},
+  {id:"spacecom", name:"SPACECOM", color:"#9b5de5", defaultPriority:7,operatorPriority:7,type:"functional",region:"Space Domain",landISO3:[],maritime:[]},
+  {id:"stratcom", name:"STRATCOM", color:"#f06595", defaultPriority:8,operatorPriority:8,type:"functional",region:"Global Strike / Nuclear",landISO3:[],maritime:[]},
+];
+
+const CC = [
+  {id:"centcom",  p:1,req:24,fill:18,rate:75},
+  {id:"indopacom",p:2,req:31,fill:26,rate:84},
+  {id:"eucom",    p:3,req:19,fill:16,rate:84},
+  {id:"northcom", p:4,req:12,fill:12,rate:100},
+  {id:"africom",  p:5,req:9, fill:6, rate:67},
+  {id:"southcom", p:6,req:8, fill:7, rate:88},
+  {id:"spacecom", p:7,req:15,fill:13,rate:87},
+  {id:"stratcom", p:8,req:10,fill:8, rate:80},
+];
+CC.forEach(c=>c.uf=c.req-c.fill);
+const DP=CC.map(c=>({id:c.id,p:c.p}));
+
+const SV=[
+  {id:"sv-001",n:"ZEUS-1",    t:"Missile Warning",s:"Operational",m:"Persistent MW coverage — theater-wide ICBM detection",   cc:"centcom",  h:96,l:4,u:"1m"},
+  {id:"sv-002",n:"ARES-3",    t:"ISR",            s:"Degraded",   m:"Wide-area ISR CENTCOM AOR, degraded uplink",             cc:"centcom",  h:61,l:3,u:"3m"},
+  {id:"sv-003",n:"HERMES-7",  t:"SATCOM",         s:"Operational",m:"High-throughput relay, MEA joint forces",               cc:"centcom",  h:98,l:3,u:"0m"},
+  {id:"sv-004",n:"POSEIDON-2",t:"PNT",            s:"Operational",m:"GPS augmentation overlay, A2/AD environment",           cc:"indopacom",h:94,l:5,u:"2m"},
+  {id:"sv-005",n:"TITAN-9",   t:"ISR",            s:"Operational",m:"Persistent overhead ISR, WESTPAC focus",               cc:"indopacom",h:87,l:4,u:"2m"},
+  {id:"sv-006",n:"MINERVA-4", t:"Missile Warning",s:"Operational",m:"Theater MW — DPRK/PRC ballistic track",               cc:"indopacom",h:99,l:5,u:"1m"},
+  {id:"sv-007",n:"ATLAS-11",  t:"SATCOM",         s:"Degraded",   m:"Contingency comms relay — latency exceedances",        cc:"indopacom",h:54,l:2,u:"7m"},
+  {id:"sv-008",n:"ECHO-5",    t:"Comms Relay",    s:"Operational",m:"Secure comms backbone, NATO Eastern Flank",            cc:"eucom",    h:91,l:3,u:"1m"},
+  {id:"sv-009",n:"NEXUS-2",   t:"ISR",            s:"Critical",   m:"OFFLINE — reaction control anomaly, safing in progress",cc:"eucom",    h:12,l:0,u:"12m"},
+  {id:"sv-010",n:"PHOENIX-6", t:"EW",             s:"Operational",m:"Electronic warfare support, Baltic theater",           cc:"eucom",    h:88,l:4,u:"2m"},
+  {id:"sv-011",n:"ORION-14",  t:"PNT",            s:"Operational",m:"Arctic PNT augmentation — NORTHCOM operations",       cc:"northcom", h:97,l:2,u:"1m"},
+  {id:"sv-012",n:"WARDEN-1",  t:"SATCOM",         s:"Reserved",   m:"On-call comms reserve — surge capacity",              cc:"northcom", h:100,l:0,u:"5m"},
+  {id:"sv-013",n:"SENTINEL-3",t:"Missile Warning",s:"Operational",m:"Early warning, CONUS defense mission",                cc:"northcom", h:95,l:3,u:"1m"},
+  {id:"sv-014",n:"KESTREL-8", t:"ISR",            s:"Degraded",   m:"Continental ISR, Angola AOR — solar array degraded",  cc:"africom",  h:42,l:1,u:"9m"},
+  {id:"sv-015",n:"VEGA-3",    t:"Comms Relay",    s:"Operational",m:"Tactical comms relay, Horn of Africa",                cc:"africom",  h:83,l:3,u:"3m"},
+  {id:"sv-016",n:"CONDOR-5",  t:"SATCOM",         s:"Operational",m:"Regional SATCOM backbone, Southern Command AOR",      cc:"southcom", h:90,l:3,u:"2m"},
+  {id:"sv-017",n:"PERSEUS-2", t:"ISR",            s:"Operational",m:"Counter-narcotics ISR support, Caribbean",            cc:"southcom", h:85,l:2,u:"4m"},
+  {id:"sv-018",n:"COMET-X1",  t:"Cyber",          s:"Operational",m:"Space cyber defense, orbital layer protection",       cc:"spacecom", h:93,l:4,u:"1m"},
+  {id:"sv-019",n:"HERALD-7",  t:"Comms Relay",    s:"Operational",m:"Global strategic comms relay — nuclear command",      cc:"stratcom", h:99,l:5,u:"0m"},
+  {id:"sv-020",n:"ECLIPSE-4", t:"EW",             s:"Critical",   m:"OFFLINE — payload failure, recovery TBD",            cc:"stratcom", h:8, l:0,u:"18m"},
+];
+
+const AL=[
+  {sv:"high",  ti:"CENTCOM fill rate below 80% — 6 unfilled tasks",   cc:"centcom",  t:"2m",  svId:null},
+  {sv:"high",  ti:"NEXUS-2 in safing mode — EUCOM ISR gap opened",    cc:"eucom",    t:"12m", svId:"sv-009"},
+  {sv:"high",  ti:"ECLIPSE-4 payload failure — STRATCOM EW gap",      cc:"stratcom", t:"18m", svId:"sv-020"},
+  {sv:"medium",ti:"AFRICOM fill rate at 67% — lowest across all AORs",cc:"africom",  t:"5m",  svId:null},
+  {sv:"medium",ti:"ARES-3 uplink degraded — ISR capacity reduced",    cc:"centcom",  t:"3m",  svId:"sv-002"},
+  {sv:"medium",ti:"KESTREL-8 solar array degraded — 42% health",      cc:"africom",  t:"9m",  svId:"sv-014"},
+  {sv:"medium",ti:"ATLAS-11 latency exceedances — INDOPACOM relay",   cc:"indopacom",t:"7m",  svId:"sv-007"},
+  {sv:"low",   ti:"NORTHCOM fill rate 100% — all tasks satisfied",    cc:"northcom", t:"1m",  svId:null},
+  {sv:"low",   ti:"SOUTHCOM fill rate 88% — within threshold",        cc:"southcom", t:"4m",  svId:null},
+];
+
+const IC={"ISR":"🛰","Missile Warning":"🚨","SATCOM":"📡","PNT":"📍","Comms Relay":"📻","EW":"⊕","Cyber":"⚡"};
+
+let selSV=null,selCC=null,fSt='all',fSo='priority',fSr='';
+let _remediating=null; // svId currently being remediated
+
+const byP=()=>[...CC].sort((a,b)=>a.p-b.p);
+const sc=s=>s==='Operational'?'var(--green2)':s==='Degraded'?'var(--amber2)':s==='Critical'?'var(--red2)':'var(--blue2)';
+const hc=h=>h>=80?'var(--green2)':h>=50?'var(--amber2)':'var(--red2)';
+const fc=r=>r>=85?'var(--green2)':r>=65?'var(--amber2)':'var(--red2)';
+const ccmd=id=>combatantCommands.find(c=>c.id===id);
+
+function chP(id,dir){
+  const s=byP(),i=s.findIndex(c=>c.id===id),j=i+dir;
+  if(j<0||j>=s.length)return;
+  const t=s[i].p;s[i].p=s[j].p;s[j].p=t;renderAll();
+}
+function resetP(){
+  DP.forEach(d=>{const c=CC.find(x=>x.id===d.id);if(c)c.p=d.p;});
+  selCC=null;selSV=null;renderAll();
+  if(typeof setCCMDActive==='function')setCCMDActive(null);
+}
+document.getElementById('rBtn').addEventListener('click',resetP);
+
+function setF(btn,val){fSt=val;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rSV();}
+function setS(btn,val){fSo=val;document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rSV();}
+document.getElementById('srch').addEventListener('input',e=>{
+  fSr=e.target.value.toLowerCase();
+  rSV();
+  // Tell globe which sats to pulse
+  if(typeof window.setSearchPulse==='function'){
+    if(fSr){
+      const matchIds=SV.filter(x=>x.n.toLowerCase().includes(fSr)||x.t.toLowerCase().includes(fSr)||x.cc.toLowerCase().includes(fSr)).map(x=>x.id);
+      window.setSearchPulse(matchIds);
+    } else {
+      window.setSearchPulse([]);
+    }
+  }
+});
+
+function filtSV(){
+  // When a single SV is selected, still show full list so others are clickable
+  let s=[...SV];
+  if(selCC)s=s.filter(x=>x.cc===selCC);
+  if(fSt!=='all')s=s.filter(x=>x.s===fSt);
+  if(fSr)s=s.filter(x=>x.n.toLowerCase().includes(fSr)||x.t.toLowerCase().includes(fSr)||x.cc.toLowerCase().includes(fSr));
+  const so={Critical:0,Degraded:1,Operational:2,Reserved:3};
+  s.sort((a,b)=>{
+    if(fSo==='priority'){const pa=CC.find(x=>x.id===a.cc)?.p||99,pb=CC.find(x=>x.id===b.cc)?.p||99;return pa!==pb?pa-pb:so[a.s]-so[b.s];}
+    if(fSo==='health')return a.h-b.h;
+    if(fSo==='status')return so[a.s]-so[b.s];
+    if(fSo==='load')return b.l-a.l;
+    return 0;
+  });
+  return s;
+}
+
+function rRib(){
+  const req=CC.reduce((s,c)=>s+c.req,0),fill=CC.reduce((s,c)=>s+c.fill,0);
+  const rate=Math.round(fill/req*100),cr=SV.filter(x=>x.s==='Critical').length;
+  const hal=AL.filter(a=>a.sv==='high').length;
+  document.getElementById('r-req').textContent=req;
+  document.getElementById('r-fill').textContent=fill;
+  document.getElementById('r-fill').className='rsv'+(rate>=80?' ok':' warn');
+  document.getElementById('r-rate').textContent=rate+'%';
+  document.getElementById('r-rate').className='rsv'+(rate>=80?' ok':rate>=65?' warn':' crit');
+  document.getElementById('r-crit').textContent=cr;
+  document.getElementById('r-crit').className='rsv'+(cr===0?' ok':' crit');
+  document.getElementById('r-alerts').textContent=hal;
+  document.getElementById('r-alerts').className='rsv'+(hal===0?' ok':' warn');
+}
+
+// ── UNIFIED COMMAND BAND ──
+function rCMD(){
+  const s=byP(),top=ccmd(s[0].id);
+  // header meta
+  const req=CC.reduce((a,c)=>a+c.req,0),fill=CC.reduce((a,c)=>a+c.fill,0),rate=Math.round(fill/req*100);
+  const cr=SV.filter(x=>x.s==='Critical').length,deg=SV.filter(x=>x.s==='Degraded').length;
+  document.getElementById('cbm-req').innerHTML=`<span>${req}</span> REQ`;
+  document.getElementById('cbm-fill').innerHTML=`<span class="ok">${fill}</span> FILLED`;
+  document.getElementById('cbm-rate').innerHTML=`<span class="${rate>=80?'ok':rate>=65?'warn':'crit'}">${rate}%</span> RATE`;
+  document.getElementById('cbm-crit').innerHTML=`<span class="${cr===0?'ok':'crit'}">${cr}</span> CRIT · <span class="warn">${deg}</span> DEG`;
+  document.getElementById('cbm-p1').textContent=top?top.name:'—';
+  // cards
+  document.getElementById('cmdcards').innerHTML=s.map(c=>{
+    const m=ccmd(c.id);if(!m)return '';
+    const fclr=fc(c.rate),svc=SV.filter(x=>x.cc===c.id).length;
+    const cr2=SV.filter(x=>x.cc===c.id&&x.s==='Critical').length;
+    const shortReg=m.region.split('/')[0].trim().replace('Middle East','ME').replace('Indo-Pacific','INDO-PAC').replace('Latin America','LATAM').replace('North America','N. AMERICA');
+    return `<div class="cc${c.id===selCC?' sel':''}" style="--ccc:${m.color}" data-id="${c.id}"
+      onclick="selCCFn('${c.id}')"
+      onmouseenter="showCCMDTip(event,'${c.id}')" onmouseleave="hideCCMDTip()">
+      <div class="cc-hd">
+        <div class="cc-nm" style="color:${m.color}">${m.name}</div>
+        <div class="cc-ctrl">
+          <div class="pbdg" style="color:${m.color};border-color:${m.color}55">P${c.p}</div>
+          <div class="pab">
+            <div class="pab-b" onclick="event.stopPropagation();chP('${c.id}',-1)">▲</div>
+            <div class="pab-b" onclick="event.stopPropagation();chP('${c.id}',1)">▼</div>
+          </div>
+        </div>
+      </div>
+      <div class="cc-rg">${shortReg}</div>
+      <div class="cc-st">
+        <div class="st"><div class="stv" style="color:var(--text)">${c.req}</div><div class="stl">REQ</div></div>
+        <div class="st"><div class="stv" style="color:var(--green2)">${c.fill}</div><div class="stl">FILL</div></div>
+        <div class="st"><div class="stv" style="color:${c.uf>0?'var(--amber2)':'var(--green2)'}">${c.uf}</div><div class="stl">OPEN</div></div>
+      </div>
+      <div class="bw"><div class="bf" style="width:${c.rate}%;background:${fclr}"></div></div>
+      <div class="cc-ft">
+        <div class="fpct" style="color:${fclr}">${c.rate}%</div>
+        <div class="csvc">${svc}SV${cr2>0?`·<span style="color:var(--red2)">${cr2}✕</span>`:''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  console.log('[ASTRONETIX] Command band rendered, '+s.length+' CCMDs');
+}
+
+// CCMD tooltip
+function showCCMDTip(e,id){
+  const m=ccmd(id);if(!m)return;
+  const c=CC.find(x=>x.id===id);if(!c)return;
+  const tip=document.getElementById('ccmd-tooltip');
+  document.getElementById('ccmdt-name').textContent=m.name;document.getElementById('ccmdt-name').style.color=m.color;
+  document.getElementById('ccmdt-region').textContent=m.region;
+  document.getElementById('ccmdt-p').textContent='P'+c.p;
+  document.getElementById('ccmdt-req').textContent=c.req;
+  document.getElementById('ccmdt-fill').textContent=c.fill;document.getElementById('ccmdt-fill').style.color='var(--green2)';
+  document.getElementById('ccmdt-open').textContent=c.uf;document.getElementById('ccmdt-open').style.color=c.uf>0?'var(--amber2)':'var(--green2)';
+  document.getElementById('ccmdt-rate').textContent=c.rate+'%';document.getElementById('ccmdt-rate').style.color=fc(c.rate);
+  const svCount=SV.filter(x=>x.cc===id).length,crCount=SV.filter(x=>x.cc===id&&x.s==='Critical').length;
+  document.getElementById('ccmdt-svs').textContent=svCount+(crCount>0?' ('+crCount+'✕)':'');
+  tip.classList.add('show');
+  moveTip(tip,e.clientX,e.clientY);
+}
+function hideCCMDTip(){document.getElementById('ccmd-tooltip').classList.remove('show');}
+
+function rSV(){
+  const svs=filtSV();
+  const ccname=selCC&&!selSV?ccmd(selCC)?.name:'';
+  const selSVobj=selSV?SV.find(x=>x.id===selSV):null;
+  const lbl=selSVobj?`${selSVobj.n} · SELECTED`:svs.length+' SVs'+(ccname?' · '+ccname:'');
+  document.getElementById('svclbl').textContent=lbl;
+  document.getElementById('svl').innerHTML=svs.map(sv=>{
+    const scl=sc(sv.s),m=ccmd(sv.cc);
+    const isSel=sv.id===selSV;
+    // When selected, show a highlighted card — other cards still visible below
+    if(isSel){
+      return `<div class="svc sel" style="border-left-color:${scl};border-color:${scl}88"
+        data-svid="${sv.id}" onclick="selSVFn('${sv.id}')"
+        tabindex="0" role="button" aria-label="${sv.n}, selected">
+        <div class="sv-r1">
+          <div class="svnm" style="color:${scl}">${sv.n}</div>
+          <div class="svsb" style="color:${scl};border-color:${scl}55">${sv.s.substring(0,4).toUpperCase()}</div>
+        </div>
+        <div class="sv-r2"><span class="svic">${IC[sv.t]||'●'}</span><span class="svtp" style="color:rgba(255,255,255,.8)">${sv.t}</span>
+          <span style="font-family:var(--mono);font-size:6px;color:${scl};margin-left:auto">▼ DETAIL OPEN</span></div>
+      </div>`;
+    }
+    return `<div class="svc${sv.s==='Critical'?' crit':''}"
+      data-svid="${sv.id}"
+      style="border-left-color:${scl}"
+      onclick="selSVFn('${sv.id}')"
+      onmouseenter="if(this.dataset.svid!==selSV)showSVTip(event,'${sv.id}')"
+      onmouseleave="hideSVTip()"
+      tabindex="0" role="button" aria-label="${sv.n}, ${sv.s}, ${sv.t}">
+      <div class="sv-r1">
+        <div class="svnm" style="color:${scl}">${sv.n}</div>
+        <div class="svsb" style="color:${scl};border-color:${scl}55">${sv.s.substring(0,4).toUpperCase()}</div>
+      </div>
+      <div class="sv-r2">
+        <span class="svic">${IC[sv.t]||'●'}</span>
+        <span class="svtp">${sv.t}</span>
+        <span class="svct" style="color:${m?m.color:'#888'};background:${m?m.color+'12':'transparent'};border:1px solid ${m?m.color+'30':'transparent'}">${m?m.name:sv.cc}</span>
+      </div>
+      <div class="sv-r3">
+        <div class="svhb"><div class="svhf" style="width:${sv.h}%;background:${hc(sv.h)}"></div></div>
+        <span class="svmt">${sv.h}% · L:${sv.l} · ${sv.u}</span>
+      </div>
+    </div>`;
+  }).join('');
+  // Scroll selected card into view
+  if(selSV){
+    setTimeout(()=>{
+      const card=document.querySelector(`#svl [data-svid="${selSV}"]`);
+      if(card)card.scrollIntoView({block:'nearest',behavior:'smooth'});
+    },50);
+  }
+}
+
+// SV tooltip
+function showSVTip(e,id){
+  const sv=SV.find(x=>x.id===id);if(!sv)return;
+  const m=ccmd(sv.cc),scl=sc(sv.s),tip=document.getElementById('sv-tooltip');
+  document.getElementById('svt-eye').textContent=sv.t+' · '+sv.id;
+  document.getElementById('svt-name').textContent=sv.n;
+  document.getElementById('svt-type').textContent=(IC[sv.t]||'')+'  '+sv.t;
+  document.getElementById('svt-status').textContent=sv.s;document.getElementById('svt-status').style.color=scl;
+  document.getElementById('svt-health').textContent=sv.h+'%';document.getElementById('svt-health').style.color=hc(sv.h);
+  document.getElementById('svt-load').textContent=sv.l+' tasks';
+  document.getElementById('svt-ccmd').textContent=m?m.name:sv.cc;if(m)document.getElementById('svt-ccmd').style.color=m.color;
+  document.getElementById('svt-upd').textContent=sv.u+' ago';
+  document.getElementById('svt-desc').textContent=sv.m;
+  tip.classList.add('show');
+  moveTip(tip,e.clientX,e.clientY);
+}
+function hideSVTip(){document.getElementById('sv-tooltip').classList.remove('show');}
+function moveTip(tip,cx,cy){
+  const tw=tip.offsetWidth,th=tip.offsetHeight,vw=window.innerWidth,vh=window.innerHeight;
+  let x=cx+14,y=cy-th/2;
+  if(x+tw>vw-10)x=cx-tw-14;
+  if(y<10)y=10;if(y+th>vh-10)y=vh-th-10;
+  tip.style.left=x+'px';tip.style.top=y+'px';
+}
+// Auto-hide SV tooltip when cursor moves outside both the SV panel and the tooltip itself
+document.addEventListener('mousemove',e=>{
+  const tip=document.getElementById('sv-tooltip');
+  if(!tip.classList.contains('show'))return;
+  const svPanel=document.getElementById('svs');
+  const inPanel=svPanel&&svPanel.contains(e.target);
+  const inTip=tip.contains(e.target);
+  if(!inPanel&&!inTip)hideSVTip();
+});
+
+// ── Alert audio ─────────────────────────────────────────────
+const _aCtx=(()=>{try{return new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}})();
+function _playAlertTone(sev){
+  if(!_aCtx)return;
+  // Resume context on first user interaction
+  if(_aCtx.state==='suspended')_aCtx.resume();
+  const now=_aCtx.currentTime;
+  const freqs=sev==='high'?[880,660]:sev==='medium'?[520,440]:[330,280];
+  freqs.forEach((f,i)=>{
+    const osc=_aCtx.createOscillator(),gain=_aCtx.createGain();
+    osc.connect(gain);gain.connect(_aCtx.destination);
+    osc.type=sev==='high'?'sawtooth':'sine';
+    osc.frequency.value=f;
+    gain.gain.setValueAtTime(0,now+i*0.07);
+    gain.gain.linearRampToValueAtTime(sev==='high'?0.12:0.07,now+i*0.07+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001,now+i*0.07+0.18);
+    osc.start(now+i*0.07);osc.stop(now+i*0.07+0.2);
+  });
+}
+let _alertSoundEnabled=true;
+// Fire tones for existing high alerts on load (once)
+setTimeout(()=>{if(_alertSoundEnabled)_playAlertTone('high');},1200);
+
+function rAL(){
+  const al=selCC?AL.filter(a=>a.cc===selCC):AL;
+  document.getElementById('alclbl').textContent=al.length+' active';
+  document.getElementById('alf').innerHTML=al.map(a=>{
+    const rawIdx=AL.indexOf(a);
+    const hasSV=!!a.svId;
+    const svObj=hasSV?SV.find(x=>x.id===a.svId):null;
+    const svName=svObj?svObj.n:'';
+    return `<div class="al ${a.sv} ${hasSV?'al-sv-link':''}" onclick="alClick(${rawIdx})" title="${hasSV?'Click to focus '+svName:'Click to filter '+a.cc.toUpperCase()}">
+      <div class="als ${a.sv}">◈ ${a.sv.toUpperCase()}${hasSV?` <span class="al-svtag">${svName}</span>`:''}</div>
+      <div class="alt">${a.ti}</div>
+      <div class="altm">${a.t} ago</div>
+    </div>`;
+  }).join('');
+}
+function alClick(rawIdx){
+  const a=AL[rawIdx];if(!a)return;
+  if(a.svId){selSVFn(a.svId);}
+  else{selCCFn(a.cc);}
+}
+
+function selCCFn(id){
+  selCC=selCC===id?null:id;
+  selSV=null;
+  document.getElementById('sv-telem').classList.remove('open');
+  renderAll();
+  if(typeof setCCMDActive==='function')setCCMDActive(selCC);
+  if(typeof window.focusCCMD==='function')window.focusCCMD(selCC);
+}
+function selSVFn(id){
+  const wasSelected=selSV===id;
+  selSV=wasSelected?null:id;
+  renderAll();
+  if(typeof window.focusSV==='function')window.focusSV(selSV);
+  // Switch to 3D globe so the camera fly-to is visible
+  if(selSV&&typeof setView==='function')setView(false);
+  if(selSV){
+    const panel=document.getElementById('svs');
+    if(panel)panel.scrollTop=0;
+  }
+}
+
+// Populate and show/hide the telemetry panel
+function renderTelemPanel(){
+  const panel=document.getElementById('sv-telem');
+  if(!selSV){panel.classList.remove('open');return;}
+  const sv=SV.find(x=>x.id===selSV);if(!sv){panel.classList.remove('open');return;}
+
+  // Find matching sat in globe engine for live position
+  const globeSat=typeof SATS!=='undefined'?SATS.find(s=>s.id===sv.id):null;
+  const reg=globeSat?REGIMES[globeSat.regime]:null;
+
+  const scl=sc(sv.s),hclr=hc(sv.h);
+  const m=ccmd(sv.cc);
+  const c=CC.find(x=>x.id===sv.cc);
+
+  document.getElementById('tl-name').textContent=sv.n;
+  document.getElementById('tl-name').style.color=scl;
+  document.getElementById('tl-eye').textContent=sv.t+' · '+sv.id;
+
+  // Status badges
+  const vbadge=document.getElementById('tl-vbadge');
+  vbadge.textContent=sv.s.toUpperCase();
+  vbadge.style.background=scl+'22';vbadge.style.color=scl;vbadge.style.border='1px solid '+scl+'55';
+
+  const sig=sv.s==='Operational'?'STRONG':sv.s==='Degraded'?'MODERATE':'WEAK';
+  const sigCol=sv.s==='Operational'?'var(--green2)':sv.s==='Degraded'?'var(--amber2)':'var(--red2)';
+  const mbadge=document.getElementById('tl-mbadge');
+  mbadge.textContent=(sv.s==='Critical'?'DEGRADED MISSION':sv.s==='Degraded'?'REDUCED OPS':'MISSION ACTIVE');
+  mbadge.style.background='rgba(0,0,0,.3)';mbadge.style.color='var(--muted)';mbadge.style.border='1px solid var(--border)';
+
+  const sigbadge=document.getElementById('tl-sigbadge');
+  sigbadge.textContent='SIG: '+sig;
+  sigbadge.style.background=sigCol+'22';sigbadge.style.color=sigCol;sigbadge.style.border='1px solid '+sigCol+'55';
+
+  // Health bar
+  document.getElementById('tl-hbar').style.width=sv.h+'%';
+  document.getElementById('tl-hbar').style.background=hclr;
+  document.getElementById('tl-hpct').textContent=sv.h+'%';
+  document.getElementById('tl-hpct').style.color=hclr;
+
+  // Load bar (max 5 tasks = 100%)
+  const loadPct=Math.min(100,sv.l/5*100);
+  document.getElementById('tl-lbar').style.width=loadPct+'%';
+  document.getElementById('tl-lpct').textContent=sv.l+' tasks';
+
+  // Telemetry fields
+  if(reg){
+    document.getElementById('tl-regime').textContent=globeSat.regime;
+    document.getElementById('tl-alt').textContent=reg.altKm.toLocaleString()+' km';
+    document.getElementById('tl-inc').textContent=reg.inc+'°';
+    const periodStr=reg.period<3600?`${(reg.period/60).toFixed(1)} min`:`${(reg.period/3600).toFixed(2)} hr`;
+    document.getElementById('tl-per').textContent=periodStr;
+    document.getElementById('tl-lat').textContent=(globeSat.lat>=0?'+':'')+globeSat.lat.toFixed(2)+'°';
+    document.getElementById('tl-lon').textContent=(globeSat.lon>=0?'+':'')+globeSat.lon.toFixed(2)+'°';
+    document.getElementById('tl-pos').textContent=
+      `${Math.abs(globeSat.lat).toFixed(2)}°${globeSat.lat>=0?'N':'S'} / ${Math.abs(globeSat.lon).toFixed(2)}°${globeSat.lon>=0?'E':'W'} · ${reg.altKm.toLocaleString()} km`;
+  } else {
+    ['tl-regime','tl-alt','tl-inc','tl-per','tl-lat','tl-lon'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('tl-pos').textContent='—';
+  }
+
+  document.getElementById('tl-sig').textContent=sig;
+  document.getElementById('tl-sig').style.color=sigCol;
+  document.getElementById('tl-upd').textContent=sv.u+' ago';
+
+  // Tasking
+  document.getElementById('tl-ccmd').textContent=m?m.name:sv.cc;
+  if(m)document.getElementById('tl-ccmd').style.color=m.color;
+  document.getElementById('tl-tasks').textContent=sv.l+(c?' / '+c.req+' req':'');
+
+  document.getElementById('tl-mission').textContent=sv.m;
+
+  // Remediation button — show for Critical/Degraded only
+  const remBtn=document.getElementById('tl-remediate');
+  if(sv.s==='Critical'||sv.s==='Degraded'){
+    remBtn.style.display='block';
+    remBtn.classList.toggle('deg', sv.s==='Degraded');
+    if(_remediating===sv.id){
+      remBtn.classList.add('resolving');
+      remBtn.textContent='⟳ REMEDIATION IN PROGRESS…';
+    } else {
+      remBtn.classList.remove('resolving');
+      remBtn.textContent=sv.s==='Critical'?'⚡ INITIATE AUTO-REMEDIATION':'⚡ RESTORE NOMINAL OPS';
+    }
+  } else {
+    remBtn.style.display='none';
+    remBtn.classList.remove('resolving','deg');
+  }
+
+  panel.classList.add('open');
+}
+
+function triggerRemediate(){
+  const btn=document.getElementById('tl-remediate');
+  if(!selSV||_remediating===selSV)return;
+  const sv=SV.find(x=>x.id===selSV);
+  _remediating=sv.id;
+  btn.classList.add('resolving');
+  btn.textContent='⟳ REMEDIATION IN PROGRESS…';
+  setTimeout(()=>{
+    if(selSV!==sv.id){_remediating=null;return;}
+    sv.s='Operational'; sv.h=Math.min(100,sv.h+38); sv.u='0m';
+    sv.m='Systems nominal — auto-remediation completed successfully.';
+    _remediating=null;
+    AL.unshift({id:'al-rem-'+Date.now(),sev:'low',t:'AUTO-REMEDIATION',
+      msg:sv.n+' restored to OPERATIONAL status by autonomous remediation system.',svId:sv.id});
+    renderAll(); // re-renders telem panel with updated sv.s = Operational
+  },3500);
+}
+
+(function tick(){
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  document.getElementById('rutc').textContent=`${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
+  setTimeout(tick,1000);
+})();
+
+function renderAll(){rRib();rCMD();rSV();rAL();renderTelemPanel();}
+renderAll();
+console.log('[ASTRONETIX] Initial render complete. Unified command band active.');
+
+// ════════════════════════════════════════════════════════
+//  GLOBE ENGINE
+// ════════════════════════════════════════════════════════
+(function(){
+const GM=3.986004418e14,RE=6371,SCALE=1/2000,R_EARTH=RE*SCALE;
+function orbP(sma){return 2*Math.PI*Math.sqrt(Math.pow(sma*1e3,3)/GM);}
+const REGIMES={
+  LEO:{color:0x00e8ff,hex:'#00e8ff',altKm:550, smaKm:6928, inc:53,period:orbP(6928)},
+  MEO:{color:0x39ff9a,hex:'#39ff9a',altKm:20200,smaKm:26578,inc:56,period:orbP(26578)},
+  GEO:{color:0xf4c96b,hex:'#f4c96b',altKm:35786,smaKm:42164,inc:0, period:orbP(42164)},
+};
+const LEO_ANG=(2*Math.PI)/REGIMES.LEO.period;
+const SIM_SPD=REGIMES.LEO.period/30;
+const STATUSES=['Nominal','Nominal','Nominal','Nominal','Degraded','Anomaly'];
+const MISSIONS={LEO:'ISR',MEO:'Navigation',GEO:'Comms'};
+const MDESC={
+  ISR:'Intelligence, Surveillance & Reconnaissance providing persistent wide-area coverage at 550 km LEO.',
+  Navigation:'Precision navigation & timing node at 20,200 km MEO. GPS-equivalent service for all users.',
+  Comms:'High-throughput geosynchronous relay at 35,786 km. Continuous hemispheric comms coverage.',
+};
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+const RAW=[
+  {n:'LEO-01',R:'LEO',raan:0,ta:0},{n:'LEO-02',R:'LEO',raan:0,ta:90},{n:'LEO-03',R:'LEO',raan:0,ta:180},{n:'LEO-04',R:'LEO',raan:0,ta:270},
+  {n:'LEO-05',R:'LEO',raan:120,ta:45},{n:'LEO-06',R:'LEO',raan:120,ta:135},{n:'LEO-07',R:'LEO',raan:120,ta:225},{n:'LEO-08',R:'LEO',raan:120,ta:315},
+  {n:'LEO-09',R:'LEO',raan:240,ta:0},{n:'LEO-10',R:'LEO',raan:240,ta:90},{n:'LEO-11',R:'LEO',raan:240,ta:180},{n:'LEO-12',R:'LEO',raan:240,ta:270},
+  {n:'MEO-01',R:'MEO',raan:0,ta:0},{n:'MEO-02',R:'MEO',raan:0,ta:90},{n:'MEO-03',R:'MEO',raan:0,ta:180},{n:'MEO-04',R:'MEO',raan:0,ta:270},
+  {n:'MEO-05',R:'MEO',raan:120,ta:30},{n:'MEO-06',R:'MEO',raan:120,ta:120},{n:'MEO-07',R:'MEO',raan:120,ta:210},{n:'MEO-08',R:'MEO',raan:120,ta:300},
+  {n:'MEO-09',R:'MEO',raan:240,ta:60},{n:'MEO-10',R:'MEO',raan:240,ta:150},{n:'MEO-11',R:'MEO',raan:240,ta:240},{n:'MEO-12',R:'MEO',raan:240,ta:330},
+  {n:'GEO-01',R:'GEO',raan:0,ta:0},{n:'GEO-02',R:'GEO',raan:0,ta:30},{n:'GEO-03',R:'GEO',raan:0,ta:60},{n:'GEO-04',R:'GEO',raan:0,ta:90},
+  {n:'GEO-05',R:'GEO',raan:0,ta:120},{n:'GEO-06',R:'GEO',raan:0,ta:150},{n:'GEO-07',R:'GEO',raan:0,ta:180},{n:'GEO-08',R:'GEO',raan:0,ta:210},
+  {n:'GEO-09',R:'GEO',raan:0,ta:240},{n:'GEO-10',R:'GEO',raan:0,ta:270},{n:'GEO-11',R:'GEO',raan:0,ta:300},{n:'GEO-12',R:'GEO',raan:0,ta:330},
+];
+const SATS=RAW.map(r=>{
+  const reg=REGIMES[r.R],vs=rnd(STATUSES);
+  const ms=vs==='Anomaly'?'Degraded':vs==='Degraded'?rnd(['Active','Reduced']):'Active';
+  return{id:r.n,regime:r.R,raan:r.raan*Math.PI/180,ta0:r.ta*Math.PI/180,inc:reg.inc*Math.PI/180,
+    sma:reg.smaKm*SCALE,smaKm:reg.smaKm,period:reg.period,
+    angSpeed:LEO_ANG*(REGIMES.LEO.period/reg.period),
+    color:reg.color,hex:reg.hex,vehicleStatus:vs,missionStatus:ms,
+    mission:MISSIONS[r.R],altKm:reg.altKm,
+    signal:vs==='Nominal'?'Strong':vs==='Degraded'?'Moderate':'Weak',
+    desc:MDESC[MISSIONS[r.R]],mesh:null,pos3:new THREE.Vector3(),lat:0,lon:0,trail:[]};
+});
+const GND=[
+  {lat:38.89,lon:-77.03,name:'Schriever',status:'g'},{lat:34.73,lon:-86.59,name:'Redstone',status:'g'},
+  {lat:51.50,lon:-0.12, name:'RAF Fylingdales',status:'a'},{lat:35.68,lon:139.69,name:'Yokota',status:'g'},
+  {lat:1.35, lon:103.82,name:'Sembawang',status:'g'},{lat:21.31,lon:-157.86,name:'Pearl Harbor',status:'g'},
+  {lat:48.85,lon:2.35,  name:'Paris',status:'g'},{lat:-33.9,lon:151.2,name:'Pine Gap',status:'g'},
+  {lat:64.84,lon:-147.72,name:'Eielson',status:'a'},{lat:28.61,lon:77.21,name:'New Delhi',status:'g'},
+  {lat:50.11,lon:8.68,  name:'Frankfurt',status:'r'},{lat:-34.6,lon:-58.4,name:'Buenos Aires',status:'g'},
+  {lat:19.43,lon:-99.13,name:'Mexico City',status:'g'},
+];
+const USERS=[
+  {lat:36.2,lon:-115.0,name:'Las Vegas',status:'g'},{lat:40.7,lon:-74.0,name:'New York',status:'g'},
+  {lat:52.5,lon:13.4,name:'Berlin',status:'g'},{lat:31.2,lon:121.5,name:'Shanghai',status:'a'},
+  {lat:-23.5,lon:-46.6,name:'São Paulo',status:'g'},{lat:25.2,lon:55.3,name:'Dubai',status:'g'},
+];
+
+// CCMD geo state
+const PRIORITY_ORDER=combatantCommands.filter(c=>c.type==='geographic').map(c=>c.id);
+let ccmdCountryMap={},ccmdFeatures={},ccmdMeshes3D={};
+let show_gcc=true,ccmdGeoLoaded=false,activeCCMD_globe=null;
+PRIORITY_ORDER.forEach(pid=>{
+  const cmd=combatantCommands.find(c=>c.id===pid);
+  if(cmd)cmd.landISO3.forEach(iso=>{if(!ccmdCountryMap[iso])ccmdCountryMap[iso]=pid;});
+});
+
+window.setCCMDActive=function(id){activeCCMD_globe=id;setCCMDHighlight3D(id);};
+
+// CCMD geographic centers for fly-to
+const CCMD_CENTERS={
+  centcom: {lat:25, lon:50,  dist:16},
+  indopacom:{lat:15, lon:120, dist:16},
+  eucom:   {lat:52, lon:20,  dist:14},
+  northcom:{lat:45, lon:-95, dist:14},
+  africom: {lat:5,  lon:20,  dist:16},
+  southcom:{lat:-10,lon:-60, dist:14},
+  spacecom:{lat:18, lon:-22, dist:18},
+  stratcom:{lat:18, lon:-22, dist:18},
+};
+window.focusCCMD=function(id){
+  if(!id){ctrl.targetDist=18;ctrl.autoRotate=true;return;}
+  const c=CCMD_CENTERS[id];if(!c)return;
+  ctrl.targetLon=c.lon;ctrl.targetLat=c.lat;ctrl.targetDist=c.dist;
+  ctrl.autoRotate=false;
+};
+
+// Search highlight: set of sat IDs to pulse on globe
+let _searchPulseIds=new Set();
+window.setSearchPulse=function(ids){_searchPulseIds=new Set(ids);};
+
+// Fly camera to a satellite's current lat/lon and zoom in
+window.focusSV=function(satId){
+  if(!satId){
+    // Sync ctrl to current camera position so deselect doesn't snap
+    const pos=camera.position;
+    const dist=pos.length();
+    const lat=Math.asin(pos.y/dist)*180/Math.PI;
+    const lon=(Math.atan2(pos.z,-pos.x)*180/Math.PI);
+    ctrl.lon=lon;ctrl.lat=lat;ctrl.dist=dist;
+    ctrl.targetLon=lon;ctrl.targetLat=lat;ctrl.targetDist=18;
+    ctrl.autoRotate=true;
+    return;
+  }
+  ctrl.autoRotate=false;
+};
+
+function setCCMDHighlight3D(cmdId){
+  Object.entries(ccmdMeshes3D).forEach(([id,grp])=>{
+    const isActive=(id===cmdId);
+    const anyActive=!!cmdId;
+    grp.children.forEach(child=>{
+      if(!child.material)return;
+      const isFill=child instanceof THREE.Mesh;
+      if(isActive){
+        child.material.opacity=isFill?0.35:1.0;
+      } else if(anyActive){
+        child.material.opacity=isFill?0.03:0.25;
+      } else {
+        child.material.opacity=isFill?CCMD3D_FILL_BASE:CCMD3D_LINE_BASE;
+      }
+    });
+  });
+}
+
+function topoToGeo(topo,obj){
+  function decodeArc(i){const raw=topo.arcs[i<0?~i:i];let cx=0,cy=0;const pts=raw.map(p=>{cx+=p[0];cy+=p[1];return[(cx*topo.transform.scale[0])+topo.transform.translate[0],(cy*topo.transform.scale[1])+topo.transform.translate[1]];});if(i<0)pts.reverse();return pts;}
+  const features=obj.geometries.map(geom=>{
+    function r2c(arr){return arr.flatMap(i=>decodeArc(i));}
+    let geometry;
+    if(geom.type==='Polygon')geometry={type:'Polygon',coordinates:geom.arcs.map(r2c)};
+    else if(geom.type==='MultiPolygon')geometry={type:'MultiPolygon',coordinates:geom.arcs.map(poly=>poly.map(r2c))};
+    else geometry={type:geom.type,coordinates:[]};
+    return{type:'Feature',id:geom.id,properties:geom.properties||{},geometry};
+  });
+  return{type:'FeatureCollection',features};
+}
+const N2I={4:"AFG",8:"ALB",12:"DZA",20:"AND",24:"AGO",28:"ATG",31:"AZE",32:"ARG",36:"AUS",40:"AUT",44:"BHS",48:"BHR",50:"BGD",51:"ARM",52:"BRB",56:"BEL",64:"BTN",68:"BOL",70:"BIH",72:"BWA",76:"BRA",84:"BLZ",90:"SLB",96:"BRN",100:"BGR",104:"MMR",108:"BDI",116:"KHM",120:"CMR",124:"CAN",132:"CPV",140:"CAF",144:"LKA",148:"TCD",152:"CHL",156:"CHN",170:"COL",174:"COM",178:"COG",180:"COD",188:"CRI",191:"HRV",192:"CUB",196:"CYP",203:"CZE",204:"BEN",208:"DNK",212:"DMA",214:"DOM",218:"ECU",222:"SLV",226:"GNQ",231:"ETH",232:"ERI",233:"EST",242:"FJI",246:"FIN",250:"FRA",262:"DJI",266:"GAB",268:"GEO",270:"GMB",276:"DEU",288:"GHA",296:"KIR",300:"GRC",304:"GRL",308:"GRD",320:"GTM",324:"GIN",328:"GUY",332:"HTI",336:"VAT",340:"HND",348:"HUN",352:"ISL",356:"IND",360:"IDN",364:"IRN",368:"IRQ",372:"IRL",376:"ISR",380:"ITA",384:"CIV",388:"JAM",392:"JPN",398:"KAZ",400:"JOR",404:"KEN",408:"PRK",410:"KOR",414:"KWT",417:"KGZ",418:"LAO",422:"LBN",426:"LSO",428:"LVA",430:"LBR",434:"LBY",438:"LIE",440:"LTU",442:"LUX",450:"MDG",454:"MWI",458:"MYS",462:"MDV",466:"MLI",470:"MLT",478:"MRT",480:"MUS",484:"MEX",492:"MCO",496:"MNG",498:"MDA",499:"MNE",504:"MAR",508:"MOZ",512:"OMN",516:"NAM",520:"NRU",524:"NPL",528:"NLD",548:"VUT",554:"NZL",558:"NIC",562:"NER",566:"NGA",578:"NOR",583:"FSM",584:"MHL",585:"PLW",586:"PAK",591:"PAN",598:"PNG",600:"PRY",604:"PER",608:"PHL",616:"POL",620:"PRT",624:"GNB",626:"TLS",634:"QAT",642:"ROU",643:"RUS",646:"RWA",659:"KNA",662:"LCA",670:"VCT",674:"SMR",678:"STP",682:"SAU",686:"SEN",688:"SRB",690:"SYC",694:"SLE",702:"SGP",703:"SVK",704:"VNM",705:"SVN",706:"SOM",710:"ZAF",716:"ZWE",724:"ESP",728:"SSD",736:"SDN",740:"SUR",748:"SWZ",752:"SWE",756:"CHE",760:"SYR",762:"TJK",764:"THA",768:"TGO",776:"TON",780:"TTO",784:"ARE",788:"TUN",792:"TUR",795:"TKM",798:"TUV",800:"UGA",804:"UKR",807:"MKD",818:"EGY",826:"GBR",834:"TZA",840:"USA",854:"BFA",858:"URY",860:"UZB",862:"VEN",882:"WSM",887:"YEM",894:"ZMB"};
+
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+  .then(r=>r.json()).then(processTopo)
+  .catch(err=>{
+    console.error('[ASTRONETIX] Primary topo CDN failed:',err);
+    fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
+      .then(r=>r.json()).then(processTopo)
+      .catch(err2=>{
+        console.error('[ASTRONETIX] Secondary topo CDN failed:',err2,'. Using maritime AOR fallback.');
+        ccmdGeoLoaded=true;buildCCMD3D();
+      });
+  });
+function processTopo(topo){
+  const geo=topoToGeo(topo,topo.objects.countries);
+  geo.features.forEach(f=>{const iso3=N2I[f.id],cmdId=ccmdCountryMap[iso3];if(!cmdId)return;if(!ccmdFeatures[cmdId])ccmdFeatures[cmdId]=[];ccmdFeatures[cmdId].push(f.geometry);});
+  ccmdGeoLoaded=true;buildCCMD3D();
+}
+
+const show={LEO:true,MEO:true,GEO:true,tracks:true,ground:true,users:true,cones:true,terminator:true,gcc:true};
+
+const ax=document.getElementById('ax');
+const g3dEl=document.getElementById('g3d');
+console.log('[ASTRONETIX] Globe engine starting...');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setClearColor(0x02050b);
+g3dEl.appendChild(renderer.domElement);
+renderer.domElement.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;display:block;';
+console.log('[ASTRONETIX] WebGL renderer created, appended to DOM');
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x02050b,0.0006);
+const camera=new THREE.PerspectiveCamera(40,1,0.1,5000);
+const clock=new THREE.Clock();
+const gEarth=new THREE.Group(),gOrbits=new THREE.Group(),gSats=new THREE.Group();
+const gGnd=new THREE.Group(),gUsr=new THREE.Group(),gLinks=new THREE.Group();
+const gCones=new THREE.Group(),gCCMD=new THREE.Group(),gStars=new THREE.Group();
+scene.add(gEarth,gOrbits,gSats,gGnd,gUsr,gLinks,gCones,gCCMD,gStars);
+
+function latLonTo3D(lat,lon,r){const phi=(90-lat)*Math.PI/180,theta=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(theta));}
+function ll2v3(lat,lon,r){return latLonTo3D(lat,lon,r);}
+
+// Base opacities — used by highlight logic too
+const CCMD3D_FILL_BASE=0.10, CCMD3D_LINE_BASE=0.85, CCMD3D_MARITIME_BASE=0.50;
+
+function buildCCMD3D(){
+  gCCMD.clear();ccmdMeshes3D={};
+  if(!show_gcc)return;
+  combatantCommands.filter(c=>c.type==='geographic').forEach(cmd=>{
+    const feats=ccmdFeatures[cmd.id];if(!feats||!feats.length)return;
+    const col=new THREE.Color(cmd.color);
+    const group=new THREE.Group();const R=R_EARTH*1.003;
+    feats.forEach(geom=>{
+      const rings=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates.flat():[];
+      rings.forEach(ring=>{
+        if(!ring||ring.length<3)return;
+        const verts=[];ring.forEach(([lo,la])=>{const v=latLonTo3D(la,lo,R);verts.push(v.x,v.y,v.z);});
+        const n=ring.length,indices=[];for(let i=1;i<n-1;i++)indices.push(0,i,i+1);
+        const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setIndex(indices);
+        // Each child gets its OWN material clone so opacity can be set independently
+        const fillMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:CCMD3D_FILL_BASE,side:THREE.FrontSide,depthWrite:false,blending:THREE.AdditiveBlending});
+        fillMat.userData.isFill=true;
+        group.add(new THREE.Mesh(geo,fillMat));
+        const pts=ring.map(([lo,la])=>latLonTo3D(la,lo,R*1.001));
+        const lineMat=new THREE.LineBasicMaterial({color:col,transparent:true,opacity:CCMD3D_LINE_BASE,depthWrite:false});
+        lineMat.userData.isLine=true;
+        group.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),lineMat));
+      });
+    });
+    if(cmd.maritime&&cmd.maritime.length){
+      const mMat=new THREE.LineBasicMaterial({color:col,transparent:true,opacity:CCMD3D_MARITIME_BASE,depthWrite:false});
+      mMat.userData.isLine=true;
+      const pts=cmd.maritime.map(([lo,la])=>latLonTo3D(la,lo,R*1.002));
+      group.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),mMat));
+    }
+    group.userData.cmdId=cmd.id;gCCMD.add(group);ccmdMeshes3D[cmd.id]=group;
+  });
+}
+
+scene.add(new THREE.AmbientLight(0x8899bb,0.55));
+const sunLight=new THREE.DirectionalLight(0xffeedd,2.1);scene.add(sunLight);
+scene.add(new THREE.DirectionalLight(0x3366ff,0.4).position.set(-10,-3,-10)||new THREE.DirectionalLight(0x3366ff,0.4));
+const tl2=new THREE.TextureLoader();
+const earthMat=new THREE.MeshPhongMaterial({
+  map:tl2.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'),
+  bumpMap:tl2.load('https://threejs.org/examples/textures/planets/earth_normal_2048.jpg'),
+  bumpScale:0.05,
+  specularMap:tl2.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg'),
+  specular:new THREE.Color(0x224466),shininess:18,
+});
+const earthMesh=new THREE.Mesh(new THREE.SphereGeometry(R_EARTH,96,96),earthMat);gEarth.add(earthMesh);
+const clouds=new THREE.Mesh(new THREE.SphereGeometry(R_EARTH*1.022,72,72),new THREE.MeshPhongMaterial({color:0xffffff,transparent:true,opacity:.065,blending:THREE.AdditiveBlending}));gEarth.add(clouds);
+const atmo=new THREE.Mesh(new THREE.SphereGeometry(R_EARTH*1.075,64,64),new THREE.ShaderMaterial({transparent:true,side:THREE.BackSide,blending:THREE.AdditiveBlending,
+  uniforms:{c:{value:new THREE.Color(0x1a6aff)},vv:{value:camera.position.clone()}},
+  vertexShader:`uniform vec3 vv;varying float i;void main(){vec3 n=normalize(normalMatrix*normal);vec3 v=normalize(normalMatrix*vv);i=pow(max(0.0,0.75-dot(n,v)),3.0);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader:`uniform vec3 c;varying float i;void main(){gl_FragColor=vec4(c*i,i*.82);}`}));
+gEarth.add(atmo);
+const nightMesh=new THREE.Mesh(new THREE.SphereGeometry(R_EARTH*1.001,72,72),new THREE.ShaderMaterial({transparent:true,depthWrite:false,
+  uniforms:{sunDir:{value:new THREE.Vector3(1,0,0)}},
+  vertexShader:`varying vec3 vNormal;void main(){vNormal=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader:`uniform vec3 sunDir;varying vec3 vNormal;void main(){
+    float d=dot(normalize(vNormal),normalize(sunDir));
+    // Sharp terminator: twilight band then full shadow
+    float twilight=smoothstep(0.12,-0.06,d);   // thin twilight glow (warm)
+    float night=smoothstep(0.0,-0.20,d);        // full night shadow
+    vec3 twilightCol=vec3(0.18,0.07,0.02)*twilight*(1.0-night*0.7);
+    vec3 nightCol=vec3(0.0,0.01,0.04)*night;
+    gl_FragColor=vec4(twilightCol+nightCol, clamp(night*0.82+twilight*0.35,0.0,1.0));
+  }`}));
+gEarth.add(nightMesh);
+const termRing=new THREE.Mesh(new THREE.TorusGeometry(R_EARTH*1.002,0.006,10,200),new THREE.MeshBasicMaterial({color:0xff7733,transparent:true,opacity:0.75}));gEarth.add(termRing);
+
+(()=>{const n=3000,p=new Float32Array(n*3);for(let i=0;i<n;i++){const r=400+Math.random()*800,t=Math.random()*Math.PI*2,ph=Math.acos(Math.random()*2-1);p[i*3]=r*Math.sin(ph)*Math.cos(t);p[i*3+1]=r*Math.cos(ph);p[i*3+2]=r*Math.sin(ph)*Math.sin(t);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));gStars.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xaabbdd,size:.7,transparent:true,opacity:.85})));})();
+
+function orbitPos(sma,inc,raan,ta){
+  const xop=sma*Math.cos(ta),yop=sma*Math.sin(ta);
+  const cosI=Math.cos(inc),sinI=Math.sin(inc),cosR=Math.cos(raan),sinR=Math.sin(raan);
+  return new THREE.Vector3(xop*cosR-yop*cosI*sinR,yop*sinI,-(xop*sinR+yop*cosI*cosR));
+}
+function buildOrbitTrack(sma,inc,raan,color){
+  const pts=[],N=360;for(let i=0;i<=N;i++){const ta=(i/N)*Math.PI*2;pts.push(orbitPos(sma,inc,raan,ta));}
+  return new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color,transparent:true,opacity:0.32}));
+}
+const orbitTrackObjects={LEO:[],MEO:[],GEO:[]};
+[0,120,240].forEach(d=>{
+  const raan=d*Math.PI/180;
+  ['LEO','MEO'].forEach(rg=>{const reg=REGIMES[rg];const line=buildOrbitTrack(reg.smaKm*SCALE,reg.inc*Math.PI/180,raan,reg.color);gOrbits.add(line);orbitTrackObjects[rg].push(line);});
+});
+{const reg=REGIMES.GEO;const line=buildOrbitTrack(reg.smaKm*SCALE,0,0,reg.color);gOrbits.add(line);orbitTrackObjects.GEO.push(line);}
+
+function makeSatMesh(regime){
+  const g=new THREE.Group(),col=REGIMES[regime].color,scl=regime==='GEO'?1.4:regime==='MEO'?1.1:0.85;
+  const body=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.09,0.14),new THREE.MeshPhongMaterial({color:0xc8d4e4,shininess:90,specular:new THREE.Color(0x3355aa)}));g.add(body);
+  const pm=new THREE.MeshPhongMaterial({color:0x192850,shininess:140,specular:new THREE.Color(0x4488ff),emissive:new THREE.Color(0x000d22)});
+  [-0.19,0.19].forEach(x=>{const p=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.002,0.1),pm);p.position.x=x;g.add(p);});
+  const sl=new THREE.Mesh(new THREE.SphereGeometry(0.014,8,8),new THREE.MeshBasicMaterial({color:col}));sl.position.set(0,0.052,0.055);g.add(sl);
+  g.scale.setScalar(scl);return g;
+}
+SATS.forEach(s=>{const m=makeSatMesh(s.regime);m.userData.satId=s.id;s.mesh=m;gSats.add(m);});
+
+// Glow rings — one per SAT, hidden until selected or search-matched
+const gGlow=new THREE.Group();scene.add(gGlow);
+SATS.forEach(s=>{
+  const sz=s.regime==='GEO'?0.28:s.regime==='MEO'?0.22:0.16;
+  const ring=new THREE.Mesh(
+    new THREE.RingGeometry(sz,sz+0.045,48),
+    new THREE.MeshBasicMaterial({color:new THREE.Color(s.hex||'#00e8ff'),transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false})
+  );
+  ring.visible=false;s._glowRing=ring;gGlow.add(ring);
+});
+
+GND.forEach(gs=>{
+  // Color and scale by status
+  const colHex=gs.status==='g'?0x6fe8ff:gs.status==='a'?0xf4c96b:0xff5050;
+  const colEmit=gs.status==='g'?0x0a2030:gs.status==='a'?0x2a1800:0x2a0000;
+  const scl=gs.status==='r'?1.25:1.0; // degraded stations slightly larger/more visible
+  const pos=ll2v3(gs.lat,gs.lon,R_EARTH*1.008);
+
+  // Main marker — triangle for nominal/amber, octahedron-like diamond for degraded
+  let body;
+  if(gs.status==='r'){
+    // Degraded: double-triangle (Star of David / alarm shape) = two overlapping cones
+    const g1=new THREE.Group();
+    const c1=new THREE.Mesh(new THREE.ConeGeometry(0.042,0.072,3),new THREE.MeshPhongMaterial({color:colHex,emissive:new THREE.Color(colEmit),transparent:true,opacity:0.92,shininess:60}));
+    const c2=new THREE.Mesh(new THREE.ConeGeometry(0.042,0.072,3),new THREE.MeshPhongMaterial({color:colHex,emissive:new THREE.Color(colEmit),transparent:true,opacity:0.55,shininess:60}));
+    c2.rotation.z=Math.PI; // inverted cone
+    g1.add(c1,c2);body=g1;
+  } else {
+    body=new THREE.Mesh(new THREE.ConeGeometry(0.035,0.07,3),new THREE.MeshPhongMaterial({color:colHex,emissive:new THREE.Color(colEmit),transparent:true,opacity:0.82,shininess:80}));
+  }
+  body.position.copy(pos);body.lookAt(0,0,0);body.rotateX(-Math.PI/2);body.scale.setScalar(scl);
+
+  // Arc rings
+  const arc1=new THREE.Mesh(new THREE.RingGeometry(0.055,0.065,32,1,0,Math.PI*1.3),new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.55,side:THREE.DoubleSide}));
+  arc1.position.copy(pos).multiplyScalar(1.012);arc1.lookAt(0,0,0);
+  const arc2=new THREE.Mesh(new THREE.RingGeometry(0.075,0.082,32,1,0,Math.PI*1.1),new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.32,side:THREE.DoubleSide}));
+  arc2.position.copy(pos).multiplyScalar(1.016);arc2.lookAt(0,0,0);
+
+  // Degraded: add an outer alarm ring that pulses independently
+  if(gs.status==='r'){
+    const alarmRing=new THREE.Mesh(new THREE.RingGeometry(0.10,0.115,48,1),new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.7,side:THREE.DoubleSide}));
+    alarmRing.position.copy(pos).multiplyScalar(1.02);alarmRing.lookAt(0,0,0);
+    gs._alarm=alarmRing;gGnd.add(alarmRing);
+  }
+
+  gs._arcs=[arc1,arc2];gs._col=colHex;gs._body=body;
+  gGnd.add(body,arc1,arc2);
+});
+USERS.forEach(ut=>{
+  const amber=0xf4c96b,pos=ll2v3(ut.lat,ut.lon,R_EARTH*1.008);
+  const sph=new THREE.Mesh(new THREE.SphereGeometry(0.022,8,8),new THREE.MeshPhongMaterial({color:amber,emissive:new THREE.Color(0x3a2800),shininess:40}));sph.position.copy(pos);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(0.028,0.035,16),new THREE.MeshBasicMaterial({color:amber,transparent:true,opacity:.35,side:THREE.DoubleSide}));ring.position.copy(pos).multiplyScalar(1.004);ring.lookAt(0,0,0);ut._ring=ring;
+  gUsr.add(sph,ring);
+});
+
+const coneObjects={};
+SATS.filter(s=>s.regime==='MEO'||s.regime==='GEO').forEach(s=>{
+  const altKm=s.altKm,rho=RE/(RE+altKm),earthHA=Math.acos(rho)-5*Math.PI/180,visAngle=Math.PI/2-earthHA+0.15;
+  // ch = full slant height from Earth center to sat; base radius at Earth surface level
+  const ch=s.smaKm*SCALE, cr=ch*Math.tan(visAngle*0.5);
+  const mesh=new THREE.Mesh(new THREE.ConeGeometry(cr,ch,32,1,true),new THREE.MeshBasicMaterial({color:s.color,transparent:true,opacity:.045,side:THREE.DoubleSide,depthWrite:false}));
+  // Cone default: tip at top (+Y), base at bottom (-Y)
+  // We want tip pointing OUTWARD (toward sat), base toward Earth center.
+  // In updateSats we position at p3 (sat pos) and lookAt(0,0,0).
+  // After lookAt, local -Z points toward Earth.
+  // We'll offset the cone so tip (top of cone in local Y) is at origin of the group,
+  // then rotate so +Y (tip) points away from Earth.
+  // Shift cone down by ch/2 so tip is at local origin:
+  mesh.geometry.translate(0, -ch/2, 0);
+  mesh.userData.regime=s.regime;gCones.add(mesh);coneObjects[s.id]=mesh;
+});
+
+const MAX_LINKS=80,linkLines=[];
+for(let i=0;i<MAX_LINKS;i++){const pts=[new THREE.Vector3(),new THREE.Vector3()];const geo2=new THREE.BufferGeometry().setFromPoints(pts);const mat=new THREE.LineBasicMaterial({color:0x39ff9a,transparent:true,opacity:.5});const line=new THREE.Line(geo2,mat);line.visible=false;gLinks.add(line);linkLines.push({line,geo:geo2,mat});}
+
+// Camera
+const ctrl={lon:-22,lat:18,targetLon:-22,targetLat:18,dist:18,targetDist:18,autoRotate:true,rotating:false,lastX:0,lastY:0,pinch:0};
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+let touches2={};
+renderer.domElement.addEventListener('touchstart',e=>{e.preventDefault();Array.from(e.changedTouches).forEach(t=>{touches2[t.identifier]={x:t.clientX,y:t.clientY};});const ids=Object.keys(touches2);if(ids.length===1){ctrl.rotating=true;ctrl.lastX=e.touches[0].clientX;ctrl.lastY=e.touches[0].clientY;ctrl.autoRotate=false;}else if(ids.length===2){ctrl.rotating=false;const a=touches2[ids[0]],b=touches2[ids[1]];ctrl.pinch=Math.hypot(b.x-a.x,b.y-a.y);}},{passive:false});
+renderer.domElement.addEventListener('touchmove',e=>{e.preventDefault();const ids=Object.keys(touches2);if(ids.length===1&&ctrl.rotating){ctrl.targetLon+=(e.touches[0].clientX-ctrl.lastX)*0.28;ctrl.targetLat+=(e.touches[0].clientY-ctrl.lastY)*0.22;ctrl.targetLat=clamp(ctrl.targetLat,-88,88);ctrl.lastX=e.touches[0].clientX;ctrl.lastY=e.touches[0].clientY;}else if(ids.length===2&&e.touches.length>=2){const d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY);ctrl.targetDist=clamp(ctrl.targetDist+(ctrl.pinch-d)*0.04,7,50);ctrl.pinch=d;}Array.from(e.changedTouches).forEach(t=>{if(touches2[t.identifier])touches2[t.identifier]={x:t.clientX,y:t.clientY};});},{passive:false});
+renderer.domElement.addEventListener('touchend',e=>{Array.from(e.changedTouches).forEach(t=>delete touches2[t.identifier]);if(!Object.keys(touches2).length)ctrl.rotating=false;});
+renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;ctrl.rotating=true;ctrl.autoRotate=false;ctrl.lastX=e.clientX;ctrl.lastY=e.clientY;});
+window.addEventListener('pointerup',()=>{ctrl.rotating=false;});
+window.addEventListener('pointermove',e=>{if(e.pointerType==='touch'||!ctrl.rotating)return;ctrl.targetLon+=(e.clientX-ctrl.lastX)*0.24;ctrl.targetLat+=(e.clientY-ctrl.lastY)*0.20;ctrl.targetLat=clamp(ctrl.targetLat,-88,88);ctrl.lastX=e.clientX;ctrl.lastY=e.clientY;});
+renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();ctrl.targetDist=clamp(ctrl.targetDist+e.deltaY*.012,7,50);},{passive:false});
+
+const CAM_PRESETS={default:{lon:-22,lat:18,dist:18},top:{lon:0,lat:88,dist:16},equator:{lon:0,lat:2,dist:20},leo:{lon:-40,lat:52,dist:10},geo:{lon:0,lat:2,dist:28}};
+document.querySelectorAll('.cbtn').forEach(btn=>{btn.addEventListener('click',()=>{const p=CAM_PRESETS[btn.dataset.cam];if(!p)return;ctrl.targetLon=p.lon;ctrl.targetLat=p.lat;ctrl.targetDist=p.dist;ctrl.autoRotate=false;document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');});});
+
+// Sat hover + click
+const raycaster=new THREE.Raycaster();
+raycaster.params.Points.threshold=0.15;
+function clickMeshes(){const a=[];SATS.forEach(s=>{if(!show[s.regime])return;s.mesh.children.forEach(c=>{if(c.isMesh){c.userData.satId=s.id;a.push(c);}});});return a;}
+function showTip(sat,cx,cy){
+  const reg=REGIMES[sat.regime],periodStr=reg.period<3600?`${(reg.period/60).toFixed(1)} min`:`${(reg.period/3600).toFixed(2)} hr`;
+  document.getElementById('t-eye').textContent=sat.regime+' · '+sat.id;
+  document.getElementById('t-name').textContent=sat.id+' — '+sat.mission;
+  document.getElementById('t-veh').textContent=sat.vehicleStatus;document.getElementById('t-veh').className='tcv '+(sat.vehicleStatus==='Nominal'?'g':sat.vehicleStatus==='Degraded'?'a':'r');
+  document.getElementById('t-mis').textContent=sat.missionStatus;
+  document.getElementById('t-alt').textContent=sat.altKm.toLocaleString()+' km';
+  document.getElementById('t-inc').textContent=reg.inc+'°';
+  document.getElementById('t-per').textContent=periodStr;
+  document.getElementById('t-sig').textContent=sat.signal;document.getElementById('t-sig').className='tcv '+(sat.signal==='Strong'?'g':sat.signal==='Moderate'?'a':'r');
+  document.getElementById('t-desc').textContent=sat.desc;
+  const tip=document.getElementById('tip'),wr=ax.getBoundingClientRect();
+  tip.style.display='block';const tw=tip.offsetWidth,th2=tip.offsetHeight;
+  tip.style.left=clamp(cx-wr.left,8,wr.width-tw-8)+'px';
+  tip.style.top=clamp(cy-wr.top-th2-20,8,wr.height-th2-8)+'px';
+  tip.classList.add('show');
+}
+function hideTip(){const t=document.getElementById('tip');t.classList.remove('show');setTimeout(()=>{if(!t.classList.contains('show'))t.style.display='none';},200);}
+document.getElementById('tip-close').addEventListener('click',hideTip);
+
+let _hoverTipSat=null;
+function handleHover3D(cx,cy){
+  if(is2D)return;
+  const rect=renderer.domElement.getBoundingClientRect();
+  const m2=new THREE.Vector2(((cx-rect.left)/rect.width)*2-1,-((cy-rect.top)/rect.height)*2+1);
+  raycaster.setFromCamera(m2,camera);
+  const hits=raycaster.intersectObjects(clickMeshes(),false);
+  if(hits.length){
+    const s=SATS.find(x=>x.id===hits[0].object.userData.satId);
+    if(s&&s!==_hoverTipSat){_hoverTipSat=s;showTip(s,cx,cy);}
+  } else {
+    if(_hoverTipSat){_hoverTipSat=null;hideTip();}
+  }
+}
+function handleClick3D(cx,cy){
+  const rect=renderer.domElement.getBoundingClientRect();
+  const m2=new THREE.Vector2(((cx-rect.left)/rect.width)*2-1,-((cy-rect.top)/rect.height)*2+1);
+  raycaster.setFromCamera(m2,camera);
+  const hits=raycaster.intersectObjects(clickMeshes(),false);
+  if(hits.length){
+    const s=SATS.find(x=>x.id===hits[0].object.userData.satId);
+    if(s){
+      // Toggle: click selected SV again to deselect
+      if(typeof selSVFn==='function')selSVFn(s.id);
+      hideTip();
+    }
+  } else {
+    hideTip();
+    // Click empty space on globe — deselect SV if one is selected
+    if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
+  }
+}
+renderer.domElement.addEventListener('mousemove',e=>{if(e.pointerType==='touch')return;handleHover3D(e.clientX,e.clientY);});
+renderer.domElement.addEventListener('mouseleave',()=>{_hoverTipSat=null;hideTip();});
+renderer.domElement.addEventListener('click',e=>{if(e.pointerType==='touch')return;handleClick3D(e.clientX,e.clientY);});
+let tapS={x:0,y:0,t:0};
+renderer.domElement.addEventListener('touchstart',e=>{if(e.touches.length===1)tapS={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};},{passive:true});
+renderer.domElement.addEventListener('touchend',e=>{if(e.changedTouches.length===1){const t=e.changedTouches[0];if(Math.hypot(t.clientX-tapS.x,t.clientY-tapS.y)<14&&Date.now()-tapS.t<300)handleClick3D(t.clientX,t.clientY);}},{passive:true});
+console.log('[ASTRONETIX] Hover tooltip mode active on 3D globe.');
+
+// 2D Map
+const c2d=document.getElementById('c2d');
+const ctx=c2d.getContext('2d');
+const g2dEl=document.getElementById('g2d');
+let is2D=false;
+console.log('[ASTRONETIX] 2D map canvas initialized');
+const worldImg=new Image();let mapLoaded=false;
+const MAP_SRCS=['https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57752/land_shallow_topo_2048.jpg','https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'];
+let mapSrcIdx=0;
+function tryLoadMap(){worldImg.crossOrigin='anonymous';worldImg.onload=()=>{mapLoaded=true;console.log('[ASTRONETIX] Map texture loaded:',MAP_SRCS[mapSrcIdx]);};worldImg.onerror=(e)=>{console.error('[ASTRONETIX] Map load failed src#'+mapSrcIdx+':',MAP_SRCS[mapSrcIdx]);mapSrcIdx++;if(mapSrcIdx<MAP_SRCS.length)tryLoadMap();else console.warn('[ASTRONETIX] All map sources failed - using canvas fallback');};worldImg.src=MAP_SRCS[mapSrcIdx];}tryLoadMap();
+const nightImg=new Image();let nightLoaded=false;nightImg.crossOrigin='anonymous';nightImg.onload=()=>{nightLoaded=true;};nightImg.onerror=(e)=>console.error('[ASTRONETIX] Night lights image failed:',e);nightImg.src='https://eoimages.gsfc.nasa.gov/images/imagerecords/55000/55167/earth_lights_lrg.jpg';
+
+function ll2px(lat,lon,W,H){return{x:((lon+180)/360)*W,y:((90-lat)/180)*H};}
+let hoverSat=null,hoveredCCMD2D=null;
+
+c2d.addEventListener('mouseleave',()=>{hoverSat=null;document.getElementById('hlabel').style.display='none';hideCCMDTip();hideTip();});
+function ptInRing(px,py,ring,W,H){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const pi=ll2px(ring[i][1],ring[i][0],W,H),pj=ll2px(ring[j][1],ring[j][0],W,H);if(((pi.y>py)!==(pj.y>py))&&(px<(pj.x-pi.x)*(py-pi.y)/(pj.y-pi.y)+pi.x))inside=!inside;}return inside;}
+function ptInFeature(px,py,geom,W,H){const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];return polys.some(poly=>ptInRing(px,py,poly[0],W,H));}
+function getHovCCMD2D(mx,my,W,H){for(const pid of PRIORITY_ORDER){const feats=ccmdFeatures[pid];if(!feats)continue;if(feats.some(geom=>ptInFeature(mx,my,geom,W,H)))return pid;}return null;}
+
+c2d.addEventListener('mousemove',e=>{
+  const rect=c2d.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top,W=c2d.width,H=c2d.height;
+  hoveredCCMD2D=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
+  // Also fallback to maritime AOR if geo not loaded
+  if(!hoveredCCMD2D&&show.gcc){
+    for(const pid of PRIORITY_ORDER){
+      const cmd=combatantCommands.find(c=>c.id===pid);
+      if(cmd&&cmd.maritime&&cmd.maritime.length){
+        if(ptInRing(mx,my,cmd.maritime.map(([lo,la])=>[lo,la]),W,H)){hoveredCCMD2D=pid;break;}
+      }
+    }
+  }
+  let best=null,bd=18;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
+  const prevHover=hoverSat;hoverSat=best;
+  const hl=document.getElementById('hlabel');
+  if(best){
+    hl.style.display='none';
+    hideCCMDTip();
+    if(best!==prevHover)showTip(best,e.clientX,e.clientY);
+  }
+  else if(hoveredCCMD2D){hl.style.display='none';hideTip();showCCMDTip(e,hoveredCCMD2D);}
+  else{hl.style.display='none';hideTip();hideCCMDTip();}
+});
+c2d.addEventListener('click',e=>{
+  const rect=c2d.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top,W=c2d.width,H=c2d.height;
+  const hitCmd=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
+  // Check sat proximity first
+  let best=null,bd=20;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
+  if(best){if(typeof selSVFn==='function')selSVFn(best.id);hideTip();return;}
+  if(hitCmd){selCCFn(hitCmd);return;}
+  // Click empty space — deselect SV
+  if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
+  hideTip();
+});
+
+const CONTINENTS=[
+[[-168,72],[-140,72],[-95,75],[-65,48],[-52,47],[-60,44],[-80,25],[-90,15],[-100,20],[-120,22],[-120,32],[-117,32],[-115,28],[-109,23],[-84,8],[-77,8],[-76,9],[-77,12],[-62,12],[-62,18],[-73,20],[-80,25],[-82,30],[-80,32],[-75,35],[-70,43],[-66,47],[-60,46],[-64,48],[-66,50],[-65,60],[-78,72],[-95,75],[-130,56],[-140,58],[-155,60],[-162,60],[-168,66]],
+[[-80,12],[-62,12],[-60,6],[-50,2],[-35,-5],[-34,-12],[-38,-18],[-42,-22],[-44,-24],[-48,-28],[-50,-30],[-52,-34],[-58,-38],[-62,-38],[-65,-55],[-68,-55],[-70,-52],[-72,-50],[-74,-45],[-72,-42],[-70,-38],[-72,-32],[-70,-28],[-68,-22],[-70,-18],[-76,-10],[-78,-2],[-78,2],[-76,4],[-78,8]],
+[[28,72],[10,72],[0,60],[-8,56],[-10,50],[-8,44],[0,44],[3,44],[8,44],[14,44],[14,38],[16,38],[18,40],[22,38],[26,38],[28,42],[32,42],[32,46],[24,46],[24,52],[28,54],[28,58],[26,64],[28,68]],
+[[-18,16],[-16,12],[-14,10],[-8,5],[-2,5],[8,5],[10,2],[12,-2],[14,-4],[14,-12],[18,-18],[20,-22],[24,-26],[28,-34],[32,-26],[36,-20],[40,-12],[42,-8],[44,12],[44,14],[42,12],[38,12],[36,14],[32,14],[28,20],[24,22],[18,22],[12,24],[2,24],[2,14],[-2,14],[-8,14],[-14,16]],
+[[28,42],[36,42],[40,38],[44,38],[50,30],[56,24],[60,22],[68,24],[76,20],[80,12],[80,28],[76,28],[72,22],[68,24],[64,28],[60,32],[56,30],[52,32],[48,38],[44,40],[40,44],[36,46],[32,50],[30,60],[28,68],[36,68],[46,68],[56,72],[70,72],[90,76],[100,76],[120,72],[140,72],[148,60],[144,52],[136,46],[134,36],[124,28],[120,24],[108,20],[104,10],[100,4],[104,0],[106,-2],[108,2],[112,4],[116,6],[120,10],[120,20],[124,22],[130,32],[136,40],[140,44],[144,44],[148,42],[150,40],[140,42],[130,44],[128,48],[136,52],[140,58],[148,60],[156,52],[164,50],[168,56],[168,62],[164,68],[168,72],[155,72],[130,72],[120,72],[100,76],[70,72],[46,68],[28,68],[28,58],[24,58],[22,62],[20,70],[24,72]],
+[[114,-22],[114,-26],[118,-28],[124,-32],[128,-34],[134,-36],[138,-36],[140,-38],[148,-38],[150,-36],[154,-28],[152,-24],[148,-20],[144,-14],[136,-12],[130,-12],[124,-16],[118,-20]],
+[[-44,84],[-20,84],[-18,76],[-22,72],[-28,70],[-32,70],[-38,72],[-44,76],[-46,80]],
+];
+
+function drawCCMD2D(W,H){
+  if(!show.gcc)return;
+  if(!ccmdGeoLoaded){
+    // Maritime AOR fallback
+    combatantCommands.filter(c=>c.type==='geographic'&&c.maritime&&c.maritime.length).forEach(cmd=>{
+      const isActive=activeCCMD_globe===cmd.id,isHov=hoveredCCMD2D===cmd.id,hilite=isActive||isHov;
+      const col=cmd.color;ctx.save();
+      ctx.strokeStyle=col;ctx.setLineDash([5,5]);ctx.lineWidth=hilite?1.5:0.8;ctx.globalAlpha=hilite?0.55:0.22;
+      ctx.fillStyle=col;
+      ctx.beginPath();cmd.maritime.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();
+      ctx.globalAlpha=hilite?0.15:0.06;ctx.fill();
+      ctx.globalAlpha=hilite?0.70:0.28;ctx.stroke();
+      ctx.setLineDash([]);
+      if(hilite){let cxC=0,cyC=0;cmd.maritime.forEach(([lo,la])=>{cxC+=lo;cyC+=la;});cxC/=cmd.maritime.length;cyC/=cmd.maritime.length;const lp=ll2px(cyC,cxC,W,H);ctx.globalAlpha=1;ctx.fillStyle=col;ctx.font=`bold 11px 'Share Tech Mono',monospace`;ctx.shadowColor=col;ctx.shadowBlur=12;ctx.textAlign='center';ctx.fillText(cmd.name,lp.x,lp.y);ctx.shadowBlur=0;ctx.textAlign='left';}
+      ctx.restore();
+    });
+    return;
+  }
+  combatantCommands.filter(c=>c.type==='geographic').forEach(cmd=>{
+    const feats=ccmdFeatures[cmd.id];if(!feats||!feats.length)return;
+    const isActive=activeCCMD_globe===cmd.id,isHov=hoveredCCMD2D===cmd.id,hilite=isActive||isHov;
+    const col=cmd.color;ctx.save();
+    feats.forEach(geom=>{
+      const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];
+      polys.forEach(poly=>poly.forEach((ring,ri)=>{
+        ctx.beginPath();ring.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();
+        if(ri===0){ctx.fillStyle=col;ctx.globalAlpha=hilite?0.22:activeCCMD_globe?0.04:0.10;ctx.fill();ctx.globalAlpha=hilite?0.90:activeCCMD_globe?0.25:0.45;ctx.strokeStyle=col;ctx.lineWidth=hilite?1.4:0.7;ctx.stroke();}
+      }));
+    });
+    if(cmd.maritime&&cmd.maritime.length){ctx.globalAlpha=hilite?0.30:0.10;ctx.strokeStyle=col;ctx.lineWidth=hilite?1.2:0.5;ctx.setLineDash([5,5]);ctx.beginPath();cmd.maritime.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();ctx.stroke();ctx.setLineDash([]);}
+    if(hilite&&feats[0]){
+      const f0=feats[0],ring0=(f0.type==='Polygon'?f0.coordinates[0]:f0.coordinates[0]&&f0.coordinates[0][0])||[];
+      let cxC=0,cyC=0;ring0.forEach(([lo,la])=>{cxC+=lo;cyC+=la;});
+      if(ring0.length){cxC/=ring0.length;cyC/=ring0.length;const lp=ll2px(cyC,cxC,W,H);ctx.globalAlpha=1;ctx.fillStyle=col;ctx.font=`bold 12px 'Share Tech Mono',monospace`;ctx.shadowColor=col;ctx.shadowBlur=14;ctx.textAlign='center';ctx.fillText(cmd.name,lp.x,lp.y);ctx.shadowBlur=0;ctx.textAlign='left';}
+    }
+    ctx.restore();
+  });
+}
+
+function drawMap(W,H,t){
+  ctx.clearRect(0,0,W,H);
+  const now=new Date(),utcH=now.getUTCHours()+now.getUTCMinutes()/60+now.getUTCSeconds()/3600;
+  const sunLon=((utcH/24)*360-180+360)%360-180,antiLon=((sunLon+180)+360)%360-180,antiX=((antiLon+180)/360)*W;
+  ctx.fillStyle='#08192e';ctx.fillRect(0,0,W,H);
+  if(mapLoaded){ctx.save();ctx.globalAlpha=0.92;ctx.filter='saturate(0.75) brightness(0.78)';ctx.drawImage(worldImg,0,0,W,H);ctx.filter='none';ctx.restore();}
+  else{CONTINENTS.forEach(poly=>{ctx.beginPath();poly.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();ctx.fillStyle='#1a3a22';ctx.fill();ctx.strokeStyle='rgba(80,160,100,0.5)';ctx.lineWidth=0.7;ctx.stroke();});}
+  const ng2=ctx.createRadialGradient(antiX,H*0.5,0,antiX,H*0.5,W*0.52);ng2.addColorStop(0,'rgba(0,3,12,0.88)');ng2.addColorStop(0.5,'rgba(0,3,12,0.65)');ng2.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=ng2;ctx.fillRect(0,0,W,H);
+  if(nightLoaded){ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=0.55;ctx.filter='saturate(0.6) brightness(0.5)';ctx.drawImage(nightImg,antiX-W/2,0,W,H);if(antiX-W/2>0)ctx.drawImage(nightImg,antiX-W/2-W,0,W,H);else ctx.drawImage(nightImg,antiX-W/2+W,0,W,H);ctx.filter='none';ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.restore();}
+  drawCCMD2D(W,H);
+  ctx.strokeStyle='rgba(84,142,255,0.09)';ctx.lineWidth=.4;
+  for(let lo=-180;lo<=180;lo+=30){const p=ll2px(90,lo,W,H);ctx.beginPath();ctx.moveTo(p.x,0);ctx.lineTo(p.x,H);ctx.stroke();}
+  for(let la=-60;la<=60;la+=30){const p=ll2px(la,-180,W,H);ctx.beginPath();ctx.moveTo(0,p.y);ctx.lineTo(W,p.y);ctx.stroke();}
+  ctx.strokeStyle='rgba(84,142,255,0.25)';ctx.lineWidth=.8;const eq=ll2px(0,0,W,H);ctx.beginPath();ctx.moveTo(0,eq.y);ctx.lineTo(W,eq.y);ctx.stroke();
+  if(show.terminator){
+    const sX=((sunLon+180)/360)*W,aX=antiX;
+    ctx.save();ctx.strokeStyle='rgba(255,140,60,0.5)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+    ctx.beginPath();let f=true;for(let la=-88;la<=88;la+=2){const tLon=((sunLon+90)+360)%360-180;const p=ll2px(la,tLon,W,H);if(f){ctx.moveTo(p.x,p.y);f=false;}else ctx.lineTo(p.x,p.y);}ctx.stroke();ctx.setLineDash([]);ctx.restore();
+    const dg=ctx.createRadialGradient(aX,H/2,0,aX,H/2,W*0.45);dg.addColorStop(0,'rgba(0,4,14,0.45)');dg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=dg;ctx.fillRect(0,0,W,H);
+  }
+  if(show.tracks){
+    const trackDefs=[
+      {regime:'LEO',raan:0,color:'#00e8ff'},{regime:'LEO',raan:120,color:'#00e8ff'},{regime:'LEO',raan:240,color:'#00e8ff'},
+      {regime:'MEO',raan:0,color:'#39ff9a'},{regime:'MEO',raan:120,color:'#39ff9a'},{regime:'MEO',raan:240,color:'#39ff9a'},
+      {regime:'GEO',raan:0,color:'#f4c96b'},
+    ];
+    trackDefs.forEach(tp=>{
+      if(!show[tp.regime])return;
+      const reg=REGIMES[tp.regime],inc=reg.inc*Math.PI/180,raan=tp.raan*Math.PI/180;
+      const refSat=SATS.find(s=>s.regime===tp.regime&&Math.abs(s.raan-raan)<0.01);if(!refSat)return;
+      const currentTa=refSat.ta0+refSat.angSpeed*t*SIM_SPD,steps=500,segs=[];let prev=null;
+      for(let j=0;j<=steps;j++){
+        const ta=currentTa+(j/steps)*Math.PI*2,p3=orbitPos(1,inc,raan,ta);
+        const r3=p3.length(),lat2=Math.asin(p3.y/r3)*180/Math.PI,lon2=(Math.atan2(p3.z,-p3.x)*180/Math.PI-180+360*4)%360-180;
+        const pp=ll2px(lat2,lon2,W,H);
+        if(prev&&Math.abs(lon2-prev.lon)>160)segs.push(null);
+        segs.push({...pp,lon:lon2});prev={...pp,lon:lon2};
+      }
+      ctx.save();ctx.strokeStyle=tp.color;ctx.lineWidth=tp.regime==='GEO'?1.0:0.85;ctx.globalAlpha=tp.regime==='GEO'?0.55:0.38;
+      ctx.beginPath();let up=true;segs.forEach(pt=>{if(!pt){up=true;return;}if(up){ctx.moveTo(pt.x,pt.y);up=false;}else ctx.lineTo(pt.x,pt.y);});ctx.stroke();ctx.restore();
+    });
+  }
+  if(show.cones){
+    SATS.filter(s=>(s.regime==='MEO'||s.regime==='GEO')&&show[s.regime]).forEach(s=>{
+      const rho=RE/(RE+s.altKm),earthHA=Math.acos(rho)-5*Math.PI/180,radiusDeg=earthHA*180/Math.PI;
+      const p=ll2px(s.lat,s.lon,W,H),rx=(radiusDeg/360)*W,ry=(radiusDeg/180)*H;
+      ctx.save();ctx.strokeStyle=s.hex;ctx.lineWidth=0.5;ctx.globalAlpha=0.18;ctx.fillStyle=s.hex;
+      ctx.beginPath();ctx.ellipse(p.x,p.y,rx,ry,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    });
+  }
+  let linkCount=0;
+  if(show.ground||show.users){
+    const allSt=[...(show.ground?GND:[]),...(show.users?USERS:[])];
+    const activeSats=SATS.filter(s=>show[s.regime]&&(selSV?s.id===selSV:true));
+    activeSats.forEach(s=>{
+      const rho=RE/(RE+s.altKm),maxGc=Math.acos(rho)*180/Math.PI;let bestSt=null,bestGc=9999;
+      allSt.forEach(st=>{const dLat=(s.lat-st.lat)*Math.PI/180,dLon=(s.lon-st.lon)*Math.PI/180;const ha=Math.sin(dLat/2)**2+Math.cos(st.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;if(gc<maxGc*0.92&&gc<bestGc){bestGc=gc;bestSt=st;}});
+      if(bestSt){const gp=ll2px(bestSt.lat,bestSt.lon,W,H),sp=ll2px(s.lat,s.lon,W,H);const col=bestSt.status==='g'?'#39ff9a':bestSt.status==='a'?'#f4c96b':'#ff5050';const phase=(t*1.4+s.ta0)%(Math.PI*2),alpha=0.15+Math.abs(Math.sin(phase))*0.52;ctx.save();ctx.strokeStyle=col;ctx.lineWidth=0.8;ctx.globalAlpha=alpha;ctx.setLineDash([3,8]);ctx.beginPath();ctx.moveTo(gp.x,gp.y);ctx.lineTo(sp.x,sp.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();linkCount++;}
+    });
+  }
+  document.getElementById('bLinks').textContent=linkCount;
+  if(show.ground){GND.forEach(gs=>{const p=ll2px(gs.lat,gs.lon,W,H),cyan='#6fe8ff',pulse=Math.sin(t*2.2+gs.lon*.05)*.5+.5,sz=7;ctx.save();ctx.shadowColor=cyan;ctx.shadowBlur=8+pulse*5;ctx.fillStyle='rgba(26,92,255,0.18)';ctx.strokeStyle=cyan;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(p.x,p.y-sz);ctx.lineTo(p.x+sz*0.9,p.y+sz*0.7);ctx.lineTo(p.x-sz*0.9,p.y+sz*0.7);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();});}
+  if(show.users){USERS.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H),amber='#f4c96b',pulse=Math.sin(t*1.6+ut.lon*.04)*.5+.5;ctx.save();ctx.fillStyle=amber;ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();});}
+  SATS.forEach(s=>{
+    if(!show[s.regime])return;
+    // When SV selected, dim all others — only draw selected at full brightness
+    const isSel=selSV&&s.id===selSV;
+    const isDimmed=selSV&&!isSel;
+    if(isDimmed)return; // skip non-selected entirely
+    const p=ll2px(s.lat,s.lon,W,H);
+    if(s.trail.length>2){ctx.save();for(let ti=1;ti<s.trail.length;ti++){const a=s.trail[ti-1],b=s.trail[ti];if(Math.abs(a.lon-b.lon)>160)continue;const pa=ll2px(a.lat,a.lon,W,H),pb=ll2px(b.lat,b.lon,W,H);ctx.strokeStyle=s.hex;ctx.lineWidth=0.8;ctx.globalAlpha=(ti/s.trail.length)*0.45;ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();}ctx.restore();}
+    ctx.save();ctx.strokeStyle=s.hex;ctx.fillStyle=s.hex;ctx.shadowColor=s.hex;
+    ctx.shadowBlur=isSel?18:hoverSat===s?14:7;
+    ctx.globalAlpha=isSel?1:hoverSat===s?1:0.9;
+    ctx.lineWidth=isSel?2.2:hoverSat===s?1.8:1.2;
+    const sz=s.regime==='GEO'?5:s.regime==='MEO'?4:3.5;
+    if(s.regime==='LEO'){ctx.beginPath();ctx.moveTo(p.x-sz,p.y);ctx.lineTo(p.x+sz,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y-sz);ctx.lineTo(p.x,p.y+sz);ctx.stroke();}
+    else if(s.regime==='MEO'){ctx.beginPath();ctx.rect(p.x-sz*.7,p.y-sz*.7,sz*1.4,sz*1.4);ctx.stroke();}
+    else{ctx.beginPath();ctx.moveTo(p.x,p.y-sz);ctx.lineTo(p.x+sz,p.y);ctx.lineTo(p.x,p.y+sz);ctx.lineTo(p.x-sz,p.y);ctx.closePath();ctx.stroke();}
+    ctx.shadowBlur=0;ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2);ctx.fill();ctx.restore();
+  });
+  // Sun position
+  {const sp=ll2px(0,sunLon,W,H);ctx.save();ctx.shadowColor='#ffee88';ctx.shadowBlur=18;ctx.fillStyle='#ffe066';ctx.globalAlpha=0.9;ctx.beginPath();ctx.arc(sp.x,sp.y,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffe066';ctx.lineWidth=1;ctx.globalAlpha=0.5;for(let a=0;a<8;a++){const ang=a*Math.PI/4;ctx.beginPath();ctx.moveTo(sp.x+Math.cos(ang)*7,sp.y+Math.sin(ang)*7);ctx.lineTo(sp.x+Math.cos(ang)*11,sp.y+Math.sin(ang)*11);ctx.stroke();}ctx.restore();}
+  const vg=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.75);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(1,6,16,.7)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.fillStyle='rgba(84,142,255,.3)';ctx.font=`8px 'Share Tech Mono',monospace`;ctx.fillText('✛ LEO·550km   ◻ MEO·20,200km   ◆ GEO·35,786km   ☀ Sub-solar   WGS-84',12,H-8);ctx.restore();
+}
+
+function setView(to2D){
+  is2D=to2D;g3dEl.style.display=to2D?'none':'block';g2dEl.style.display=to2D?'block':'none';
+  document.getElementById('b3d').classList.toggle('on',!to2D);document.getElementById('b2d').classList.toggle('on',to2D);
+  hideTip();if(to2D)SATS.forEach(s=>{s.trail=[];s.lastLon=null;});
+}
+document.getElementById('b3d').addEventListener('click',()=>setView(false));
+document.getElementById('b2d').addEventListener('click',()=>setView(true));
+
+['LEO','MEO','GEO'].forEach(rg=>{
+  document.getElementById('rr-'+rg).addEventListener('click',()=>{
+    show[rg]=!show[rg];document.getElementById('rr-'+rg).classList.toggle('off',!show[rg]);
+    // orbit track visibility handled per-frame in updateSats
+    SATS.filter(s=>s.regime===rg).forEach(s=>s.mesh.visible=show[rg]);
+    Object.entries(coneObjects).filter(([id])=>SATS.find(s=>s.id===id&&s.regime===rg)).forEach(([,m])=>{m.visible=show.cones&&show[rg];});
+  });
+});
+['tracks','ground','users','cones','terminator','gcc'].forEach(key=>{
+  document.getElementById('lr-'+key).addEventListener('click',()=>{
+    show[key]=!show[key];document.getElementById('lr-'+key).classList.toggle('off',!show[key]);
+    if(key==='tracks'){/* visibility handled per-frame in updateSats */}
+    if(key==='ground')gGnd.visible=show.ground;
+    if(key==='users')gUsr.visible=show.users;
+    if(key==='cones'){const v=show.cones;Object.entries(coneObjects).forEach(([id,m])=>{const s=SATS.find(x=>x.id===id);m.visible=v&&show[s.regime];});}
+    if(key==='terminator'){nightMesh.visible=show.terminator;termRing.visible=show.terminator;}
+    if(key==='gcc'){show_gcc=show.gcc;if(show_gcc)buildCCMD3D();else gCCMD.clear();}
+  });
+});
+
+let contactCD=360+Math.random()*300;
+function updateHUD(t){
+  const now=new Date(),h=now.getUTCHours()+now.getUTCMinutes()/60;
+  const sa=(h/24)*Math.PI*2,sx=Math.cos(sa)*28,sy=Math.sin(sa*.38)*4,sz=Math.sin(sa)*28;
+  sunLight.position.set(sx,sy,sz);
+  nightMesh.material.uniforms.sunDir.value.set(sx,sy,sz).normalize();
+  const sd=new THREE.Vector3(sx,sy,sz).normalize();termRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),sd);
+  atmo.material.uniforms.vv.value.copy(camera.position);
+  const vis=SATS.filter(s=>show[s.regime]).length;document.getElementById('bSats').textContent=vis;
+  contactCD-=0.016;if(contactCD<0)contactCD=480+Math.random()*420;
+  const cm=Math.floor(contactCD/60),cs=Math.floor(contactCD%60);document.getElementById('bContact').textContent=`${cm}:${String(cs).padStart(2,'0')}`;
+  const avgH=Math.round(SATS.reduce((a,s)=>a+(s.vehicleStatus==='Nominal'?100:s.vehicleStatus==='Degraded'?55:20),0)/SATS.length);
+  document.getElementById('bHealth').textContent=avgH+'%';
+}
+
+const TRAIL_MAX=100;
+function updateSats(simTime){
+  const svSelected=typeof selSV!=='undefined'&&selSV;
+  // Orbit tracks: hide all when an SV is selected, show the selected SV's regime track only
+  Object.entries(orbitTrackObjects).forEach(([rg,lines])=>{
+    lines.forEach(l=>{
+      if(svSelected){
+        const selSat=SATS.find(s=>s.id===selSV);
+        l.visible=show.tracks&&show[rg]&&selSat&&selSat.regime===rg;
+      } else {
+        l.visible=show.tracks&&show[rg];
+      }
+    });
+  });
+  let linkCount3D=0;linkLines.forEach(l=>l.line.visible=false);
+  SATS.forEach(s=>{
+    const ta=s.ta0+s.angSpeed*simTime*SIM_SPD,p3=orbitPos(s.sma,s.inc,s.raan,ta);
+    s.mesh.position.copy(p3);
+    s.mesh.visible=svSelected?(s.id===selSV):show[s.regime];
+    s.pos3.copy(p3);
+    const p3b=orbitPos(s.sma,s.inc,s.raan,ta+0.002);s.mesh.lookAt(p3b);s.mesh.rotateX(Math.PI/2);s.mesh.rotateZ(simTime*0.3*(s.regime==='LEO'?1:s.regime==='MEO'?0.3:0.08));
+    const cone=coneObjects[s.id];
+    if(cone){
+      // Place cone at sat position; lookAt(0,0,0) makes local -Z point toward Earth center.
+      // After geometry.translate(0,-ch/2,0), tip is at local origin (sat pos).
+      // Rotate so the cone's -Y (base direction after translate) points toward Earth:
+      // lookAt gives us -Z toward Earth, so rotateX(π/2) makes -Y toward Earth.
+      cone.position.copy(p3);
+      cone.lookAt(0,0,0);
+      cone.rotateX(-Math.PI/2);
+      cone.visible=show.cones&&(svSelected?s.id===selSV:show[s.regime]);
+    }
+    const r=p3.length();s.lat=Math.asin(p3.y/r)*180/Math.PI;
+    const rawLon=Math.atan2(p3.z,-p3.x)*180/Math.PI-180;s.lon=((rawLon+540)%360)-180;
+    if(s.lastLon!==null&&Math.abs(s.lon-s.lastLon)>160)s.trail=[];
+    s.trail.push({lat:s.lat,lon:s.lon});if(s.trail.length>TRAIL_MAX)s.trail.shift();s.lastLon=s.lon;
+
+    // Glow ring: selected SV = bright cyan pulse; search match = amber pulse; else hidden
+    if(s._glowRing){
+      const isSel=svSelected&&s.id===selSV;
+      const isSearch=_searchPulseIds.size>0&&_searchPulseIds.has(s.id);
+      if(isSel){
+        s._glowRing.visible=true;
+        s._glowRing.material.color.set('#00e8ff');
+        // Double expanding ring: two layers — use scale to pulse
+        const p=Math.sin(simTime*3.5)*0.5+0.5;
+        s._glowRing.material.opacity=0.55+p*0.4;
+        s._glowRing.scale.setScalar(1+p*0.35);
+        s._glowRing.position.copy(p3);
+        s._glowRing.lookAt(camera.position);
+      } else if(isSearch){
+        s._glowRing.visible=true;
+        s._glowRing.material.color.set('#f4c96b');
+        const p=Math.sin(simTime*4.5)*0.5+0.5;
+        s._glowRing.material.opacity=0.35+p*0.35;
+        s._glowRing.scale.setScalar(1+p*0.25);
+        s._glowRing.position.copy(p3);
+        s._glowRing.lookAt(camera.position);
+      } else {
+        s._glowRing.visible=false;
+        s._glowRing.material.opacity=0;
+      }
+    }
+    // Ground links: only draw for the selected SV (or all if none selected)
+    if(show.ground&&show[s.regime]&&linkCount3D<MAX_LINKS&&(!svSelected||s.id===selSV)){
+      let bestGs=null,bestElev=-999;GND.forEach(gs=>{const gpos=ll2v3(gs.lat,gs.lon,R_EARTH);const surfN=gpos.clone().normalize();const toSat=p3.clone().sub(gpos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.08&&elev>bestElev){bestElev=elev;bestGs=gs;}});
+      if(bestGs){const gpos=ll2v3(bestGs.lat,bestGs.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,gpos.x,gpos.y,gpos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.6+s.ta0)%(Math.PI*2);ll.mat.opacity=0.18+Math.abs(Math.sin(ph))*0.48;ll.line.visible=true;linkCount3D++;}
+    }
+  });
+  if(!is2D)document.getElementById('bLinks').textContent=linkCount3D;
+}
+
+function onResize(){
+  const W=ax.clientWidth,H=ax.clientHeight;
+  if(!W||!H)return;
+  console.log('[ASTRONETIX] resize: '+W+'x'+H);
+  renderer.setSize(W,H);camera.aspect=W/H;camera.updateProjectionMatrix();
+  c2d.width=W;c2d.height=H;
+}
+window.addEventListener('resize',onResize);
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta(),t=clock.getElapsedTime();
+  updateHUD(t);updateSats(t);clouds.rotation.y+=dt*0.016;
+  if(ctrl.autoRotate&&!ctrl.rotating)ctrl.targetLon+=dt*3.5;
+
+  // SV tracking: place camera behind the sat (further from Earth on same radial line)
+  // so sat is in foreground, Earth fills the background
+  if(typeof selSV!=='undefined'&&selSV&&!ctrl.rotating){
+    const tracked=SATS.find(s=>s.id===selSV);
+    if(tracked&&tracked.pos3.length()>0){
+      // Camera offset behind sat — how far past the sat to place the camera
+      const camOffset=sat=>sat.regime==='LEO'?1.8:sat.regime==='MEO'?3.5:6.0;
+      const satPos=tracked.pos3.clone();
+      const satDist=satPos.length();
+      const camDist=satDist+camOffset(tracked);
+      // Camera sits on the same outward radial vector as the sat
+      const camPos=satPos.clone().normalize().multiplyScalar(camDist);
+      // Smoothly lerp actual camera position toward target (bypass ctrl lon/lat/dist for this mode)
+      camera.position.lerp(camPos,0.055);
+      camera.lookAt(0,0,0);
+      return; // skip normal ctrl camera math this frame
+    }
+  }
+
+  ctrl.lon+=(ctrl.targetLon-ctrl.lon)*0.07;ctrl.lat+=(ctrl.targetLat-ctrl.lat)*0.07;ctrl.dist+=(ctrl.targetDist-ctrl.dist)*0.08;
+  const phi=THREE.MathUtils.degToRad(90-ctrl.lat),th=THREE.MathUtils.degToRad(ctrl.lon);
+  camera.position.set(ctrl.dist*Math.sin(phi)*Math.cos(th),ctrl.dist*Math.cos(phi),ctrl.dist*Math.sin(phi)*Math.sin(th));
+  camera.lookAt(0,0,0);
+  const pulse=(Math.sin(t*2.2)*.5+.5)*.4+.1,pulse2=(Math.sin(t*2.2)*.5+.5);
+  GND.forEach(gs=>{
+    if(gs._arcs){
+      if(gs.status==='r'){
+        // Degraded: fast strobe on arcs + alarm ring
+        const strobe=(Math.sin(t*6.5)*.5+.5);
+        gs._arcs[0].material.opacity=0.5+strobe*0.45;
+        gs._arcs[1].material.opacity=0.25+strobe*0.35;
+        if(gs._alarm){
+          // Alarm ring: expand and fade outward
+          const alarmPhase=(t*3.2)%1;
+          gs._alarm.material.opacity=Math.max(0,(1-alarmPhase)*0.75);
+          const alarmScale=1+alarmPhase*0.9;
+          gs._alarm.scale.setScalar(alarmScale);
+        }
+      } else if(gs.status==='a'){
+        // Amber/degraded: medium pulse
+        const ambPulse=(Math.sin(t*3.0)*.5+.5);
+        gs._arcs[0].material.opacity=0.35+ambPulse*0.40;
+        gs._arcs[1].material.opacity=0.18+ambPulse*0.28;
+      } else {
+        // Nominal: gentle pulse
+        gs._arcs[0].material.opacity=0.4+pulse2*0.35;
+        gs._arcs[1].material.opacity=0.2+pulse2*0.25;
+      }
+    }
+  });
+  USERS.forEach(ut=>{if(ut._ring&&ut._ring.material)ut._ring.material.opacity=pulse*.75;});
+  if(!is2D)renderer.render(scene,camera);else drawMap(c2d.width,c2d.height,t);
+  // Live-update selected SV position in telemetry panel
+  if(typeof selSV!=='undefined'&&selSV){
+    const gs=SATS.find(s=>s.id===selSV);
+    if(gs){
+      const latEl=document.getElementById('tl-lat'),lonEl=document.getElementById('tl-lon'),posEl=document.getElementById('tl-pos');
+      if(latEl)latEl.textContent=(gs.lat>=0?'+':'')+gs.lat.toFixed(2)+'°';
+      if(lonEl)lonEl.textContent=(gs.lon>=0?'+':'')+gs.lon.toFixed(2)+'°';
+      if(posEl)posEl.textContent=`${Math.abs(gs.lat).toFixed(2)}°${gs.lat>=0?'N':'S'} / ${Math.abs(gs.lon).toFixed(2)}°${gs.lon>=0?'E':'W'} · ${gs.altKm.toLocaleString()} km`;
+    }
+  }
+}
+requestAnimationFrame(()=>requestAnimationFrame(()=>{onResize();console.log('[ASTRONETIX] Animation loop started. Canvas: '+c2d.width+'x'+c2d.height);animate();}));
+
+// ── Keyboard shortcuts ────────────────────────────────────────
+// G — toggle 3D globe / 2D map  D — declutter  F — fullscreen  P — snapshot
+// 1-8 — select CCMD by operator priority order
+// Esc — deselect CCMD
+(()=>{
+
+// ══ DECLUTTER MODE ═══════════════════════════════════════════
+let declutter=false;
+function setDeclutter(on){
+  declutter=on;
+  const btn=document.getElementById('declutterBtn');
+  btn.classList.toggle('on',on);
+  btn.textContent=on?'◼ DECLUTTERED':'◻ DECLUTTER';
+  btn.setAttribute('aria-pressed', on);
+  if(typeof show!=='undefined'){
+    ['tracks','ground','users','cones'].forEach(k=>{
+      const layerEl=document.getElementById('lr-'+k);
+      if(on){
+        // hide — store previous state
+        if(show[k])layerEl&&layerEl.setAttribute('data-pre-declutter','1');
+        if(show[k]){show[k]=false;layerEl&&layerEl.classList.add('off');}
+      } else {
+        // restore
+        if(layerEl&&layerEl.getAttribute('data-pre-declutter')==='1'){
+          show[k]=true;layerEl.classList.remove('off');layerEl.removeAttribute('data-pre-declutter');
+        }
+      }
+    });
+    // Force globe layer states
+    if(typeof gGnd!=='undefined'){gGnd.visible=!on&&show.ground;}
+    if(typeof gUsr!=='undefined'){gUsr.visible=!on&&show.users;}
+  }
+}
+document.getElementById('declutterBtn').addEventListener('click',()=>setDeclutter(!declutter));
+document.getElementById('declutterBtn').setAttribute('role','button');
+document.getElementById('declutterBtn').setAttribute('aria-pressed','false');
+
+// ══ FULLSCREEN MODE ══════════════════════════════════════════
+function toggleFullscreen(){
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    (document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen).call(document.documentElement);
+    document.getElementById('fsBtn').textContent='⛶ EXIT FULL';
+  } else {
+    (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    document.getElementById('fsBtn').textContent='⛶ FULLSCREEN';
+  }
+}
+document.getElementById('fsBtn').addEventListener('click',toggleFullscreen);
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement)document.getElementById('fsBtn').textContent='⛶ FULLSCREEN';
+});
+
+// ══ SNAPSHOT / EXPORT ════════════════════════════════════════
+function takeSnapshot(){
+  const btn=document.getElementById('snapBtn');
+  btn.textContent='⏳ CAPTURING…';btn.disabled=true;
+  // Composite: globe WebGL canvas + overlay canvas (if 2D) + timestamp
+  const W=window.innerWidth,H=window.innerHeight;
+  const out=document.createElement('canvas');out.width=W;out.height=H;
+  const ctx=out.getContext('2d');
+  // Dark bg
+  ctx.fillStyle='#02050b';ctx.fillRect(0,0,W,H);
+  // Globe renderer canvas
+  const glCanvas=document.querySelector('#g3d canvas');
+  if(glCanvas){try{ctx.drawImage(glCanvas,0,0);}catch(e){}}
+  // 2D map canvas
+  const c2d=document.getElementById('c2d');
+  if(c2d&&c2d.style.display!=='none'){try{ctx.drawImage(c2d,0,0);}catch(e){}}
+  // Timestamp watermark
+  const now=new Date();
+  const ts=now.toISOString().replace('T',' ').substring(0,19)+' UTC';
+  ctx.save();
+  ctx.font='bold 13px monospace';ctx.fillStyle='rgba(0,232,255,0.7)';
+  ctx.textAlign='right';ctx.fillText('ASTRONETIX · MISSION COP · '+ts,W-16,H-16);
+  ctx.fillStyle='rgba(0,232,255,0.25)';ctx.font='10px monospace';
+  ctx.fillText('CLASSIFICATION: UNCLASSIFIED // FOR EXERCISE ONLY',W-16,H-32);
+  ctx.restore();
+  // Download
+  out.toBlob(blob=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='astronetix-cop-'+now.toISOString().replace(/[:.]/g,'-').substring(0,19)+'.png';
+    a.click();URL.revokeObjectURL(a.href);
+    btn.textContent='📷 SNAPSHOT';btn.disabled=false;
+  },'image/png');
+}
+document.getElementById('snapBtn').addEventListener('click',takeSnapshot);
+
+// ══ SPARKLINES ════════════════════════════════════════════════
+// Generate synthetic 8-hour fill rate history per CCMD
+// Trend toward current rate with some noise
+const SPARK_HISTORY={};
+CC.forEach(c=>{
+  const pts=[];let v=Math.min(100,c.rate+(Math.random()*20-10));
+  for(let i=0;i<8;i++){
+    v=Math.max(10,Math.min(100,v+(Math.random()*12-6)));
+    pts.push(Math.round(v));
+  }
+  pts.push(c.rate); // last point = current truth
+  SPARK_HISTORY[c.id]=pts;
+});
+function drawSparkline(id,pts,color){
+  const W=64,H=14;
+  const svg=[`<svg class="cc-spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">`];
+  const min=Math.min(...pts),max=Math.max(...pts),range=Math.max(max-min,5);
+  const xs=pts.map((_,i)=>Math.round((i/(pts.length-1))*(W-2)+1));
+  const ys=pts.map(p=>Math.round(H-2-((p-min)/range)*(H-4)));
+  // fill area
+  const pathD='M'+xs[0]+','+H+' '+xs.map((x,i)=>`L${x},${ys[i]}`).join(' ')+` L${xs[xs.length-1]},${H} Z`;
+  svg.push(`<path d="${pathD}" fill="${color}" fill-opacity="0.12"/>`);
+  // line
+  const lineD='M'+xs.map((x,i)=>`${x},${ys[i]}`).join(' L');
+  svg.push(`<path d="${lineD}" fill="none" stroke="${color}" stroke-width="1.2" stroke-opacity="0.7"/>`);
+  // current value dot
+  const lx=xs[xs.length-1],ly=ys[ys.length-1];
+  svg.push(`<circle cx="${lx}" cy="${ly}" r="2" fill="${color}" fill-opacity="0.9"/>`);
+  svg.push('</svg>');
+  return svg.join('');
+}
+// Patch rCMD to inject sparklines after fill rate bar
+const _rCMD_orig=rCMD;
+rCMD=function(){
+  _rCMD_orig();
+  // Inject sparklines into each CCMD card
+  document.querySelectorAll('.cc').forEach(card=>{
+    const id=card.getAttribute('data-id')||card.onclick?.toString().match(/selCCFn\('(\w+)'\)/)?.[1];
+    // Use data-id if available, else parse from onclick
+    let ccId=null;
+    const onc=card.getAttribute('onclick')||'';
+    const m=onc.match(/selCCFn\('([^']+)'\)/);
+    if(m)ccId=m[1];
+    if(!ccId||!SPARK_HISTORY[ccId])return;
+    const c=CC.find(x=>x.id===ccId);if(!c)return;
+    const color=fc(c.rate)==='var(--green2)'?'#39ff9a':fc(c.rate)==='var(--amber2)'?'#f4c96b':'#ff5050';
+    const ft=card.querySelector('.cc-ft');
+    if(ft&&!ft.querySelector('svg')){
+      ft.insertAdjacentHTML('afterend',drawSparkline(ccId,SPARK_HISTORY[ccId],color));
+    }
+  });
+};
+
+// ══ SV STATUS CHANGE DETECTION + ANIMATION ═══════════════════
+const _svPrevStatus={};
+SV.forEach(s=>{_svPrevStatus[s.id]=s.s;});
+function checkStatusChanges(){
+  SV.forEach(sv=>{
+    const prev=_svPrevStatus[sv.id];
+    if(prev!==sv.s){
+      _svPrevStatus[sv.id]=sv.s;
+      const isBad=(sv.s==='Critical'||sv.s==='Degraded')&&(prev==='Operational'||prev==='Reserved');
+      if(isBad){
+        // Flash the card
+        const card=document.querySelector(`.svc[data-svid="${sv.id}"]`);
+        if(card){card.classList.remove('flash-crit');void card.offsetWidth;card.classList.add('flash-crit');}
+        // Play alert tone
+        if(typeof _playAlertTone==='function')_playAlertTone(sv.s==='Critical'?'high':'medium');
+        // Add a temporary alert
+        AL.unshift({sv:sv.s==='Critical'?'high':'medium',
+          ti:`${sv.n} status changed to ${sv.s}`,cc:sv.cc,t:'0m',svId:sv.id});
+        if(AL.length>12)AL.pop();
+        renderAll();
+      }
+    }
+  });
+}
+// Simulate a status change after 8s for demo (ARES-3 → Critical)
+setTimeout(()=>{
+  const sv=SV.find(x=>x.id==='sv-002');
+  if(sv&&sv.s==='Degraded'){sv.s='Critical';sv.h=18;checkStatusChanges();}
+},8000);
+// Poll for status changes every 30s in real use
+setInterval(checkStatusChanges,30000);
+
+// ══ SV COMPARISON MODE ════════════════════════════════════════
+let selSV2=null;
+window.selSV2=null; // expose for read
+function renderCompare(){
+  const panel=document.getElementById('sv-compare');
+  const body=document.getElementById('cmp-body');
+  if(!selSV&&!selSV2){panel.classList.remove('open');return;}
+  const a=SV.find(x=>x.id===selSV),b=SV.find(x=>x.id===selSV2);
+  if(!a||!b){panel.classList.remove('open');return;}
+  panel.classList.add('open');
+  const ma=ccmd(a.cc),mb=ccmd(b.cc);
+  function col(sv){return sv.s==='Operational'?'var(--green2)':sv.s==='Degraded'?'var(--amber2)':sv.s==='Critical'?'var(--red2)':'var(--blue2)';}
+  function cmpClass(va,vb,higher='better'){
+    if(va===vb)return '';
+    const aWins=(higher==='better')?va>vb:va<vb;
+    return aWins?'cmp-better':'cmp-worse';
+  }
+  function mkCol(sv,other,m){
+    return `<div class="cmp-col">
+      <div class="cmp-sv-name" style="color:${col(sv)}">${sv.n}</div>
+      <div class="cmp-sv-type">${sv.t} · ${m?m.name:sv.cc}</div>
+      <div class="cmp-bar-wrap">
+        <div class="cmp-k">HEALTH</div>
+        <div class="cmp-bar"><div class="cmp-bar-fill" style="width:${sv.h}%;background:${hc(sv.h)}"></div></div>
+      </div>
+      <div class="cmp-row"><span class="cmp-k">STATUS</span><span class="cmp-v" style="color:${col(sv)}">${sv.s.substring(0,4).toUpperCase()}</span></div>
+      <div class="cmp-row"><span class="cmp-k">HEALTH</span><span class="cmp-v ${cmpClass(sv.h,other.h)}">${sv.h}%</span></div>
+      <div class="cmp-row"><span class="cmp-k">LOAD</span><span class="cmp-v ${cmpClass(sv.l,other.l)}">${sv.l} tasks</span></div>
+      <div class="cmp-row"><span class="cmp-k">CCMD</span><span class="cmp-v" style="color:${m?m.color:'#888'}">${m?m.name:sv.cc}</span></div>
+      <div class="cmp-row"><span class="cmp-k">UPD</span><span class="cmp-v">${sv.u} ago</span></div>
+    </div>`;
+  }
+  body.innerHTML=mkCol(a,b,ma)+mkCol(b,a,mb);
+}
+// Compare button shown in SV cards when a primary SV is selected
+function clearCompare(){selSV2=null;window.selSV2=null;renderCompare();}
+window.selectForCompare=function(id){
+  if(id===selSV)return; // can't compare to self
+  selSV2=id;window.selSV2=id;
+  renderCompare();
+};
+// Patch rSV to add compare button when selSV is set and we hover a different card
+const _rSV_orig=rSV;
+rSV=function(){
+  _rSV_orig();
+  if(selSV){
+    // Add "COMPARE" button to all non-selected SV cards
+    document.querySelectorAll('.svc').forEach(card=>{
+      const onc=card.getAttribute('onclick')||'';
+      const m=onc.match(/selSVFn\('([^']+)'\)/);
+      if(m&&m[1]!==selSV){
+        const btn=document.createElement('button');
+        btn.className='cmp-sel-btn';btn.textContent='⇌ COMPARE';
+        btn.setAttribute('aria-label','Compare with '+m[1]);
+        btn.onclick=(e)=>{e.stopPropagation();window.selectForCompare(m[1]);};
+        card.appendChild(btn);
+      }
+    });
+  }
+};
+
+// ══ ACCESSIBILITY — tab nav + ARIA ════════════════════════════
+// Make SV cards, CCMD cards, and alerts keyboard navigable
+function applyA11y(){
+  document.querySelectorAll('.svc,.cc,.al').forEach(el=>{
+    if(!el.getAttribute('tabindex'))el.setAttribute('tabindex','0');
+    el.setAttribute('role','button');
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
+  });
+}
+const _renderAll_orig=renderAll;
+renderAll=function(){_renderAll_orig();applyA11y();renderCompare();};
+
+  const CCMD_KEYS={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7};
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+    const k=e.key.toLowerCase();
+    if(k==='g'){setView(!is2D);return;}
+    if(k==='d'){setDeclutter(!declutter);return;}
+    if(k==='f'){toggleFullscreen();return;}
+    if(k==='p'){takeSnapshot();return;}
+    if(e.key in CCMD_KEYS){
+      const sorted=byP();
+      const idx=CCMD_KEYS[e.key];
+      if(idx<sorted.length){
+        const id=sorted[idx].id;
+        selCCFn(id);
+        const card=document.querySelector(`.cc[data-id="${id}"]`);
+        if(card){card.style.transition='none';card.style.outline='2px solid #fff';setTimeout(()=>{card.style.outline='';card.style.transition='';},180);}
+      }
+      return;
+    }
+    if(k==='escape'){
+      if(selSV2){clearCompare();return;}
+      if(selSV){selSVFn(selSV);}
+      else if(selCC){selCCFn(selCC);}
+      return;
+    }
+  });
+  // Hotkey legend is persistent — see #hotkey-legend in DOM
+})();
+})();
+</script>
+<div id="hotkey-legend" aria-label="Keyboard shortcuts reference">
+  <div id="hk-header" onclick="toggleHKLegend()" role="button" aria-expanded="true" aria-controls="hk-body" title="Toggle hotkey legend">
+    <div id="hk-title-wrap">
+      <span id="hk-icon">⌨</span>
+      <span id="hk-title">HOTKEYS</span>
+    </div>
+    <span id="hk-chevron">▲</span>
+  </div>
+  <div id="hk-body">
+    <div class="hk-group">
+      <div class="hk-group-label">VIEW</div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">G</span></div><span class="hk-label">Toggle Globe / 2D Map</span></div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">D</span></div><span class="hk-label">Declutter Mode</span></div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">F</span></div><span class="hk-label">Fullscreen</span></div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">P</span></div><span class="hk-label">Snapshot Export</span></div>
+    </div>
+    <div class="hk-divider"></div>
+    <div class="hk-group">
+      <div class="hk-group-label">SELECTION</div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">1</span><span class="hk-sep">–</span><span class="hk-key">8</span></div><span class="hk-label">Select CCMD by Priority</span></div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">ESC</span></div><span class="hk-label">Deselect / Close</span></div>
+    </div>
+    <div class="hk-divider"></div>
+    <div class="hk-group">
+      <div class="hk-group-label">NAVIGATION</div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">TAB</span></div><span class="hk-label">Focus Next Element</span></div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">↑</span><span class="hk-sep">/</span><span class="hk-key">↓</span></div><span class="hk-label">Adjust CCMD Priority</span></div>
+      <div class="hk-row"><div class="hk-keys"><span class="hk-key">↵</span></div><span class="hk-label">Activate Selection</span></div>
+    </div>
+  </div>
+</div>
+<script>
+function toggleHKLegend(){
+  const body=document.getElementById('hk-body');
+  const chev=document.getElementById('hk-chevron');
+  const hdr=document.getElementById('hk-header');
+  const collapsed=body.classList.toggle('collapsed');
+  chev.classList.toggle('collapsed',collapsed);
+  hdr.setAttribute('aria-expanded',String(!collapsed));
+}
+</script>
+</body>
+</html>
