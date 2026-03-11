@@ -1,36 +1,3062 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <title>EUCOM Air COP · Astronetix Futures</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coming Soon</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.20.0/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@5.20.0/dist/maplibre-gl.js"></script>
+  <!-- THREE.js via CDN for file:// compatibility (no ES module CORS restriction) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
   <style>
-    body{
-      margin:0;
-      min-height:100vh;
+    :root{
+      --bg:#06111c;
+      --panel:rgba(8,16,27,.93);
+      --line:rgba(105,170,255,.22);
+      --text:#eaf4ff;
+      --muted:#95acc6;
+      --blue:#63b7ff;
+      --blue2:#8fd1ff;
+      --green:#4ce28a;
+      --amber:#ffc857;
+      --red:#ff6b6b;
+      --teal:#5eead4;
+      --shadow:0 10px 35px rgba(0,0,0,.40);
+      --radius:14px;
+      /* topbar height is set dynamically by JS — default 64px */
+      --th:64px;
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+
+    html,body{
+      width:100%; height:100%;
+      overflow:hidden;
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      background:radial-gradient(circle at top,#0d1f34 0%,#07111b 40%,#040a12 100%);
+      color:var(--text);
+    }
+    body.combat-mode{
+      background:radial-gradient(circle at top,#2a0b10 0%,#12060a 42%,#05070b 100%);
+    }
+    /* Threat flash animation */
+    @keyframes threatFlash{ 0%,100%{opacity:1;} 50%{opacity:.55;} }
+    body.combat-mode .metric[data-filter="ALERT"] .metric-value{ animation:threatFlash 1.8s infinite; color:var(--amber); }
+
+    #app,#map{ position:absolute; inset:0; }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+    body.combat-mode .panel{ border-color:rgba(255,107,107,.20); }
+
+    /* ── TOPBAR ── */
+    .topbar{
+      position:absolute;
+      z-index:40;
+      top:10px; left:12px; right:12px;
       display:grid;
-      place-items:center;
-      background:#02050b;
-      color:white;
-      font-family:Arial,sans-serif;
-      text-align:center;
-      padding:20px;
+      grid-template-columns:auto 1fr auto;
+      gap:10px;
+      pointer-events:none;
     }
-    .box{
-      border:1px solid #1e3d5c;
-      background:#07121e;
-      border-radius:16px;
-      padding:32px;
-      max-width:700px;
+    .topbar > *{ pointer-events:auto; }
+
+    /* Brand — single horizontal row */
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:7px 14px;
+      white-space:nowrap;
     }
-    a{color:#7cc4ff;text-decoration:none}
+    .brand-logo{
+      width:32px; height:32px;
+      object-fit:contain;
+      flex-shrink:0;
+      transition:filter .25s, transform .25s;
+    }
+    .brand:hover .brand-logo{
+      filter:drop-shadow(0 0 8px rgba(94,234,212,.9)) drop-shadow(0 0 20px rgba(94,234,212,.5));
+      transform:scale(1.08);
+    }
+    .brand:hover .brand-name{ color:var(--teal); }
+    .brand:hover .brand-cop-title{ color:rgba(255,255,255,.95); }
+    .brand-vline{
+      width:1px; height:28px;
+      background:rgba(255,255,255,.12);
+      flex-shrink:0;
+    }
+    .brand-wordmark{ line-height:1; }
+    .brand-name{
+      font-size:12px; font-weight:900;
+      color:#fff; letter-spacing:.02em;
+    }
+    .brand-sub-text{
+      font-size:9px; font-weight:700;
+      color:var(--teal);
+      letter-spacing:.18em; text-transform:uppercase;
+      margin-top:2px;
+    }
+    .brand-vline2{
+      width:1px; height:28px;
+      background:rgba(255,255,255,.08);
+      flex-shrink:0;
+    }
+    .brand-cop{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .brand-cop-kicker{
+      font-size:9px; font-weight:700;
+      color:var(--blue2); letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .brand-cop-title{
+      font-size:14px; font-weight:900;
+      background:linear-gradient(90deg,#e8f4ff,#8fd1ff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+
+    /* Summary metrics */
+    .summary{
+      padding:6px 10px;
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:8px;
+      align-items:stretch;
+    }
+    .metric{
+      padding:6px 9px;
+      border-radius:10px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.05);
+      cursor:pointer;
+    }
+    .metric:hover{ border-color:rgba(99,183,255,.35); background:rgba(99,183,255,.08); }
+    .metric-label{ font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+    .metric-value{ margin-top:2px; font-size:20px; font-weight:900; }
+
+    /* Control panel — single row of controls */
+    .control-panel{
+      padding:0 6px;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      overflow:visible;
+    }
+    .ctrl-section{ display:flex; flex-direction:column; gap:5px; }
+    .ctrl-label{ font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; }
+
+    .mode-row{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:800; }
+    .mode-dot{
+      width:9px; height:9px; border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 8px rgba(76,226,138,.5);
+      transition:all .3s;
+    }
+    body.combat-mode .mode-dot.combat-dot{ background:var(--red); box-shadow:0 0 8px rgba(255,107,107,.5); }
+
+    .switch{
+      position:relative; width:46px; height:26px;
+      border-radius:999px; background:#102133;
+      border:1px solid rgba(255,255,255,.08); cursor:pointer;
+    }
+    .switch::after{
+      content:""; position:absolute;
+      top:2px; left:2px; width:20px; height:20px;
+      border-radius:50%; background:#fff; transition:.18s ease;
+    }
+    .switch.active{ background:#123524; border-color:rgba(76,226,138,.35); }
+    .switch.active::after{ left:22px; }
+
+    .ctrl-divider{ width:1px; height:36px; background:rgba(255,255,255,.07); flex-shrink:0; }
+
+    .time-buttons{ display:flex; gap:6px; }
+    .time-btn{
+      padding:5px 9px; border-radius:8px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#0f1c2b; color:var(--text);
+      font-size:11px; font-weight:800; cursor:pointer;
+    }
+    .time-btn.active{ background:rgba(99,183,255,.14); border-color:rgba(99,183,255,.45); }
+
+    /* Zulu clock */
+    /* Zulu clock — compact inline */
+    .zulu{
+      display:flex; flex-direction:column; align-items:center; gap:1px;
+      padding:5px 10px;
+      border-radius:8px;
+      border-left:1px solid rgba(255,255,255,.08);
+      font-family:"Courier New",monospace;
+      font-size:18px; font-weight:900;
+      color:var(--teal); letter-spacing:.05em;
+      line-height:1;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+    .zulu-label{
+      font-size:10px; font-weight:700; letter-spacing:.18em;
+      text-transform:uppercase; color:rgba(94,234,212,.5);
+    }
+
+
+    /* ── PACKAGES PANEL (beside sidebar, stacks above timeline) ── */
+    .pkgpanel{
+      position:absolute; z-index:30;
+      left:380px;
+      width:260px;
+      max-height:420px;
+      display:flex; flex-direction:column;
+      overflow:hidden;
+      transition:max-height .25s cubic-bezier(.4,0,.2,1), bottom .25s;
+    }
+    .pkgpanel.minimized{ max-height:44px; }
+    .pkgpanel.minimized .pkgpanel-body{ display:none; }
+
+
+    /* ── DETAIL PANEL DRAG HANDLE (left edge) ── */
+    #detailDragHandle{
+      position:absolute; z-index:55;
+      top:0; bottom:0; right:0;
+      width:8px;
+      cursor:ew-resize;
+      background:transparent;
+      transition:background .15s;
+    }
+    #detailDragHandle:hover,
+    #detailDragHandle.dragging{
+      background:rgba(94,234,212,.18);
+      border-radius:4px;
+    }
+    #detailDragHandle::after{
+      content:'';
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      width:3px; height:40px; border-radius:2px;
+      background:rgba(94,234,212,.4);
+    }
+
+    /* ── PANELS (top anchored to --th) ── */
+    :root{ --tlh:156px; --detail-w:348px; }
+    .sidebar{
+      position:absolute; z-index:30;
+      top:calc(var(--th) + 44px); left:12px; bottom:var(--tlh);
+      width:360px; overflow:auto;
+    }
+    .detail{
+      position:absolute; z-index:30;
+      top:calc(var(--th) + 44px); right:12px; bottom:var(--tlh);
+      width:var(--detail-w); overflow:hidden;
+      display:flex; flex-direction:column;
+      transition:width .1s ease;
+    }
+    .detail.minimized{
+      width:42px;
+      overflow:hidden;
+    }
+    .detail.minimized .detail-body,
+    .detail.minimized .detail-tab-bar{ display:none; }
+    .detail-tab-bar{
+      display:flex; gap:0;
+      border-bottom:1px solid rgba(255,255,255,.07);
+      background:rgba(11,23,36,.95);
+      flex-shrink:0;
+    }
+    .detail-tab{
+      padding:7px 13px; font-size:10px; font-weight:900;
+      text-transform:uppercase; letter-spacing:.08em;
+      color:var(--muted); cursor:pointer; border:none;
+      background:none; border-bottom:2px solid transparent;
+      transition:all .14s; white-space:nowrap;
+    }
+    .detail-tab.active{ color:#fff; border-bottom-color:var(--teal); }
+    .detail-tab:hover:not(.active){ color:var(--blue2); }
+    .detail-body{ flex:1; overflow:auto; }
+    /* Panel head for detail — compact */
+    .detail .panel-head{
+      flex-shrink:0;
+    }
+    /* Queue + Alerts sit above timeline on right side */
+    .alerts{
+      position:absolute; z-index:30;
+      right:384px; width:322px;
+      max-height:220px;
+      display:flex; flex-direction:column;
+      overflow:hidden;
+      transition:max-height .25s cubic-bezier(.4,0,.2,1), bottom .25s;
+    }
+    .alerts.minimized{ max-height:44px; }
+    .alerts.minimized .alerts-body{ display:none; }
+    .queue{
+      position:absolute; z-index:30;
+      right:384px; width:322px;
+      max-height:320px;
+      display:flex; flex-direction:column;
+      overflow:hidden;
+      transition:max-height .25s cubic-bezier(.4,0,.2,1), bottom .25s;
+    }
+    .queue.minimized{ max-height:44px; }
+    .queue.minimized .queue-body{ display:none; }
+    /* panel-head for collapsible panels */
+    .collapsible-head{
+      flex-shrink:0; display:flex; align-items:center;
+      justify-content:space-between; gap:6px;
+      padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06);
+      background:rgba(11,23,36,.98);
+    }
+    .collapse-btn{
+      width:20px; height:20px; border-radius:5px; flex-shrink:0;
+      border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04);
+      color:var(--muted); font-size:12px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      padding:0; line-height:1; transition:color .15s;
+    }
+    .collapse-btn:hover{ color:#fff; }
+
+    .panel-head{
+      position:sticky; top:0; z-index:2;
+      padding:12px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:rgba(11,23,36,.98);
+    }
+    .panel-title{ font-size:16px; font-weight:900; }
+    .panel-sub{ margin-top:3px; font-size:11px; color:var(--muted); line-height:1.45; }
+
+    .section{ padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.05); }
+    .section-title{
+      margin-bottom:9px; font-size:11px; font-weight:900;
+      color:var(--blue2); text-transform:uppercase; letter-spacing:.1em;
+    }
+
+    select{
+      width:100%; padding:8px 10px;
+      border-radius:9px; border:1px solid rgba(255,255,255,.08);
+      background:#0f1c2b; color:var(--text); outline:none; font-size:12px;
+    }
+    .chip-row{ display:flex; flex-wrap:wrap; gap:6px; }
+    .chip{
+      padding:6px 9px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#0f1c2b; color:var(--text);
+      font-size:11px; font-weight:700; cursor:pointer;
+    }
+    .chip.active{ background:rgba(99,183,255,.14); border-color:rgba(99,183,255,.45); }
+    body.combat-mode .chip.active{ background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.45); }
+
+    .mini-list,.stack{ display:grid; gap:7px; }
+    .mini-card,.stack-card,.package-card{
+      padding:9px 11px; border-radius:11px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.05);
+      cursor:pointer;
+    }
+    .mini-card:hover,.stack-card:hover,.package-card:hover{
+      border-color:rgba(99,183,255,.35); background:rgba(99,183,255,.08);
+    }
+    .mini-top{ display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:3px; }
+    .mini-name{ font-size:12px; font-weight:800; }
+    .mini-meta{ font-size:11px; color:var(--muted); line-height:1.45; }
+
+    .status{ display:inline-flex; gap:5px; align-items:center; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+    .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+    .status-ready .dot{ background:var(--green); box-shadow:0 0 6px rgba(76,226,138,.5); }
+    .status-alert .dot{ background:var(--amber); box-shadow:0 0 6px rgba(255,200,87,.5); }
+    .status-maint .dot{ background:var(--red); box-shadow:0 0 6px rgba(255,107,107,.5); }
+
+    .pill{
+      display:inline-flex; align-items:center;
+      padding:3px 7px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      font-size:9px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+    }
+    .pill-auto-on{ background:rgba(76,226,138,.10); color:#dfffea; border-color:rgba(76,226,138,.25); }
+    .pill-auto-off{ background:rgba(255,107,107,.10); color:#ffd9d9; border-color:rgba(255,107,107,.25); }
+
+    /* fuel bar */
+    .fuel-bar-wrap{ margin-top:8px; }
+    .fuel-bar-labels{ display:flex; justify-content:space-between; font-size:9px; color:var(--muted); margin-bottom:3px; font-family:monospace; }
+    .fuel-bar-bg{ height:4px; border-radius:999px; background:rgba(255,255,255,.07); overflow:hidden; }
+    .fuel-bar-fill{ height:100%; border-radius:999px; transition:width .4s; }
+    .fuel-ok .fuel-bar-fill{ background:linear-gradient(90deg,var(--green),#6effc0); }
+    .fuel-warn .fuel-bar-fill{ background:linear-gradient(90deg,var(--amber),#ffe080); }
+    .fuel-crit .fuel-bar-fill{ background:linear-gradient(90deg,var(--red),#ff9090); }
+
+    /* detail */
+    .detail-empty{ padding:16px 14px; color:var(--muted); line-height:1.55; font-size:12px; }
+    .detail-block{ padding:14px; border-bottom:1px solid rgba(255,255,255,.05); }
+    .detail-name{ font-size:22px; font-weight:900; line-height:1.05; }
+    .detail-type{ margin-top:5px; color:var(--blue2); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+    .detail-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:12px; }
+    .detail-stat{ padding:9px 10px; border-radius:10px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.05); }
+    .detail-stat-label{ font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    .detail-stat-value{ margin-top:3px; font-size:14px; font-weight:900; line-height:1.3; }
+
+    .actions{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .action{
+      padding:9px 10px; border-radius:10px; text-align:center;
+      background:linear-gradient(180deg,rgba(99,183,255,.22),rgba(99,183,255,.10));
+      border:1px solid rgba(99,183,255,.35); color:#fff;
+      font-weight:800; font-size:11px; cursor:pointer; user-select:none;
+    }
+    .action:hover{ background:rgba(99,183,255,.25); }
+    body.combat-mode .action{ background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.30); }
+
+    .list{ margin:0; padding-left:16px; line-height:1.55; font-size:11px; }
+    .severity{
+      padding:3px 7px; border-radius:999px;
+      font-size:9px; font-weight:900; letter-spacing:.1em; text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .sev-low{ background:rgba(94,234,212,.10); color:#b9fff7; border-color:rgba(94,234,212,.22); }
+    .sev-med{ background:rgba(255,200,87,.10); color:#ffe7a7; border-color:rgba(255,200,87,.22); }
+    .sev-high{ background:rgba(255,107,107,.10); color:#ffd4d4; border-color:rgba(255,107,107,.22); }
+
+    /* ── TIMELINE ── */
+    /* ── TIMELINE: resizable + minimizable ── */
+    :root{ --tl-h:148px; }
+    .timeline{
+      position:absolute; z-index:30;
+      left:12px; right:12px; bottom:8px;
+      height:var(--tl-h);
+      display:grid; grid-template-columns:180px 1fr; overflow:hidden;
+      transition:height .2s cubic-bezier(.4,0,.2,1);
+    }
+    .timeline.minimized{ height:38px !important; }
+    .timeline.minimized .timeline-body{ display:none; }
+    /* Drag handle — sits above timeline */
+    #timelineDragHandle{
+      position:absolute; z-index:31;
+      left:12px; right:12px;
+      bottom:calc(var(--tl-h) + 8px);
+      height:8px; cursor:ns-resize;
+      display:flex; align-items:center; justify-content:center;
+    }
+    #timelineDragHandle::after{
+      content:"";
+      width:40px; height:3px; border-radius:2px;
+      background:rgba(99,183,255,.25);
+      transition:background .15s;
+    }
+    #timelineDragHandle:hover::after{ background:rgba(99,183,255,.65); }
+    .timeline.minimized ~ #timelineDragHandle,
+    .timeline.minimized + #timelineDragHandle{ display:none; }
+    .timeline-head{
+      padding:8px 12px; border-right:1px solid rgba(255,255,255,.06);
+      display:flex; flex-direction:column; gap:3px;
+      min-height:0; overflow:hidden;
+    }
+    .timeline-title{ font-size:13px; font-weight:900; }
+    .timeline-sub{ font-size:10px; color:var(--muted); }
+    .timeline-legend{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+    .tl-key{ display:flex; align-items:center; gap:3px; font-size:9px; color:var(--muted); white-space:nowrap; }
+    .tl-dot{ width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+
+    .timeline-body{
+      position:relative; padding:0;
+      overflow:scroll; /* both axes */
+      scrollbar-width:thin;
+      scrollbar-color:rgba(99,183,255,.25) transparent;
+    }
+    .timeline-inner{ position:relative; min-width:1200px; padding:6px 10px 6px; }
+    .timeline-grid{
+      position:absolute; inset:0 10px; top:22px;
+      display:grid; grid-template-columns:repeat(12,1fr); pointer-events:none;
+    }
+    .timeline-grid > div{ border-left:1px solid rgba(255,255,255,.05); position:relative; }
+    .timeline-grid > div:first-child{ border-left:none; }
+    .timeline-grid span{ position:absolute; top:-18px; left:6px; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .timeline-hour-row{ height:18px; display:flex; align-items:center; padding:0 10px; border-bottom:1px solid rgba(255,255,255,.04); }
+    .timeline-hour-label{ font-size:9px; color:rgba(99,183,255,.5); min-width:1200px; }
+    .timeline-lanes{ position:relative; z-index:2; display:grid; gap:5px; padding-top:22px; }
+    .timeline-row{
+      position:relative; height:15px;
+      border-radius:999px; background:rgba(255,255,255,.02);
+    }
+    .timeline-bar{
+      position:absolute; top:0; height:16px; line-height:16px;
+      border-radius:999px; padding:0 7px; font-size:9px; font-weight:800;
+      overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+      cursor:pointer; color:#05111c;
+    }
+    .timeline-bar.ready{ background:#7ee787; }
+    .timeline-bar.alert{ background:#ffd166; }
+    .timeline-bar.maint{ background:#ff8a65; }
+    .timeline-bar.isr{ background:#b388ff; color:#fff; }
+    .timeline-bar.aewc{ background:#5eead4; color:#05111c; }
+    .timeline-bar.tanker{ background:#fcd34d; color:#05111c; }
+    .timeline-bar.sof{ background:#ff9ecb; color:#05111c; }
+
+    /* ── NOTIFICATION ── */
+    .notification{
+      position:absolute; left:50%; z-index:80;
+      top:calc(var(--th) + 10px);
+      transform:translateX(-50%);
+      padding:8px 13px; border-radius:10px;
+      background:rgba(8,18,30,.96); border:1px solid rgba(99,183,255,.28);
+      color:#f0f7ff; box-shadow:var(--shadow);
+      font-size:12px; font-weight:700;
+      opacity:0; pointer-events:none; transition:opacity .18s ease;
+      white-space:nowrap;
+    }
+    .notification.show{ opacity:1; }
+
+    /* ── 3D INSPECTOR ── */
+    .aircraft-inspector{
+      position:absolute; inset:0; z-index:120;
+      background:rgba(4,10,18,.84); backdrop-filter:blur(8px);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .aircraft-inspector.hidden{ display:none; }
+    .inspector-shell{
+      width:min(1480px,calc(100vw - 40px));
+      height:min(840px,calc(100vh - 40px));
+      border-radius:18px; border:1px solid rgba(99,183,255,.22);
+      background:rgba(7,16,27,.96); box-shadow:0 20px 60px rgba(0,0,0,.45);
+      overflow:hidden; display:grid; grid-template-rows:64px 1fr;
+    }
+    .inspector-topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .inspector-kicker{ font-size:10px; text-transform:uppercase; letter-spacing:.14em; color:#8fd1ff; font-weight:900; }
+    .inspector-title{ margin-top:3px; font-size:22px; font-weight:900; color:#eef6ff; }
+    .inspector-controls{ display:flex; gap:8px; }
+    .inspector-btn{
+      border:1px solid rgba(99,183,255,.25); background:rgba(99,183,255,.10);
+      color:#eef6ff; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer; font-size:12px;
+    }
+    .inspector-main{ display:grid; grid-template-columns:1fr 300px; min-height:0; }
+    .inspector-canvas-wrap{
+      position:relative;
+      background:radial-gradient(circle at 50% 20%,rgba(99,183,255,.08),transparent 35%),
+        linear-gradient(180deg,#08111b 0%,#050b12 100%);
+    }
+    #aircraft3DCanvas{ width:100%; height:100%; display:block; }
+    .inspector-side{
+      border-left:1px solid rgba(255,255,255,.06);
+      background:rgba(10,18,28,.96); padding:14px; overflow:auto;
+    }
+    .inspector-block{
+      margin-bottom:14px; padding:12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.05); background:rgba(255,255,255,.03);
+    }
+    .inspector-block-title{ margin-bottom:8px; font-size:11px; font-weight:900; color:#8fd1ff; text-transform:uppercase; letter-spacing:.1em; }
+
+    /* maplibre popup */
+    .maplibregl-popup-content{
+      background:#0d1724; color:#eef5ff;
+      border:1px solid rgba(99,183,255,.25); border-radius:11px;
+      padding:10px 12px; box-shadow:0 12px 28px rgba(0,0,0,.35);
+      font-family:Inter,sans-serif;
+    }
+    .maplibregl-popup-tip{ border-top-color:#0d1724 !important; border-bottom-color:#0d1724 !important; }
+
+    ::-webkit-scrollbar{ width:4px; height:4px; }
+    ::-webkit-scrollbar-track{ background:transparent; }
+    ::-webkit-scrollbar-thumb{ background:rgba(99,183,255,.2); border-radius:2px; }
+
+    @media (max-width:1820px){ .queue,.alerts{ display:none; } }
+    @media (max-width:1400px){
+      .topbar{ grid-template-columns:auto 1fr; }
+      .control-panel{ grid-column:1/-1; }
+    }
+    @media (max-width:1100px){
+      .sidebar{ width:272px; } .detail{ width:300px; }
+      .inspector-main{ grid-template-columns:1fr; }
+      .inspector-side{ display:none; }
+    }
+
+
+    /* ── SUBBAR: slim strip below topbar for map layer ── */
+    #subbar{
+      position:absolute; z-index:38;
+      left:12px; right:12px;
+      top:calc(var(--th) + 6px);   /* sits flush just below topbar */
+      height:28px;
+      display:flex; align-items:center; gap:6px;
+      pointer-events:none;
+    }
+    #subbar > *{ pointer-events:auto; }
+    .subbar-label{
+      font-size:9px; font-weight:900; letter-spacing:.18em;
+      text-transform:uppercase; color:rgba(99,183,255,.4);
+      white-space:nowrap;
+    }
+    .style-btn{
+      padding:3px 9px; border-radius:6px;
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(8,16,27,.78); backdrop-filter:blur(4px);
+      color:rgba(255,255,255,.35); font-size:10px; font-weight:800;
+      cursor:pointer; text-transform:uppercase; letter-spacing:.06em;
+      transition:all .14s; height:22px;
+    }
+    .style-btn:hover{ border-color:rgba(99,183,255,.3); color:var(--blue2); }
+    .style-btn.active{ background:rgba(99,183,255,.12); border-color:rgba(99,183,255,.38); color:rgba(99,183,255,.9); }
+    body.combat-mode .style-btn.active{ background:rgba(255,60,60,.12); border-color:rgba(255,60,60,.38); color:rgba(255,100,100,.9); }
+
+
+    /* Dark map filter for non-satellite layers */
+    /* Dark (default) — desaturated blue-night */
+    #map canvas{ filter:brightness(.50) saturate(.28) hue-rotate(195deg); transition:filter .4s; }
+    body.combat-mode #map canvas{ filter:brightness(.45) saturate(.4) hue-rotate(340deg) contrast(1.08); }
+    /* OSM — full colour, no filter */
+    body.osm-mode #map canvas{ filter:none; }
+    /* Satellite — slight contrast boost */
+    body.satellite-mode #map canvas{ filter:brightness(.78) saturate(.92) contrast(1.06); }
+    /* Terrain / Topo — slight desaturation to blend with UI */
+    body.terrain-mode #map canvas{ filter:brightness(.60) saturate(.55) hue-rotate(5deg); }
+
+
+    /* ── KEYBOARD SHORTCUTS OVERLAY ── */
+    .shortcuts-overlay{
+      position:absolute; inset:0; z-index:200;
+      background:rgba(4,10,18,.82); backdrop-filter:blur(6px);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .shortcuts-overlay.hidden{ display:none; }
+    .shortcuts-panel{
+      width:460px; border-radius:16px;
+      border:1px solid rgba(99,183,255,.22);
+      background:rgba(8,17,28,.97);
+      padding:20px 22px;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .shortcuts-title{
+      font-size:16px; font-weight:900; margin-bottom:14px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .shortcuts-grid{
+      display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    }
+    .shortcut-row{
+      display:flex; align-items:center; gap:10px;
+      padding:7px 9px; border-radius:8px;
+      background:rgba(255,255,255,.03);
+    }
+    kbd{
+      display:inline-flex; align-items:center; justify-content:center;
+      min-width:24px; height:22px; padding:0 5px;
+      border-radius:5px; border:1px solid rgba(255,255,255,.15);
+      background:rgba(255,255,255,.07); font-family:monospace;
+      font-size:11px; font-weight:700; color:#c8d8f0; flex-shrink:0;
+    }
+    .shortcut-desc{ font-size:11px; color:var(--muted); }
+
+
+    /* ── Recommendation cards ── */
+    .rec-card{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.06);
+      border-left:3px solid var(--teal);
+      background:rgba(255,255,255,.03);
+      margin-bottom:7px;
+      transition:background .15s;
+    }
+    .rec-card:hover{ background:rgba(255,255,255,.055); }
+    .rec-btn{
+      padding:4px 10px; border-radius:6px; font-size:10px; font-weight:800;
+      cursor:pointer; letter-spacing:.04em; border:1px solid transparent;
+      transition:all .12s; white-space:nowrap;
+    }
+    .rec-btn-primary{
+      background:rgba(94,234,212,.15); border-color:rgba(94,234,212,.35);
+      color:var(--teal);
+    }
+    .rec-btn-primary:hover{ background:rgba(94,234,212,.28); }
+    .rec-btn-secondary{
+      background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.10);
+      color:var(--muted);
+    }
+    .rec-btn-secondary:hover{ color:#fff; border-color:rgba(255,255,255,.25); }
+    .rec-btn-ghost{
+      background:none; border-color:rgba(99,183,255,.2);
+      color:var(--blue2);
+    }
+    .rec-btn-ghost:hover{ border-color:rgba(99,183,255,.5); }
+
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Console in Development</h1>
-    <p>This domain environment is being built.</p>
-    <p><a href="index.html">Return to Futures Gateway</a></p>
+<div id="app">
+  <div id="map"></div>
+  <div id="notification" class="notification"></div>
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+
+    <!-- BRAND (single row) -->
+    <a href="https://futures.astronetix.us" target="_blank" rel="noopener" class="panel brand" style="text-decoration:none;color:inherit;">
+      <img class="brand-logo" src="https://futures.astronetix.us/logo.png" alt="Astronetix" />
+      <div class="brand-wordmark">
+        <div class="brand-name">Astronetix</div>
+        <div class="brand-sub-text">Futures Platform</div>
+      </div>
+      <div class="brand-vline"></div>
+      <div class="brand-cop">
+        <div class="brand-cop-kicker">Air Domain · EUCOM</div>
+        <div class="brand-cop-title">European Air COP</div>
+      </div>
+    </a>
+
+    <!-- METRICS -->
+    <div class="panel summary">
+      <div class="metric" data-filter="ALL"><div class="metric-label">Tracked</div><div id="metric-total" class="metric-value">0</div></div>
+      <div class="metric" data-filter="READY"><div class="metric-label">Ready</div><div id="metric-ready" class="metric-value">0</div></div>
+      <div class="metric" data-filter="ALERT"><div class="metric-label">Alert</div><div id="metric-alert" class="metric-value">0</div></div>
+      <div class="metric" data-filter="MAINT"><div class="metric-label">Maint</div><div id="metric-maint" class="metric-value">0</div></div>
+      <div class="metric"><div class="metric-label">Avg Fuel</div><div id="metric-fuel" class="metric-value">0%</div></div>
+      <div class="metric"><div class="metric-label">Alerts</div><div id="metric-alerts" class="metric-value">0</div></div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="panel control-panel">
+      <div class="ctrl-section">
+        <div class="ctrl-label">Mode</div>
+        <div class="mode-row">
+          <span class="mode-dot combat-dot" id="combatDot"></span>
+          <span id="modeLabel">Peacetime</span>
+          <div id="combatSwitch" class="switch"></div>
+        </div>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="ctrl-section">
+        <div class="ctrl-label">Automation</div>
+        <div class="mode-row">
+          <span class="mode-dot" style="background:var(--teal);box-shadow:0 0 8px rgba(94,234,212,.5)"></span>
+          <span id="automationLabel">On</span>
+          <div id="automationSwitch" class="switch active"></div>
+        </div>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="ctrl-section">
+        <div class="ctrl-label">Time</div>
+        <div class="time-buttons">
+          <button class="time-btn active" data-speed="1">Real</button>
+          <button class="time-btn" data-speed="10">10x</button>
+          <button class="time-btn" data-speed="60">60x</button>
+          <button class="time-btn" data-speed="replay">↩</button>
+        </div>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="zulu" id="zuluClock">
+        <span class="zulu-label">ZULU</span>
+        <span id="zuluTime">J000 00:00Z</span>
+      </div>
+      <button onclick="document.getElementById('shortcutsOverlay').classList.remove('hidden')"
+        style="flex-shrink:0;width:20px;height:20px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0;margin-right:6px;"
+        title="Keyboard shortcuts (?)">?</button>
+    </div>
   </div>
+
+
+
+  <!-- ── SUBBAR: map layer buttons ── -->
+  <div id="subbar">
+    <div id="styleBar" style="display:flex;gap:5px;">
+      <button class="style-btn" data-style="dark">Dark</button>
+      <button class="style-btn active" data-style="osm">OSM</button>
+      <button class="style-btn" data-style="satellite">Satellite</button>
+      <button class="style-btn" data-style="terrain">Terrain</button>
+    </div>
+  </div>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="panel sidebar">
+    <div class="panel-head">
+      <div class="panel-title">Control Stack</div>
+      <div class="panel-sub">603 AOC · Filter · Packages · Aircraft</div>
+    </div>
+
+    <!-- ── COMMAND SELECTOR (above everything) ── -->
+    <div class="section" style="padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);">
+      <div class="section-title">Command</div>
+      <select id="ccmdFilter">
+        <option value="ALL">All Commands</option>
+        <option value="EUCOM" selected>EUCOM</option>
+        <option value="GLOBAL">Global / STRATCOM</option>
+      </select>
+    </div>
+
+    <!-- ── 603 AOC STATUS — TOP SECTION ── -->
+    <div class="section" id="aocSection" style="background:rgba(94,234,212,.03);border-bottom:1px solid rgba(94,234,212,.1);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div class="section-title" style="margin-bottom:1px;color:var(--teal);">603 AOC — RAMSTEIN</div>
+          <div style="font-size:9px;color:var(--muted);">USAFE-AFAFRICA · Air Operations Center</div>
+        </div>
+        <button onclick="openAocDetail()" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(94,234,212,.35);background:rgba(94,234,212,.1);color:var(--teal);font-size:9px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;">Full Status</button>
+      </div>
+
+      <!-- Op + Threat status row -->
+      <div id="aocOpStrip" style="margin-bottom:9px;"></div>
+
+      <!-- JREAP A/B/C inline table -->
+      <div style="font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">JICO Data Links</div>
+      <div style="display:flex;flex-direction:column;gap:4px;" id="jreapStrip"></div>
+    </div>
+
+    <!-- ── FILTERS ── -->
+    <div class="section">
+      <div class="section-title">Function</div>
+      <div id="functionChips" class="chip-row">
+        <button class="chip active" data-function="ALL">All</button>
+        <button class="chip" data-function="Fighter">Fighter</button>
+        <button class="chip" data-function="Bomber">Bomber</button>
+        <button class="chip" data-function="ISR">ISR</button>
+        <button class="chip" data-function="Tanker">Tanker</button>
+        <button class="chip" data-function="Cargo">Cargo</button>
+        <button class="chip" data-function="AEW&C">AEW&amp;C</button>
+        <button class="chip" data-function="SOF">SOF</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Status</div>
+      <div id="statusChips" class="chip-row">
+        <button class="chip active" data-status="ALL">All</button>
+        <button class="chip" data-status="READY">Ready</button>
+        <button class="chip" data-status="ALERT">Alert</button>
+        <button class="chip" data-status="MAINT">Maint</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Aircraft</div>
+      <div id="aircraftList" class="mini-list"></div>
+    </div>
+  </aside>
+
+  <!-- ── PACKAGES PANEL (beside sidebar) ── -->
+  <aside class="panel pkgpanel" id="pkgPanel">
+    <div class="collapsible-head">
+      <div>
+        <div class="panel-title" style="font-size:13px;">Mission Packages</div>
+        <div class="panel-sub" style="font-size:10px;">Active packages &amp; composition</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span id="pkgBadge" style="display:none;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:900;background:rgba(94,234,212,.18);border:1px solid rgba(94,234,212,.3);color:var(--teal);">0</span>
+        <button class="collapse-btn" id="pkgCollapseBtn" title="Collapse">▾</button>
+      </div>
+    </div>
+    <div class="pkgpanel-body section" style="flex:1;overflow:auto;padding:8px 10px;">
+      <div id="packageListAlt" class="stack"></div>
+    </div>
+  </aside>
+
+  <!-- ── QUEUE / ALERTS ── -->
+  <aside class="panel queue" id="queuePanel">
+    <div class="collapsible-head">
+      <div>
+        <div class="panel-title" style="font-size:14px;">Recommendations</div>
+        <div class="panel-sub" style="font-size:10px;">Automation suggestions</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span id="queueBadge" style="display:none;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:900;background:rgba(94,234,212,.18);border:1px solid rgba(94,234,212,.3);color:var(--teal);">0</span>
+        <button class="collapse-btn" id="queueCollapseBtn" title="Collapse">▾</button>
+      </div>
+    </div>
+    <div class="queue-body section" style="flex:1;overflow:auto;padding:10px 12px;">
+      <div id="taskQueue" class="stack"></div>
+    </div>
+  </aside>
+  <aside class="panel alerts" id="alertsPanel">
+    <div class="collapsible-head">
+      <div>
+        <div class="panel-title" style="font-size:14px;">Alerts</div>
+        <div class="panel-sub" style="font-size:10px;">Fuel · crew · posture · packages</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span id="alertsBadge" style="display:none;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:900;background:rgba(255,100,100,.18);border:1px solid rgba(255,100,100,.3);color:#ff8080;">0</span>
+        <button class="collapse-btn" id="alertsCollapseBtn" title="Collapse">▾</button>
+      </div>
+    </div>
+    <div class="alerts-body section" style="flex:1;overflow:auto;padding:10px 12px;">
+      <div id="alertsList" class="stack"></div>
+    </div>
+  </aside>
+
+  <!-- ── DETAIL ── -->
+  <aside class="panel detail" id="detailPanel">
+    <!-- Header row with title + minimize button -->
+    <div class="panel-head" style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:9px 12px 8px;">
+      <div id="detailPanelTitle" style="font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Details</div>
+      <div style="display:flex;gap:5px;flex-shrink:0;">
+        <button id="detailMinBtn" title="Minimize"
+          style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">◁</button>
+      </div>
+    </div>
+    <!-- Tab bar -->
+    <div class="detail-tab-bar">
+      <button class="detail-tab active" data-tab="detail">Details</button>
+      <button class="detail-tab" data-tab="sitrep">SITREP</button>
+      <button class="detail-tab" data-tab="intel">Intel</button>
+    </div>
+    <!-- Body -->
+    <div class="detail-body">
+      <!-- Details tab -->
+      <div id="tabDetail" class="detail-tab-pane">
+        <div id="detailContent" class="detail-empty">Click an aircraft, package, or recommendation to inspect.</div>
+      </div>
+      <!-- SITREP tab -->
+      <div id="tabSitrep" class="detail-tab-pane" style="display:none;">
+        <div id="sitrepContent" class="detail-empty">Generating situation report…</div>
+        <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,.05);">
+          <button onclick="generateSitrep()" style="width:100%;padding:8px;border-radius:9px;border:1px solid rgba(99,183,255,.3);background:rgba(99,183,255,.1);color:var(--blue2);font-size:11px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;">⟳ Refresh SITREP</button>
+        </div>
+      </div>
+      <!-- Intel tab -->
+      <div id="tabIntel" class="detail-tab-pane" style="display:none;">
+        <div id="intelContent"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── DETAIL DRAG HANDLE ── -->
+  <div id="detailDragHandle" title="Drag to resize detail panel"></div>
+  <!-- ── TIMELINE DRAG HANDLE ── -->
+  <div id="timelineDragHandle"></div>
+
+  <!-- ── TIMELINE ── -->
+  <div class="panel timeline">
+    <div class="timeline-head">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+        <div>
+          <div class="timeline-title">Activity Timeline</div>
+          <div class="timeline-sub" id="timelineSub">12-hr rolling strip · scroll →</div>
+        </div>
+        <button id="timelineToggle" title="Minimize / Expand"
+          style="flex-shrink:0;width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin-top:1px;"
+        >▾</button>
+      </div>
+      <div class="timeline-legend" id="timelineLegend">
+        <div class="tl-key"><div class="tl-dot" style="background:#7ee787"></div>Ready</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#ffd166"></div>Alert</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#ff8a65"></div>Maint</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#b388ff"></div>ISR</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#5eead4"></div>AEW&amp;C</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#fcd34d"></div>Tanker</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#ff9ecb"></div>SOF</div>
+      </div>
+    </div>
+    <div class="timeline-body" id="timelineScroll">
+      <div class="timeline-inner">
+        <div id="timelineGrid" class="timeline-grid"></div>
+        <div id="timelineLanes" class="timeline-lanes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3D INSPECTOR ── -->
+  <div id="aircraftInspector" class="aircraft-inspector hidden">
+    <div class="inspector-shell">
+      <div class="inspector-topbar">
+        <div>
+          <div class="inspector-kicker">Aircraft Inspector — 3D View</div>
+          <div id="inspectorTitle" class="inspector-title">No Aircraft Selected</div>
+        </div>
+        <div class="inspector-controls">
+          <button id="modeFlightBtn" class="inspector-btn">✈ Flight</button>
+          <button id="modeTarmacBtn" class="inspector-btn">🛬 Tarmac</button>
+          <button id="closeInspectorBtn" class="inspector-btn">✕ Close</button>
+        </div>
+      </div>
+      <div class="inspector-main">
+        <div class="inspector-canvas-wrap">
+          <canvas id="aircraft3DCanvas"></canvas>
+        </div>
+        <aside class="inspector-side">
+          <div class="inspector-block"><div class="inspector-block-title">State</div><div id="inspectorState"></div></div>
+          <div class="inspector-block"><div class="inspector-block-title">Automation</div><div id="inspectorAutomation"></div></div>
+          <div class="inspector-block"><div class="inspector-block-title">Loadout</div><div id="inspectorLoadout"></div></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- KEYBOARD SHORTCUTS OVERLAY -->
+  <div class="shortcuts-overlay hidden" id="shortcutsOverlay">
+    <div class="shortcuts-panel">
+      <div class="shortcuts-title">
+        <span>⌨ Keyboard Shortcuts</span>
+        <button onclick="document.getElementById('shortcutsOverlay').classList.add('hidden')"
+          style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-row"><kbd>?</kbd><span class="shortcut-desc">Toggle this overlay</span></div>
+        <div class="shortcut-row"><kbd>C</kbd><span class="shortcut-desc">Toggle combat mode</span></div>
+        <div class="shortcut-row"><kbd>A</kbd><span class="shortcut-desc">Toggle automation</span></div>
+        <div class="shortcut-row"><kbd>M</kbd><span class="shortcut-desc">Cycle map layer</span></div>
+        <div class="shortcut-row"><kbd>T</kbd><span class="shortcut-desc">Toggle timeline</span></div>
+        <div class="shortcut-row"><kbd>Esc</kbd><span class="shortcut-desc">Close inspector / clear</span></div>
+        <div class="shortcut-row"><kbd>1</kbd><span class="shortcut-desc">Real-time speed</span></div>
+        <div class="shortcut-row"><kbd>2</kbd><span class="shortcut-desc">10× speed</span></div>
+        <div class="shortcut-row"><kbd>3</kbd><span class="shortcut-desc">60× speed</span></div>
+        <div class="shortcut-row"><kbd>R</kbd><span class="shortcut-desc">Replay reset</span></div>
+        <div class="shortcut-row"><kbd>F</kbd><span class="shortcut-desc">Filter: Fighter</span></div>
+        <div class="shortcut-row"><kbd>I</kbd><span class="shortcut-desc">Filter: ISR</span></div>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:rgba(99,183,255,.45);text-align:center;">Press any key to dismiss</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+/* ═══ MODEL LIBRARY ═══════════════════════════════════════════════════════ */
+const MODEL_LIBRARY={
+  "F-35A":  {glb:"./models/f35a.glb",  scale:1.0},
+  "F-16CM": {glb:"./models/f16.glb",   scale:1.0},
+  "KC-135R":{glb:"./models/kc135.glb", scale:1.0},
+  "KC-46A": {glb:"./models/kc46.glb",  scale:1.0},
+  "C-17A":  {glb:"./models/c17.glb",   scale:1.0},
+  "C-130J": {glb:"./models/c130j.glb", scale:1.0},
+  "MQ-9A":  {glb:"./models/mq9.glb",   scale:1.0},
+  "RQ-4B":  {glb:"./models/rq4.glb",   scale:1.0},
+  "E-3G":   {glb:"./models/e3.glb",    scale:1.0},
+  "B-52H":  {glb:"./models/b52.glb",   scale:1.0},
+  "F-15E":  {glb:"./models/f15e.glb",  scale:1.0},
+  "RC-135V":{glb:"./models/rc135.glb", scale:1.0},
+  "P-8A":   {glb:"./models/p8.glb",    scale:1.0},
+  "MC-130J":{glb:"./models/mc130j.glb",scale:1.0},
+  "CV-22B": {glb:"./models/cv22.glb",  scale:1.0},
+  "C-21A":  {glb:"./models/c21a.glb",  scale:1.0}
+};
+
+/* ═══ DATA ═══════════════════════════════════════════════════════════════ */
+const BASES=[
+  {id:"ramstein",    name:"Ramstein AB",    country:"Germany",        ccmd:"EUCOM", coords:[7.6003,49.4369], role:"Mobility / C2 Hub"},
+  {id:"spangdahlem", name:"Spangdahlem AB", country:"Germany",        ccmd:"EUCOM", coords:[6.6925,49.9727], role:"Fighter"},
+  {id:"lakenheath",  name:"RAF Lakenheath", country:"United Kingdom", ccmd:"EUCOM", coords:[0.561,52.409],   role:"Fighter"},
+  {id:"mildenhall",  name:"RAF Mildenhall", country:"United Kingdom", ccmd:"EUCOM", coords:[0.4864,52.3619], role:"Tanker"},
+  {id:"aviano",      name:"Aviano AB",      country:"Italy",          ccmd:"EUCOM", coords:[12.596,46.031],  role:"Fighter"},
+  {id:"sigonella",   name:"NAS Sigonella",  country:"Italy",          ccmd:"EUCOM", coords:[14.9224,37.4108],role:"ISR"},
+  {id:"souda",       name:"NSA Souda Bay",  country:"Greece",         ccmd:"EUCOM", coords:[24.1497,35.5317],role:"Support"},
+  {id:"incirlik",    name:"Incirlik AB",    country:"Turkey",         ccmd:"EUCOM", coords:[35.4259,37.0019],role:"Tanker / AEW"},
+  {id:"lask",        name:"32 BLT Łask",       country:"Poland",         ccmd:"EUCOM", coords:[18.80,51.55], role:"Forward Fighter"},
+  {id:"kogalniceanu",name:"86 AB Kogălniceanu", country:"Romania",        ccmd:"EUCOM", coords:[28.49,44.36], role:"Forward ISR/Tanker"},
+  {id:"keflavik",    name:"NAS Keflavik",       country:"Iceland",        ccmd:"EUCOM", coords:[-22.62,63.99],role:"ASW / Maritime"},
+  {id:"lajes",       name:"Lajes Field",         country:"Portugal(Azores)",ccmd:"EUCOM",coords:[-27.09,38.76],role:"Tanker / Relay"},
+  {id:"decimomannu", name:"Decimomannu AB",      country:"Italy",          ccmd:"EUCOM", coords:[8.97,39.35],  role:"Fighter / OCA"},
+  {id:"larissa",     name:"Larissa AB",           country:"Greece",         ccmd:"EUCOM", coords:[22.46,39.65], role:"Fighter / Support"},
+  {id:"aoc603",      name:"603 AOC / Ramstein",   country:"Germany",        ccmd:"EUCOM", coords:[7.6003,49.4369],role:"Air Operations Center"}
+];
+
+const AIRCRAFT=[
+  {id:"A01",cs:"VIPER 11",type:"F-35A",  tail:"21-1043",fn:"Fighter",ccmd:"EUCOM",base:"lakenheath", status:"READY",fuel:84,auto:true, crew:true, health:"Nominal",    mission:"North Sea CAP",    pkg:"PKG-ALPHA",  loadout:["2x AIM-120","2x AIM-9X","2x GBU-53/B"],route:[[0.561,52.409],[2.4,54.2],[4.1,55.1],[2.7,54.3],[0.561,52.409]],rp:.18,rs:.006,tb:{s:1,e:4,l:"CAP"},trail:[]},
+  {id:"A02",cs:"VIPER 12",type:"F-35A",  tail:"20-1021",fn:"Fighter",ccmd:"EUCOM",base:"lakenheath", status:"READY",fuel:78,auto:true, crew:true, health:"Nominal",    mission:"Barrier Patrol",   pkg:"PKG-ALPHA",  loadout:["2x AIM-120","2x AIM-9X"],                route:[[0.561,52.409],[1.9,53.2],[3.0,54.0],[2.1,53.4],[0.561,52.409]],rp:.44,rs:.005,tb:{s:3,e:6,l:"Barrier"},trail:[]},
+  {id:"A03",cs:"VIPER 13",type:"F-35A",  tail:"19-1008",fn:"Fighter",ccmd:"EUCOM",base:"lakenheath", status:"ALERT", fuel:92,auto:true, crew:true, health:"Nominal",    mission:"QRA Pad",          pkg:"PKG-ALPHA",  loadout:["2x AIM-120","2x AIM-9X"],                route:null,rp:0,rs:0,tb:{s:0,e:2,l:"QRA"},trail:[]},
+  {id:"A04",cs:"SABRE 21",type:"F-15E",  tail:"88-1671",fn:"Fighter",ccmd:"EUCOM",base:"lakenheath", status:"READY",fuel:81,auto:true, crew:true, health:"Nominal",    mission:"Strike Training",  pkg:"PKG-ALPHA",  loadout:["2x AIM-120","2x JDAM","1x LANTIRN"],     route:[[0.561,52.409],[0.9,51.5],[2.0,50.8],[1.0,51.6],[0.561,52.409]],rp:.22,rs:.005,tb:{s:4,e:7,l:"Strike"},trail:[]},
+  {id:"A05",cs:"FALCON 31",type:"F-16CM", tail:"91-0350",fn:"Fighter",ccmd:"EUCOM",base:"spangdahlem",status:"READY",fuel:71,auto:true, crew:true, health:"Nominal",    mission:"Baltic Patrol",    pkg:"PKG-BRAVO",  loadout:["2x AIM-120","2x AIM-9X","2x HARM"],      route:[[6.6925,49.9727],[12.2,54.1],[18.0,57.2],[12.6,54.7],[6.6925,49.9727]],rp:.34,rs:.005,tb:{s:2,e:6,l:"Patrol"},trail:[]},
+  {id:"A06",cs:"FALCON 32",type:"F-16CM", tail:"89-2033",fn:"Fighter",ccmd:"EUCOM",base:"spangdahlem",status:"ALERT", fuel:95,auto:true, crew:true, health:"Nominal",    mission:"Alert Pad",        pkg:"PKG-BRAVO",  loadout:["2x AIM-120","2x HARM"],                  route:null,rp:0,rs:0,tb:{s:0,e:3,l:"Alert"},trail:[]},
+  {id:"A07",cs:"RAZOR 41",type:"F-16CM", tail:"90-0704",fn:"Fighter",ccmd:"EUCOM",base:"aviano",      status:"MAINT", fuel:29,auto:false,crew:true, health:"Maintenance",mission:"Hydraulic Repair", pkg:"PKG-CHARLIE",loadout:["None"],                                  route:null,rp:0,rs:0,tb:{s:3,e:9,l:"Maint"},trail:[]},
+  {id:"A08",cs:"SHELL 51",type:"KC-135R",tail:"63-8877",fn:"Tanker", ccmd:"EUCOM",base:"mildenhall",  status:"READY",fuel:88,auto:true, crew:true, health:"Nominal",    mission:"North Sea AAR",    pkg:"PKG-ALPHA",  loadout:["Boom Config"],                           route:[[0.4864,52.3619],[1.8,54.2],[3.8,55.2],[2.0,54.5],[0.4864,52.3619]],rp:.37,rs:.004,tb:{s:1,e:5,l:"AAR"},trail:[]},
+  {id:"A09",cs:"SHELL 52",type:"KC-135R",tail:"58-0023",fn:"Tanker", ccmd:"EUCOM",base:"mildenhall",  status:"ALERT", fuel:93,auto:true, crew:true, health:"Nominal",    mission:"Reserve Tanker",   pkg:"PKG-ALPHA",  loadout:["Boom Config"],                           route:null,rp:0,rs:0,tb:{s:0,e:3,l:"Reserve"},trail:[]},
+  {id:"A10",cs:"DAGGER 61",type:"MC-130J",tail:"11-5731",fn:"SOF",    ccmd:"EUCOM",base:"mildenhall",  status:"READY",fuel:75,auto:true, crew:true, health:"Nominal",    mission:"SOF Support",      pkg:"PKG-SOF",    loadout:["SOF Mission Kit"],                        route:[[0.4864,52.3619],[1.0,50.5],[2.5,49.0],[1.0,50.5],[0.4864,52.3619]],rp:.35,rs:.004,tb:{s:6,e:9,l:"SOF"},trail:[]},
+  {id:"A11",cs:"REACH 71",type:"C-17A",  tail:"07-7181",fn:"Cargo",  ccmd:"EUCOM",base:"ramstein",    status:"READY",fuel:63,auto:true, crew:true, health:"Nominal",    mission:"Lift to Souda",    pkg:"PKG-LOG1",   loadout:["Heavy Cargo"],                            route:[[7.6003,49.4369],[12.4,45.7],[18.5,40.4],[24.1497,35.5317],[18.5,40.4],[7.6003,49.4369]],rp:.24,rs:.0035,tb:{s:2,e:8,l:"Lift"},trail:[]},
+  {id:"A12",cs:"REACH 72",type:"C-130J", tail:"08-8602",fn:"Cargo",  ccmd:"EUCOM",base:"ramstein",    status:"READY",fuel:72,auto:true, crew:true, health:"Nominal",    mission:"Theater Lift",     pkg:"PKG-LOG1",   loadout:["Cargo Pallets"],                          route:[[7.6003,49.4369],[10.0,48.0],[13.0,47.5],[10.0,48.0],[7.6003,49.4369]],rp:.22,rs:.0035,tb:{s:1,e:4,l:"Lift"},trail:[]},
+  {id:"A13",cs:"STALKER 81",type:"MQ-9A",  tail:"09-4062",fn:"ISR",    ccmd:"EUCOM",base:"sigonella",   status:"READY",fuel:82,auto:true, crew:true, health:"Nominal",    mission:"Central Med ISR",  pkg:"PKG-CHARLIE",loadout:["EO/IR","SIGINT Pod"],                    route:[[14.9224,37.4108],[18.0,36.8],[21.5,36.1],[18.6,36.5],[14.9224,37.4108]],rp:.54,rs:.004,tb:{s:1,e:7,l:"ISR"},trail:[]},
+  {id:"A14",cs:"STALKER 82",type:"MQ-9A",  tail:"12-5005",fn:"ISR",    ccmd:"EUCOM",base:"sigonella",   status:"READY",fuel:21,auto:true, crew:true, health:"Low Fuel",   mission:"Maritime Watch",   pkg:"PKG-CHARLIE",loadout:["EO/IR","SAR"],                            route:[[14.9224,37.4108],[18.6,36.4],[24.1497,35.5317],[18.6,36.4],[14.9224,37.4108]],rp:.42,rs:.004,tb:{s:0,e:4,l:"Watch"},trail:[]},
+  {id:"A15",cs:"GHOST 91",type:"RQ-4B",  tail:"04-2018",fn:"ISR",    ccmd:"EUCOM",base:"sigonella",   status:"READY",fuel:56,auto:true, crew:true, health:"Nominal",    mission:"Wide Area ISR",    pkg:"PKG-ECHO",   loadout:["Radar","EO/IR"],                          route:[[14.9224,37.4108],[20.0,39.1],[27.0,40.0],[23.5,38.3],[14.9224,37.4108]],rp:.71,rs:.003,tb:{s:3,e:11,l:"WAI"},trail:[]},
+  {id:"A16",cs:"SPECTRE 92",type:"RC-135V",tail:"64-14844",fn:"ISR",   ccmd:"EUCOM",base:"sigonella",   status:"READY",fuel:85,auto:true, crew:true, health:"Nominal",    mission:"SIGINT Collection",pkg:"PKG-ECHO",   loadout:["SIGINT Suite"],                           route:[[14.9224,37.4108],[18.0,37.8],[22.0,38.2],[18.0,37.8],[14.9224,37.4108]],rp:.45,rs:.003,tb:{s:8,e:11,l:"SIGINT"},trail:[]},
+  {id:"A17",cs:"DARKSTAR 01",type:"E-3G",   tail:"75-0558",fn:"AEW&C",  ccmd:"EUCOM",base:"incirlik",    status:"READY",fuel:79,auto:true, crew:true, health:"Nominal",    mission:"Air Picture",      pkg:"PKG-BRAVO",  loadout:["Radar Battle Mgmt"],                      route:[[35.4259,37.0019],[31.0,36.8],[27.5,36.5],[31.0,36.8],[35.4259,37.0019]],rp:.42,rs:.0035,tb:{s:1,e:8,l:"Air Pic"},trail:[]},
+  {id:"A18",cs:"ARCO 11",type:"KC-135R",tail:"60-0329",fn:"Tanker", ccmd:"EUCOM",base:"incirlik",    status:"READY",fuel:84,auto:true, crew:true, health:"Nominal",    mission:"Eastern Med AAR",  pkg:"PKG-BRAVO",  loadout:["Boom Config"],                            route:[[35.4259,37.0019],[32.0,36.3],[28.0,35.9],[32.0,36.3],[35.4259,37.0019]],rp:.21,rs:.004,tb:{s:2,e:6,l:"AAR"},trail:[]},
+  {id:"A19",cs:"SHADOW 21",type:"P-8A",   tail:"17-0136",fn:"ISR",    ccmd:"EUCOM",base:"souda",       status:"READY",fuel:74,auto:true, crew:true, health:"Nominal",    mission:"Maritime Patrol",  pkg:"PKG-ECHO",   loadout:["Maritime Sensors"],                       route:[[24.1497,35.5317],[22.0,35.2],[19.0,35.0],[22.0,35.2],[24.1497,35.5317]],rp:.49,rs:.004,tb:{s:2,e:7,l:"MPR"},trail:[]},
+  {id:"A20",cs:"BONE 31",type:"B-52H",  tail:"60-0007",fn:"Bomber", ccmd:"GLOBAL",base:"ramstein",   status:"ALERT", fuel:94,auto:true, crew:true, health:"Nominal",    mission:"Bomber Presence",  pkg:"PKG-THUNDER",loadout:["JASSM-ER Profile"],                       route:null,rp:0,rs:0,tb:{s:0,e:3,l:"Presence"},trail:[]},
+
+  // ── Łask (Poland — Fwd Deployed Fighters) ──────────────────────────────
+  {id:"A21",cs:"BOXER 11",type:"F-16CM", tail:"92-3880",fn:"Fighter",ccmd:"EUCOM",base:"lask",         status:"READY",fuel:88,auto:true, crew:true, health:"Nominal",    mission:"Eastern CAP",        pkg:"PKG-BRAVO",  loadout:["2x AIM-120","2x AIM-9X","2x JDAM"],    route:[[18.80,51.55],[22.0,53.0],[24.5,54.2],[22.0,53.2],[18.80,51.55]],rp:.12,rs:.006,tb:{s:0,e:4,l:"E-CAP"},trail:[]},
+  {id:"A22",cs:"BOXER 12",type:"F-16CM", tail:"93-0538",fn:"Fighter",ccmd:"EUCOM",base:"lask",         status:"ALERT", fuel:96,auto:true, crew:true, health:"Nominal",    mission:"QRA Poland",          pkg:"PKG-BRAVO",  loadout:["2x AIM-120","2x AIM-9X"],              route:null,rp:0,rs:0,tb:{s:0,e:2,l:"QRA"},trail:[]},
+  {id:"A23",cs:"EAGLE 21",type:"F-15E",  tail:"90-0232",fn:"Fighter",ccmd:"EUCOM",base:"lask",         status:"READY",fuel:77,auto:true, crew:true, health:"Nominal",    mission:"SEAD Sweep",          pkg:"PKG-BRAVO",  loadout:["2x AIM-120","4x HARM","LANTIRN"],      route:[[18.80,51.55],[23.0,52.5],[26.5,51.8],[23.0,52.2],[18.80,51.55]],rp:.29,rs:.005,tb:{s:2,e:6,l:"SEAD"},trail:[]},
+  {id:"A24",cs:"RAPTOR 31",type:"F-35A",  tail:"15-5108",fn:"Fighter",ccmd:"EUCOM",base:"lask",         status:"READY",fuel:65,auto:true, crew:true, health:"Nominal",    mission:"Stealth OCA",         pkg:"PKG-BRAVO",  loadout:["2x AIM-120","2x GBU-53/B"],            route:[[18.80,51.55],[21.5,51.0],[24.0,50.5],[21.5,51.2],[18.80,51.55]],rp:.55,rs:.005,tb:{s:4,e:8,l:"OCA"},trail:[]},
+  {id:"A25",cs:"RAPTOR 32",type:"F-35A",  tail:"15-5113",fn:"Fighter",ccmd:"EUCOM",base:"lask",         status:"MAINT", fuel:41,auto:false,crew:true, health:"Engine Diag",mission:"Engine Check",         pkg:"PKG-BRAVO",  loadout:["None"],                                route:null,rp:0,rs:0,tb:{s:6,e:11,l:"Maint"},trail:[]},
+
+  // ── Kogălniceanu (Romania — ISR / Tanker Hub) ────────────────────────────
+  {id:"A26",cs:"REAPER 41",type:"MQ-9A",  tail:"14-4249",fn:"ISR",    ccmd:"EUCOM",base:"kogalniceanu", status:"READY",fuel:79,auto:true, crew:true, health:"Nominal",    mission:"Black Sea ISR",       pkg:"PKG-ECHO",   loadout:["EO/IR","SIGINT Pod"],                  route:[[28.49,44.36],[31.0,44.0],[33.5,43.2],[31.0,43.8],[28.49,44.36]],rp:.37,rs:.004,tb:{s:1,e:7,l:"ISR"},trail:[]},
+  {id:"A27",cs:"REAPER 42",type:"MQ-9A",  tail:"16-4280",fn:"ISR",    ccmd:"EUCOM",base:"kogalniceanu", status:"READY",fuel:88,auto:true, crew:true, health:"Nominal",    mission:"Danube Corridor ISR",  pkg:"PKG-ECHO",   loadout:["EO/IR","SAR"],                         route:[[28.49,44.36],[30.0,45.5],[28.0,46.2],[26.0,45.0],[28.49,44.36]],rp:.19,rs:.004,tb:{s:0,e:5,l:"ISR"},trail:[]},
+  {id:"A28",cs:"TEXACO 51",type:"KC-135R",tail:"62-3537",fn:"Tanker", ccmd:"EUCOM",base:"kogalniceanu", status:"READY",fuel:91,auto:true, crew:true, health:"Nominal",    mission:"Eastern AAR",          pkg:"PKG-BRAVO",  loadout:["Boom Config"],                         route:[[28.49,44.36],[27.5,46.0],[25.5,47.0],[27.5,46.0],[28.49,44.36]],rp:.25,rs:.004,tb:{s:2,e:7,l:"AAR"},trail:[]},
+  {id:"A29",cs:"ATLAS 61",type:"C-17A",  tail:"09-9209",fn:"Cargo",  ccmd:"EUCOM",base:"kogalniceanu", status:"READY",fuel:67,auto:true, crew:true, health:"Nominal",    mission:"Romania Sustainment",  pkg:"PKG-LOG1",   loadout:["Heavy Cargo"],                         route:[[28.49,44.36],[24.1497,35.5317],[28.49,44.36]],rp:.18,rs:.0035,tb:{s:3,e:9,l:"Sust"},trail:[]},
+  {id:"A30",cs:"HAWK 71",type:"F-16CM", tail:"94-0043",fn:"Fighter",ccmd:"EUCOM",base:"kogalniceanu", status:"ALERT", fuel:97,auto:true, crew:true, health:"Nominal",    mission:"QRA Romania",          pkg:"PKG-BRAVO",  loadout:["2x AIM-120","2x AIM-9X"],              route:null,rp:0,rs:0,tb:{s:0,e:2,l:"QRA"},trail:[]},
+
+  // ── Keflavik (Iceland — ASW / North Atlantic) ────────────────────────────
+  {id:"A31",cs:"NEPTUNE 11",type:"P-8A",   tail:"16-8993",fn:"ISR",    ccmd:"EUCOM",base:"keflavik",     status:"READY",fuel:82,auto:true, crew:true, health:"Nominal",    mission:"N. Atlantic ASW",      pkg:"PKG-ECHO",   loadout:["Sonobuoys","MAD","Harpoon"],           route:[[-22.62,63.99],[-25.0,62.0],[-28.0,60.5],[-25.0,62.0],[-22.62,63.99]],rp:.28,rs:.004,tb:{s:1,e:7,l:"ASW"},trail:[]},
+  {id:"A32",cs:"NEPTUNE 12",type:"P-8A",   tail:"18-0124",fn:"ISR",    ccmd:"EUCOM",base:"keflavik",     status:"READY",fuel:71,auto:true, crew:true, health:"Nominal",    mission:"GIUK Gap Patrol",       pkg:"PKG-ECHO",   loadout:["Sonobuoys","MAD"],                     route:[[-22.62,63.99],[-18.0,64.5],[-12.0,65.0],[-18.0,64.5],[-22.62,63.99]],rp:.44,rs:.004,tb:{s:4,e:9,l:"GIUK"},trail:[]},
+  {id:"A33",cs:"SENTRY 21",type:"E-3G",   tail:"78-0576",fn:"AEW&C",  ccmd:"EUCOM",base:"keflavik",     status:"READY",fuel:86,auto:true, crew:true, health:"Nominal",    mission:"North Atlantic AEW",    pkg:"PKG-ECHO",   loadout:["Radar Battle Mgmt"],                   route:[[-22.62,63.99],[-18.0,62.5],[-14.0,61.5],[-18.0,62.5],[-22.62,63.99]],rp:.21,rs:.0035,tb:{s:0,e:8,l:"AEW"},trail:[]},
+  {id:"A34",cs:"PETRO 31",type:"KC-135R",tail:"59-1441",fn:"Tanker", ccmd:"EUCOM",base:"keflavik",     status:"READY",fuel:92,auto:true, crew:true, health:"Nominal",    mission:"Atlantic AAR Relay",    pkg:"PKG-LOG1",   loadout:["Boom Config"],                         route:[[-22.62,63.99],[-25.0,62.5],[-22.62,63.99]],rp:.15,rs:.004,tb:{s:2,e:6,l:"AAR"},trail:[]},
+  {id:"A35",cs:"FROST 41",type:"F-15C",  tail:"84-0027",fn:"Fighter",ccmd:"EUCOM",base:"keflavik",     status:"ALERT", fuel:95,auto:true, crew:true, health:"Nominal",    mission:"Iceland QRA",           pkg:"PKG-ALPHA",  loadout:["4x AIM-120","2x AIM-9X"],              route:null,rp:0,rs:0,tb:{s:0,e:3,l:"QRA"},trail:[]},
+
+  // ── Lajes (Azores — Tanker / Trans-Atlantic Relay) ────────────────────────
+  {id:"A36",cs:"BOOM 11",type:"KC-135R",tail:"57-1511",fn:"Tanker", ccmd:"EUCOM",base:"lajes",        status:"READY",fuel:89,auto:true, crew:true, health:"Nominal",    mission:"Trans-Atlantic Relay",  pkg:"PKG-LOG1",   loadout:["Boom Config"],                         route:[[-27.09,38.76],[-24.0,38.5],[-20.0,38.0],[-24.0,38.5],[-27.09,38.76]],rp:.32,rs:.004,tb:{s:0,e:6,l:"Relay"},trail:[]},
+  {id:"A37",cs:"BOOM 12",type:"KC-46A", tail:"19-46069",fn:"Tanker",ccmd:"EUCOM",base:"lajes",        status:"READY",fuel:87,auto:true, crew:true, health:"Nominal",    mission:"Boom Tanker Azores",    pkg:"PKG-LOG1",   loadout:["Boom/Drogue Config"],                  route:[[-27.09,38.76],[-23.5,37.8],[-27.09,38.76]],rp:.12,rs:.004,tb:{s:3,e:8,l:"AAR"},trail:[]},
+  {id:"A38",cs:"CONDOR 21",type:"C-17A",  tail:"10-0216",fn:"Cargo",  ccmd:"EUCOM",base:"lajes",        status:"READY",fuel:74,auto:true, crew:true, health:"Nominal",    mission:"Azores Staging Lift",   pkg:"PKG-LOG1",   loadout:["Heavy Cargo"],                         route:[[-27.09,38.76],[-9.14,38.77],[-27.09,38.76]],rp:.45,rs:.0035,tb:{s:2,e:9,l:"Lift"},trail:[]},
+  {id:"A39",cs:"TRITON 31",type:"P-8A",   tail:"19-0143",fn:"ISR",    ccmd:"EUCOM",base:"lajes",        status:"READY",fuel:66,auto:true, crew:true, health:"Nominal",    mission:"Mid-Atlantic MPR",      pkg:"PKG-ECHO",   loadout:["Maritime Sensors","MAD"],              route:[[-27.09,38.76],[-30.0,39.5],[-33.0,40.0],[-30.0,39.5],[-27.09,38.76]],rp:.55,rs:.004,tb:{s:1,e:7,l:"MPR"},trail:[]},
+  {id:"A40",cs:"SERPENT 41",type:"MC-130J",tail:"12-5742",fn:"SOF",    ccmd:"EUCOM",base:"lajes",        status:"READY",fuel:78,auto:true, crew:true, health:"Nominal",    mission:"SOF Insertion Relay",   pkg:"PKG-SOF",    loadout:["SOF Mission Kit"],                      route:[[-27.09,38.76],[-9.14,38.77],[-27.09,38.76]],rp:.08,rs:.004,tb:{s:7,e:11,l:"SOF"},trail:[]},
+
+  // ── Decimomannu (Italy — Fighter / Strike) ───────────────────────────────
+  {id:"A41",cs:"LANCER 11",type:"F-16CM", tail:"95-0060",fn:"Fighter",ccmd:"EUCOM",base:"decimomannu",  status:"READY",fuel:81,auto:true, crew:true, health:"Nominal",    mission:"Med CAP",               pkg:"PKG-CHARLIE",loadout:["2x AIM-120","2x AIM-9X"],              route:[[8.97,39.35],[10.5,38.0],[12.5,37.0],[10.5,38.0],[8.97,39.35]],rp:.22,rs:.005,tb:{s:1,e:5,l:"CAP"},trail:[]},
+  {id:"A42",cs:"LANCER 12",type:"F-16CM", tail:"96-0081",fn:"Fighter",ccmd:"EUCOM",base:"decimomannu",  status:"READY",fuel:68,auto:true, crew:true, health:"Nominal",    mission:"Strike Training",       pkg:"PKG-CHARLIE",loadout:["2x AIM-120","2x JDAM"],               route:[[8.97,39.35],[11.0,39.0],[13.0,38.5],[11.0,39.0],[8.97,39.35]],rp:.38,rs:.005,tb:{s:3,e:7,l:"Strike"},trail:[]},
+  {id:"A43",cs:"WARTHOG 21",type:"A-10C",  tail:"79-0211",fn:"Fighter",ccmd:"EUCOM",base:"decimomannu",  status:"READY",fuel:75,auto:true, crew:true, health:"Nominal",    mission:"CAS Training",          pkg:"PKG-CHARLIE",loadout:["GAU-8","Mk-82","AIM-9X"],             route:[[8.97,39.35],[9.8,39.8],[10.5,40.2],[9.8,39.8],[8.97,39.35]],rp:.14,rs:.005,tb:{s:2,e:6,l:"CAS"},trail:[]},
+  {id:"A44",cs:"WARTHOG 22",type:"A-10C",  tail:"80-0274",fn:"Fighter",ccmd:"EUCOM",base:"decimomannu",  status:"MAINT", fuel:33,auto:false,crew:true, health:"Avionics",   mission:"Avionics Repair",        pkg:"PKG-CHARLIE",loadout:["None"],                                route:null,rp:0,rs:0,tb:{s:4,e:10,l:"Maint"},trail:[]},
+  {id:"A45",cs:"PETRO 51",type:"KC-135R",tail:"61-0302",fn:"Tanker", ccmd:"EUCOM",base:"decimomannu",  status:"READY",fuel:93,auto:true, crew:true, health:"Nominal",    mission:"Med Tanker",            pkg:"PKG-CHARLIE",loadout:["Boom Config"],                         route:[[8.97,39.35],[12.0,38.5],[14.9224,37.4108],[12.0,38.5],[8.97,39.35]],rp:.28,rs:.004,tb:{s:0,e:5,l:"AAR"},trail:[]},
+
+  // ── Larissa (Greece — Southeastern Flank) ────────────────────────────────
+  {id:"A46",cs:"FURY 11",type:"F-16CM", tail:"97-0115",fn:"Fighter",ccmd:"EUCOM",base:"larissa",      status:"READY",fuel:84,auto:true, crew:true, health:"Nominal",    mission:"Aegean CAP",            pkg:"PKG-CHARLIE",loadout:["2x AIM-120","2x AIM-9X"],              route:[[22.46,39.65],[24.5,38.5],[26.0,37.8],[24.5,38.5],[22.46,39.65]],rp:.31,rs:.005,tb:{s:0,e:4,l:"CAP"},trail:[]},
+  {id:"A47",cs:"FURY 12",type:"F-16CM", tail:"98-0030",fn:"Fighter",ccmd:"EUCOM",base:"larissa",      status:"ALERT", fuel:97,auto:true, crew:true, health:"Nominal",    mission:"QRA Greece",            pkg:"PKG-CHARLIE",loadout:["2x AIM-120","2x AIM-9X"],              route:null,rp:0,rs:0,tb:{s:0,e:2,l:"QRA"},trail:[]},
+  {id:"A48",cs:"STRIKER 21",type:"F-15E",  tail:"91-0308",fn:"Fighter",ccmd:"EUCOM",base:"larissa",      status:"READY",fuel:72,auto:true, crew:true, health:"Nominal",    mission:"Strike Reserve",        pkg:"PKG-CHARLIE",loadout:["2x AIM-120","4x GBU-31","LANTIRN"],    route:[[22.46,39.65],[25.0,39.0],[27.5,38.5],[25.0,39.0],[22.46,39.65]],rp:.43,rs:.005,tb:{s:5,e:9,l:"Strike"},trail:[]},
+  {id:"A49",cs:"PHANTOM 31",type:"MQ-9A",  tail:"17-4325",fn:"ISR",    ccmd:"EUCOM",base:"larissa",      status:"READY",fuel:80,auto:true, crew:true, health:"Nominal",    mission:"Eastern Med ISR",       pkg:"PKG-ECHO",   loadout:["EO/IR","SIGINT Pod"],                  route:[[22.46,39.65],[26.0,38.0],[30.0,37.0],[26.0,38.0],[22.46,39.65]],rp:.60,rs:.004,tb:{s:2,e:8,l:"ISR"},trail:[]},
+  {id:"A50",cs:"MAGNET 41",type:"C-130J", tail:"13-5787",fn:"Cargo",  ccmd:"EUCOM",base:"larissa",      status:"READY",fuel:69,auto:true, crew:true, health:"Nominal",    mission:"Balkan Lift",           pkg:"PKG-LOG1",   loadout:["Cargo Pallets"],                        route:[[22.46,39.65],[20.0,40.5],[18.0,41.0],[20.0,40.5],[22.46,39.65]],rp:.16,rs:.0035,tb:{s:1,e:5,l:"Lift"},trail:[]},
+
+  // ── Aviano Surge (Italy — additional fighter frame) ──────────────────────
+  {id:"A51",cs:"THUNDER 11",type:"F-16CM", tail:"89-0143",fn:"Fighter",ccmd:"EUCOM",base:"aviano",       status:"READY",fuel:77,auto:true, crew:true, health:"Nominal",    mission:"Adriatic CAP",          pkg:"PKG-CHARLIE",loadout:["2x AIM-120","2x AIM-9X"],              route:[[12.596,46.031],[14.0,44.5],[16.0,43.0],[14.0,44.5],[12.596,46.031]],rp:.26,rs:.005,tb:{s:0,e:5,l:"CAP"},trail:[]},
+  {id:"A52",cs:"THUNDER 12",type:"F-16CM", tail:"90-0823",fn:"Fighter",ccmd:"EUCOM",base:"aviano",       status:"READY",fuel:83,auto:true, crew:true, health:"Nominal",    mission:"North Adriatic Patrol", pkg:"PKG-CHARLIE",loadout:["2x AIM-120","2x HARM"],               route:[[12.596,46.031],[13.5,45.2],[15.0,44.0],[13.5,45.2],[12.596,46.031]],rp:.17,rs:.005,tb:{s:3,e:7,l:"Patrol"},trail:[]},
+
+  // ── Ramstein Surge (Germany — additional C2 / Lift) ──────────────────────
+  {id:"A53",cs:"REACH 81",type:"C-17A",  tail:"06-6155",fn:"Cargo",  ccmd:"EUCOM",base:"ramstein",     status:"READY",fuel:59,auto:true, crew:true, health:"Nominal",    mission:"Central Europe Lift",   pkg:"PKG-LOG1",   loadout:["Heavy Cargo"],                         route:[[7.6003,49.4369],[18.80,51.55],[7.6003,49.4369]],rp:.38,rs:.0035,tb:{s:0,e:6,l:"Lift"},trail:[]},
+  {id:"A54",cs:"REACH 82",type:"C-130J", tail:"07-8612",fn:"Cargo",  ccmd:"EUCOM",base:"ramstein",     status:"READY",fuel:71,auto:true, crew:true, health:"Nominal",    mission:"Intra-Theater Shuttle", pkg:"PKG-LOG1",   loadout:["Cargo Pallets"],                        route:[[7.6003,49.4369],[14.9224,37.4108],[7.6003,49.4369]],rp:.22,rs:.0035,tb:{s:2,e:7,l:"Shuttle"},trail:[]},
+  {id:"A55",cs:"OVERLORD 01",type:"E-8C",   tail:"95-0121",fn:"AEW&C",  ccmd:"EUCOM",base:"ramstein",     status:"READY",fuel:81,auto:true, crew:true, health:"Nominal",    mission:"JSTARS Ground Surv",    pkg:"PKG-BRAVO",  loadout:["JSTARS Radar Suite"],                  route:[[7.6003,49.4369],[14.0,50.0],[20.0,51.0],[14.0,50.0],[7.6003,49.4369]],rp:.48,rs:.0035,tb:{s:1,e:9,l:"Surv"},trail:[]},
+  {id:"A56",cs:"ARCO 21",type:"KC-46A", tail:"18-46043",fn:"Tanker",ccmd:"EUCOM",base:"ramstein",     status:"READY",fuel:94,auto:true, crew:true, health:"Nominal",    mission:"Europe Tanker Hub",     pkg:"PKG-LOG1",   loadout:["Boom/Drogue Config"],                  route:[[7.6003,49.4369],[12.0,50.5],[18.80,51.55],[12.0,50.5],[7.6003,49.4369]],rp:.14,rs:.004,tb:{s:0,e:5,l:"AAR"},trail:[]},
+
+  // ── Lakenheath Surge (UK — additional strike) ─────────────────────────────
+  {id:"A57",cs:"VIPER 41",type:"F-35A",  tail:"16-5020",fn:"Fighter",ccmd:"EUCOM",base:"lakenheath",   status:"READY",fuel:76,auto:true, crew:true, health:"Nominal",    mission:"Long Range Strike",     pkg:"PKG-ALPHA",  loadout:["2x AIM-120","2x JASSM"],              route:[[0.561,52.409],[5.0,53.0],[10.0,54.5],[5.0,53.0],[0.561,52.409]],rp:.33,rs:.005,tb:{s:5,e:9,l:"Strike"},trail:[]},
+  {id:"A58",cs:"VIPER 42",type:"F-35A",  tail:"17-5028",fn:"Fighter",ccmd:"EUCOM",base:"lakenheath",   status:"READY",fuel:90,auto:true, crew:true, health:"Nominal",    mission:"North Sea OCA",         pkg:"PKG-ALPHA",  loadout:["2x AIM-120","2x GBU-53/B"],           route:[[0.561,52.409],[2.0,53.5],[4.5,55.0],[2.0,53.5],[0.561,52.409]],rp:.08,rs:.005,tb:{s:7,e:11,l:"OCA"},trail:[]},
+
+  // ── Spangdahlem Surge ───────────────────────────────────────────────────
+  {id:"A59",cs:"WARTHOG 31",type:"A-10C",  tail:"81-0988",fn:"Fighter",ccmd:"EUCOM",base:"spangdahlem",  status:"READY",fuel:72,auto:true, crew:true, health:"Nominal",    mission:"Central EU CAS",        pkg:"PKG-BRAVO",  loadout:["GAU-8","Mk-82","AIM-9X"],             route:[[6.6925,49.9727],[10.0,50.0],[13.0,50.2],[10.0,50.0],[6.6925,49.9727]],rp:.25,rs:.005,tb:{s:2,e:6,l:"CAS"},trail:[]},
+  {id:"A60",cs:"RAVEN 61",type:"RC-135W",tail:"62-4138",fn:"ISR",    ccmd:"EUCOM",base:"spangdahlem",  status:"READY",fuel:88,auto:true, crew:true, health:"Nominal",    mission:"Baltic SIGINT",         pkg:"PKG-ECHO",   loadout:["Cobra Ball SIGINT"],                   route:[[6.6925,49.9727],[12.0,53.0],[18.0,55.5],[12.0,53.0],[6.6925,49.9727]],rp:.36,rs:.003,tb:{s:3,e:10,l:"SIGINT"},trail:[]}
+];
+
+
+/* ═══ ENEMY THREAT DATA (shown in combat mode only) ════════════════════════ */
+const ENEMY_THREATS=[
+  // SAM Sites — Ukraine/Belarus region
+  {id:"E01",type:"SAM",name:"SA-21 GROWLER",    nation:"RU", coords:[30.52,50.45], radiusKm:400, color:"#ff2244", icon:"SAM", status:"ACTIVE",  threat:"HIGH",   detail:"S-400 site Kyiv region. Engagement range 400km."},
+  {id:"E02",type:"SAM",name:"SA-17 GRIZZLY",    nation:"RU", coords:[27.56,53.90], radiusKm:50,  color:"#ff6600", icon:"SAM", status:"ACTIVE",  threat:"MED",    detail:"SA-17 Buk-M2 Minsk suburb. Mobile unit."},
+  {id:"E03",type:"SAM",name:"SA-10 GRUMBLE",    nation:"RU", coords:[34.88,49.92], radiusKm:90,  color:"#ff2244", icon:"SAM", status:"ACTIVE",  threat:"HIGH",   detail:"S-300PM Kharkiv corridor. Air defense umbrella active."},
+  {id:"E04",type:"SAM",name:"SA-21 GROWLER",    nation:"RU", coords:[23.82,52.10], radiusKm:380, color:"#ff2244", icon:"SAM", status:"ACTIVE",  threat:"HIGH",   detail:"S-400 deployed western Belarus. Covers Warsaw approach."},
+  {id:"E05",type:"SAM",name:"SA-15 GAUNTLET",   nation:"RU", coords:[28.40,49.00], radiusKm:25,  color:"#ff6600", icon:"SAM", status:"SUSPECT", threat:"MED",    detail:"Tor-M2 unit south Ukraine. Suspected mobile battery."},
+  {id:"E06",type:"SAM",name:"SA-23 GLADIATOR",  nation:"RU", coords:[36.25,50.60], radiusKm:250, color:"#ff2244", icon:"SAM", status:"ACTIVE",  threat:"HIGH",   detail:"S-300V4 eastern Ukraine."},
+  // Enemy Aircraft
+  {id:"E07",type:"AC",  name:"Su-35S ×4",        nation:"RU", coords:[31.40,51.80], color:"#ff2244", icon:"ENEMY_AC", status:"AIRBORNE",threat:"HIGH",   detail:"4× Su-35S CAP over central Ukraine. Armed A2A.", route:[[31.40,51.80],[29.0,52.5],[27.5,51.9],[29.0,51.2],[31.40,51.80]], rp:.12, rs:.007, tb:{s:2,e:7,l:"CAP"}},
+  {id:"E08",type:"AC",  name:"Su-24M ×2",        nation:"RU", coords:[34.60,50.10], color:"#ff6600", icon:"ENEMY_AC", status:"AIRBORNE",threat:"MED",    detail:"Strike pair, low altitude track west Kharkiv.", route:[[34.60,50.10],[32.0,49.8],[30.0,49.5],[32.0,50.0],[34.60,50.10]], rp:.28, rs:.006, tb:{s:0,e:4,l:"Strike"}},
+  {id:"E09",type:"AC",  name:"Tu-95MS",          nation:"RU", coords:[37.80,54.20], color:"#ff2244", icon:"ENEMY_AC", status:"AIRBORNE",threat:"HIGH",   detail:"BEAR-H cruise missile carrier. ALCM profile active.", route:[[37.80,54.20],[33.0,52.0],[28.0,51.0],[24.0,52.0],[20.0,52.0]], rp:.05, rs:.003, tb:{s:1,e:9,l:"ALCM"}},
+  {id:"E10",type:"AC",  name:"Su-57 ×2",         nation:"RU", coords:[33.90,52.40], color:"#ff0066", icon:"ENEMY_AC", status:"AIRBORNE",threat:"HIGH",   detail:"VHF-LO stealth fighters. Potential 5th-gen penetrators.", route:[[33.90,52.40],[31.0,52.8],[29.0,53.2],[31.0,52.8],[33.90,52.40]], rp:.35, rs:.008, tb:{s:3,e:8,l:"Penetrate"}},
+  {id:"E11",type:"AC",  name:"A-50U MAINSTAY",   nation:"RU", coords:[30.20,55.40], color:"#ff6600", icon:"ENEMY_AEWC", status:"AIRBORNE",threat:"MED",  detail:"AEW&C over Belarus. Providing battle management picture.", route:[[30.20,55.40],[28.0,55.0],[26.0,54.8],[28.0,55.2],[30.20,55.40]], rp:.22, rs:.003, tb:{s:0,e:10,l:"AEW"}},
+  // IADS nodes
+  {id:"E12",type:"EW",  name:"EW SITE ZHUKOV",   nation:"RU", coords:[29.90,51.30], color:"#ffaa00", icon:"EW", status:"ACTIVE",  threat:"MED",    detail:"GPS/datalink jamming node. Radius ~200km."},
+  {id:"E13",type:"EW",  name:"EW SITE BRYANSK",  nation:"RU", coords:[34.40,53.30], color:"#ffaa00", icon:"EW", status:"ACTIVE",  threat:"MED",    detail:"Krasukha-4 broadband EW. Suppresses AWACS/JSTARS."},
+];
+
+// Forward bases (Poland / Romania) for friendly redeployment
+const FORWARD_BASES=[
+  {id:"lask",      name:"32 BLT Łask",     country:"Poland",  coords:[18.80,51.55], role:"Fighter Forward"},
+  {id:"malbork",   name:"22 BLT Malbork",  country:"Poland",  coords:[19.03,54.03], role:"Fighter Forward"},
+  {id:"fetesti",   name:"86 AB Fetești",   country:"Romania", coords:[27.72,44.37], role:"Fighter Forward"},
+  {id:"mihail_kog",name:"57 AB Mihail Kogălniceanu",country:"Romania",coords:[28.49,44.36],role:"ISR/Tanker Fwd"},
+];
+
+// Enemy icon SVGs
+const ENEMY_SVG={
+  SAM:`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="#ff2244" stroke-width="4"/><polygon points="32,6 38,24 56,24 42,35 48,53 32,42 16,53 22,35 8,24 26,24" fill="#ff2244"/></svg>`,
+  ENEMY_AC:`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g fill="#ff2244" stroke="#300010" stroke-width="2"><path d="M32 4 L44 28 H38 V58 H26 V28 H20 Z"/><rect x="22" y="32" width="20" height="7" rx="1"/></g><line x1="8" y1="8" x2="56" y2="56" stroke="#ff2244" stroke-width="3"/><line x1="56" y1="8" x2="8" y2="56" stroke="#ff2244" stroke-width="3"/></svg>`,
+  ENEMY_AEWC:`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g fill="#ff6600" stroke="#300010" stroke-width="2"><rect x="16" y="26" width="32" height="16" rx="5"/><ellipse cx="32" cy="20" rx="14" ry="5"/></g><line x1="8" y1="8" x2="56" y2="56" stroke="#ff2244" stroke-width="3"/><line x1="56" y1="8" x2="8" y2="56" stroke="#ff2244" stroke-width="3"/></svg>`,
+  EW:`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="22" y="22" width="20" height="20" rx="3" fill="#ffaa00" stroke="#300010" stroke-width="2"/><path d="M32 32 L14 14 M32 32 L50 14 M32 32 L50 50 M32 32 L14 50" stroke="#ffaa00" stroke-width="2.5" fill="none"/><circle cx="32" cy="32" r="5" fill="#fff200"/></svg>`
+};
+
+// Enemy threat state
+let enemyTrailState={};
+ENEMY_THREATS.forEach(e=>{ if(e.route) enemyTrailState[e.id]=[]; });
+
+
+const PACKAGES=[
+  {id:"PKG-ALPHA",  name:"Package ALPHA",   role:"North Sea Air Dominance",   members:["A01","A02","A03","A04","A08","A09"]},
+  {id:"PKG-BRAVO",  name:"Package BRAVO",   role:"Baltic Air Picture",        members:["A05","A06","A17","A18"]},
+  {id:"PKG-CHARLIE",name:"Package CHARLIE", role:"Central Med ISR",           members:["A07","A13","A14"]},
+  {id:"PKG-ECHO",   name:"Package ECHO",    role:"Wide Area ISR / Maritime",  members:["A15","A16","A19"]},
+  {id:"PKG-LOG1",   name:"Package LOG-1",   role:"Strategic Lift",            members:["A11","A12"]},
+  {id:"PKG-SOF",    name:"Package SOF",     role:"Special Operations",        members:["A10"]},
+  {id:"PKG-THUNDER",name:"Package THUNDER", role:"Bomber Presence",           members:["A20"]}
+];
+
+const COVERAGE_OBJECTS=[
+  {id:"COV-1",parent:"A17",radiusKm:420,color:"#4dd0e1"},
+  {id:"COV-2",parent:"A13",radiusKm:220,color:"#b388ff"},
+  {id:"COV-3",parent:"A15",radiusKm:300,color:"#b388ff"},
+  {id:"COV-4",parent:"A08",radiusKm:180,color:"#ffd166"}
+];
+
+const WEATHER_CELLS=[
+  {id:"WX-1",center:[2.0,54.6], radiusKm:180,drift:[ .004, .0006]},
+  {id:"WX-2",center:[20.5,36.4],radiusKm:120,drift:[-.003, .0007]},
+  {id:"WX-3",center:[17.0,44.0],radiusKm:160,drift:[ .002,-.0004]}
+];
+
+const FN_COLORS={Fighter:"#7cd7ff",Bomber:"#ff8a65",ISR:"#b388ff",Tanker:"#ffd166",Cargo:"#7ee787","AEW&C":"#4dd0e1",SOF:"#ff9ecb"};
+const STATUS_CLS={READY:"status-ready",ALERT:"status-alert",MAINT:"status-maint"};
+const ICON_SVG={
+  Fighter:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#7cd7ff" stroke="#082033" stroke-width="3"><path d="M36 6L49 32H42V64H30V32H23Z"/><rect x="24" y="36" width="24" height="8" rx="2"/></g></svg>`,
+  Bomber:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#ff8a65" stroke="#082033" stroke-width="3"><path d="M10 36L28 28L34 16H38L44 28L62 36L44 44L38 56H34L28 44Z"/></g></svg>`,
+  ISR:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#b388ff" stroke="#082033" stroke-width="3"><path d="M36 8L58 36L36 64L14 36Z"/><circle cx="36" cy="36" r="7" fill="#efe7ff"/></g></svg>`,
+  Tanker:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#ffd166" stroke="#082033" stroke-width="3"><path d="M16 24L56 24L48 36L56 48L16 48L24 36Z"/></g></svg>`,
+  Cargo:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#7ee787" stroke="#082033" stroke-width="3"><rect x="16" y="20" width="40" height="32" rx="5"/><rect x="28" y="10" width="16" height="12" rx="3"/></g></svg>`,
+  "AEW&C":`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#4dd0e1" stroke="#082033" stroke-width="3"><rect x="18" y="28" width="36" height="18" rx="6"/><ellipse cx="36" cy="22" rx="16" ry="6"/></g></svg>`,
+  SOF:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#ff9ecb" stroke="#082033" stroke-width="3"><path d="M20 44L36 16L52 44H44V58H28V44Z"/></g></svg>`
+};
+
+/* ═══ STATE ═══════════════════════════════════════════════════════════════ */
+let selCCMD="EUCOM", selFn="ALL", selStatus="ALL";
+let selAcId=null, selPkgId=null;
+let combatMode=false, autoMaster=true;
+let metricFilter="ALL";
+let timeMode="1", timeMul=1;
+let alertCtr=0, taskCtr=0;
+let alerts=[], tasks=[];
+
+/* ═══ HELPERS ═══════════════════════════════════════════════════════════════ */
+const getBase=id=>BASES.find(b=>b.id===id);
+const getAC=id=>AIRCRAFT.find(a=>a.id===id);
+
+/* ═══ 603 AIR OPERATIONS CENTER (AOC) — USAFE-AFAFRICA ═══════════════════ */
+const AOC_603 = {
+  unit: "603 Air Operations Center",
+  designation: "603 AOC",
+  parent: "USAFE-AFAFRICA",
+  location: "Ramstein AB, Germany",
+  classification: "SIM/UNCLASS",
+  mission: "Plan, task, and control air operations across the USAFE-AFAFRICA AOR",
+
+  // JICO — Joint Interface Control Officer (manages JREAP links)
+  jico: {
+    officer: "Lt Col J. Harrington",
+    position: "JICO",
+    watchStatus: "On Watch",
+  },
+
+  // JREAP Data Link Status (Joint Range Extension Application Protocol)
+  jreap: {
+    a: { label:"JREAP-A",  desc:"UDP/IP unicast — legacy Link 16 relay",       status:"DEGRADED", latencyMs:210, uptime:"97.1%",  nodes:4,  detail:"High latency on node 3 — packet loss 8%. Node 4 backup active." },
+    b: { label:"JREAP-B",  desc:"Broadcast — NATO TDL-22 multicast",           status:"UP",       latencyMs:42,  uptime:"99.8%",  nodes:8,  detail:"All nodes nominal. TDL-22 Format 1 active. STANAG 5602 compliant." },
+    c: { label:"JREAP-C",  desc:"TCP/IP point-to-point (primary TADIL J relay)",status:"UP",       latencyMs:18,  uptime:"99.97%", nodes:12, detail:"Primary link. Full TADIL J messages. Encryption KG-175D active." },
+  },
+
+  // AOC Division Status
+  divisions: [
+    { name:"Strategy Division (SD)",    abbr:"SD",   officer:"Maj Torres",       status:"STAFFED", personnel:14, shift:"A-Shift", watchset:"Op IRONCLAD" },
+    { name:"Combat Plans (CPD)",         abbr:"CPD",  officer:"Lt Col Marsh",     status:"STAFFED", personnel:22, shift:"A-Shift", watchset:"Op IRONCLAD" },
+    { name:"Combat Operations (COD)",    abbr:"COD",  officer:"Maj Kwon",         status:"STAFFED", personnel:31, shift:"A-Shift", watchset:"Op IRONCLAD" },
+    { name:"ISR Division (ISRD)",        abbr:"ISRD", officer:"Lt Col Vasquez",   status:"STAFFED", personnel:18, shift:"A-Shift", watchset:"Op IRONCLAD" },
+    { name:"Air Mobility Div (AMD)",     abbr:"AMD",  officer:"Maj Patel",        status:"STAFFED", personnel:12, shift:"A-Shift", watchset:"Op IRONCLAD" },
+    { name:"Air Defense Div (ADD)",      abbr:"ADD",  officer:"Capt Lindqvist",   status:"REDUCED", personnel:7,  shift:"A-Shift", watchset:"Op IRONCLAD", note:"3 billets unfilled — reach-back to CONUS" },
+    { name:"Theater Air Ctrl Sys (TACS)",abbr:"TACS", officer:"Lt Col Chen",      status:"STAFFED", personnel:9,  shift:"A-Shift", watchset:"Op IRONCLAD" },
+  ],
+
+  // CAOC / C2 Network status
+  networks: [
+    { name:"NIPRNET",    status:"UP",       detail:"Unclassified. Email / Web. Full connectivity." },
+    { name:"SIPRNET",    status:"UP",       detail:"Secret. Primary ops network. All terminals active." },
+    { name:"JWICS",      status:"UP",       detail:"TS/SCI. GEOINT/SIGINT feeds active." },
+    { name:"NATO SIS",   status:"UP",       detail:"NATO Secret. Coalition partner feeds. 14 nations connected." },
+    { name:"AOCS Link",  status:"DEGRADED", detail:"AOC-to-CAOC primary link 12% packet loss. Failover standby." },
+    { name:"SATCOM",     status:"UP",       detail:"Milstar + WGS. Ku/Ka band. Global reach back active." },
+  ],
+
+  // Current ops
+  currentOp: "Op DETERRENCE",
+  opPhase: "Phase 0 — Deterrence",
+  threatCondition: "THREATCON ALPHA",
+  ato: "ATO-H+12",
+  atoExpiry: "+36 hrs",
+  acm: "ACO EURO-7 (Current)",
+};
+
+const getPkg=id=>PACKAGES.find(p=>p.id===id);
+
+function acCallsign(a){ return a.cs || a.type; } // e.g. "VIPER 11"
+
+function filteredAC(){
+  return AIRCRAFT.filter(a=>{
+    if(selCCMD!=="ALL"&&a.ccmd!==selCCMD) return false;
+    if(selFn!=="ALL"&&a.fn!==selFn) return false;
+    if(selStatus!=="ALL"&&a.status!==selStatus) return false;
+    if(metricFilter!=="ALL"&&a.status!==metricFilter) return false;
+    return true;
+  });
+}
+
+function visibleBases(){ const s=new Set(filteredAC().map(a=>a.base)); return BASES.filter(b=>s.has(b.id)); }
+function visiblePkgs(){ const s=new Set(filteredAC().map(a=>a.pkg)); return PACKAGES.filter(p=>s.has(p.id)); }
+
+function interpRoute(route,p){
+  if(!route||route.length<2) return null;
+  const segs=[]; let total=0;
+  for(let i=0;i<route.length-1;i++){
+    const a=route[i],b=route[i+1],len=Math.sqrt((b[0]-a[0])**2+(b[1]-a[1])**2);
+    segs.push({a,b,len}); total+=len;
+  }
+  if(!total) return route[0];
+  let t=total*(p%1);
+  for(const s of segs){ if(t<=s.len){ const f=s.len?t/s.len:0; return[s.a[0]+(s.b[0]-s.a[0])*f,s.a[1]+(s.b[1]-s.a[1])*f]; } t-=s.len; }
+  return route[route.length-1];
+}
+
+function acCoords(a){ return a.route?interpRoute(a.route,a.rp)||getBase(a.base).coords:getBase(a.base).coords; }
+function fuelCls(f){ return f>=70?"fuel-ok":f>=35?"fuel-warn":"fuel-crit"; }
+function kmToLat(km){ return km/111; }
+function kmToLon(km,lat){ return km/(111*Math.cos(lat*Math.PI/180)); }
+
+function makeCircle(center,radiusKm,steps=44){
+  const [lng,lat]=center,dLat=kmToLat(radiusKm),dLon=kmToLon(radiusKm,lat);
+  const c=[]; for(let i=0;i<=steps;i++){ const a=i/steps*Math.PI*2; c.push([lng+Math.cos(a)*dLon,lat+Math.sin(a)*dLat]); }
+  return c;
+}
+
+/* ═══ MAP ═══════════════════════════════════════════════════════════════ */
+const map=new maplibregl.Map({
+  container:"map", center:[14.5,49.5], zoom:3.8,
+  minZoom:2.5, maxZoom:8.8,
+  style:{ version:8, sources:{ osm:{ type:"raster", tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize:256, attribution:"© OpenStreetMap" } }, layers:[{id:"osm",type:"raster",source:"osm"}] }
+});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
+
+function toBasesGJ(){ return {type:"FeatureCollection",features:visibleBases().map(b=>({type:"Feature",properties:{id:b.id,name:b.name,country:b.country,role:b.role},geometry:{type:"Point",coordinates:b.coords}}))}; }
+function toAcGJ(){ return {type:"FeatureCollection",features:filteredAC().map(a=>({type:"Feature",properties:{id:a.id,name:(a.cs||a.type),type:a.type,tail:a.tail,fn:a.fn,status:a.status,mission:a.mission,fuel:Math.round(a.fuel),auto:a.auto?1:0,icon:a.fn,color:FN_COLORS[a.fn]||"#63b7ff",sel:selAcId===a.id?1:0},geometry:{type:"Point",coordinates:acCoords(a)}}))}; }
+function toRoutesGJ(){ return {type:"FeatureCollection",features:filteredAC().filter(a=>a.route).map(a=>({type:"Feature",properties:{color:FN_COLORS[a.fn]||"#63b7ff"},geometry:{type:"LineString",coordinates:a.route}}))}; }
+function toTrailsGJ(){ return {type:"FeatureCollection",features:filteredAC().filter(a=>a.trail.length>1).map(a=>({type:"Feature",properties:{color:FN_COLORS[a.fn]||"#63b7ff"},geometry:{type:"LineString",coordinates:a.trail}}))}; }
+function toCovGJ(){ return {type:"FeatureCollection",features:COVERAGE_OBJECTS.map(c=>{const p=getAC(c.parent);if(!p||!filteredAC().find(x=>x.id===p.id))return null;return{type:"Feature",properties:{color:c.color},geometry:{type:"Polygon",coordinates:[makeCircle(acCoords(p),c.radiusKm)]}};}).filter(Boolean)}; }
+function toWxGJ(){ return {type:"FeatureCollection",features:WEATHER_CELLS.map(w=>({type:"Feature",properties:{},geometry:{type:"Polygon",coordinates:[makeCircle(w.center,w.radiusKm,40)]}}))}; }
+function toRefuelGJ(){
+  const tnk=AIRCRAFT.find(a=>a.fn==="Tanker"&&a.status!=="MAINT"&&a.fuel>40&&filteredAC().find(x=>x.id===a.id));
+  if(!tnk) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:filteredAC().filter(a=>a.fn!=="Tanker"&&a.fuel<35&&a.status!=="MAINT").map(a=>({type:"Feature",properties:{},geometry:{type:"LineString",coordinates:[acCoords(a),acCoords(tnk)]}}))};
+}
+function toPkgGJ(){ return {type:"FeatureCollection",features:visiblePkgs().map(pkg=>{const ms=pkg.members.map(id=>getAC(id)).filter(Boolean).filter(a=>filteredAC().find(f=>f.id===a.id));if(!ms.length)return null;const avgL=ms.reduce((s,a)=>s+acCoords(a)[0],0)/ms.length,avgA=ms.reduce((s,a)=>s+acCoords(a)[1],0)/ms.length;return{type:"Feature",properties:{id:pkg.id,name:pkg.name,role:pkg.role,count:ms.length,sel:selPkgId===pkg.id?1:0},geometry:{type:"Point",coordinates:[avgL,avgA]}};}).filter(Boolean)}; }
+
+
+/* ═══ ENEMY MAP LAYERS ═══════════════════════════════════════════════════ */
+function enemyCoords(e){
+  if(!e.route) return e.coords;
+  const p=e.rp||0;
+  const r=e.route, segs=[]; let total=0;
+  for(let i=0;i<r.length-1;i++){ const a=r[i],b=r[i+1],len=Math.sqrt((b[0]-a[0])**2+(b[1]-a[1])**2); segs.push({a,b,len}); total+=len; }
+  if(!total) return r[0];
+  let t=total*(p%1);
+  for(const s of segs){ if(t<=s.len){ const f=s.len?t/s.len:0; return[s.a[0]+(s.b[0]-s.a[0])*f,s.a[1]+(s.b[1]-s.a[1])*f]; } t-=s.len; }
+  return r[r.length-1];
+}
+
+function toEnemySAMGJ(){
+  if(!combatMode) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:ENEMY_THREATS.filter(e=>e.type==="SAM"||e.type==="EW").map(e=>({
+    type:"Feature",
+    properties:{id:e.id,name:e.name,color:e.color,threat:e.threat,detail:e.detail},
+    geometry:{type:"Point",coordinates:e.coords}
+  }))};
+}
+
+function toEnemySAMRingGJ(){
+  if(!combatMode) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:ENEMY_THREATS.filter(e=>e.type==="SAM"&&e.radiusKm>0).map(e=>({
+    type:"Feature",
+    properties:{id:e.id,color:e.color,threat:e.threat},
+    geometry:{type:"Polygon",coordinates:[makeCircle(e.coords,e.radiusKm)]}
+  }))};
+}
+
+function toEnemyACGJ(){
+  if(!combatMode) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:ENEMY_THREATS.filter(e=>e.type==="AC").map(e=>({
+    type:"Feature",
+    properties:{id:e.id,name:e.name,icon:e.icon,color:e.color,threat:e.threat,detail:e.detail,status:e.status},
+    geometry:{type:"Point",coordinates:enemyCoords(e)}
+  }))};
+}
+
+function toEnemyTrailsGJ(){
+  if(!combatMode) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:ENEMY_THREATS.filter(e=>e.type==="AC"&&enemyTrailState[e.id]&&enemyTrailState[e.id].length>1).map(e=>({
+    type:"Feature",
+    properties:{color:e.color},
+    geometry:{type:"LineString",coordinates:enemyTrailState[e.id]}
+  }))};
+}
+
+function toEnemyRouteGJ(){
+  if(!combatMode) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:ENEMY_THREATS.filter(e=>e.type==="AC"&&e.route).map(e=>({
+    type:"Feature",
+    properties:{color:e.color},
+    geometry:{type:"LineString",coordinates:e.route}
+  }))};
+}
+
+function toFwdBasesGJ(){
+  if(!combatMode) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:FORWARD_BASES.map(b=>({
+    type:"Feature",
+    properties:{id:b.id,name:b.name,country:b.country,role:b.role},
+    geometry:{type:"Point",coordinates:b.coords}
+  }))};
+}
+
+async function svgToImg(svg){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml;charset=utf-8"}));
+    img.onload=()=>{URL.revokeObjectURL(url);res(img);}; img.onerror=rej; img.src=url;
+  });
+}
+
+async function initLayers(){
+  // Apply default OSM style
+  document.body.classList.add('osm-mode');
+  for(const[k,v] of Object.entries(ICON_SVG)){ const img=await svgToImg(v); if(!map.hasImage(k)) map.addImage(k,img,{pixelRatio:2}); }
+  // Enemy icons
+  for(const[k,v] of Object.entries(ENEMY_SVG)){ const img=await svgToImg(v); if(!map.hasImage('E_'+k)) map.addImage('E_'+k,img,{pixelRatio:2}); }
+
+  map.addSource("bases",   {type:"geojson",data:toBasesGJ()});
+  map.addSource("aircraft",{type:"geojson",data:toAcGJ()});
+  map.addSource("routes",  {type:"geojson",data:toRoutesGJ()});
+  map.addSource("trails",  {type:"geojson",data:toTrailsGJ()});
+  map.addSource("coverage",{type:"geojson",data:toCovGJ()});
+  map.addSource("weather", {type:"geojson",data:toWxGJ()});
+  map.addSource("refuel",  {type:"geojson",data:toRefuelGJ()});
+  map.addSource("packages",{type:"geojson",data:toPkgGJ()});
+  // Enemy sources
+  map.addSource("enemy-sam-rings",{type:"geojson",data:toEnemySAMRingGJ()});
+  map.addSource("enemy-sams",{type:"geojson",data:toEnemySAMGJ()});
+  map.addSource("enemy-ac",{type:"geojson",data:toEnemyACGJ()});
+  map.addSource("enemy-trails",{type:"geojson",data:toEnemyTrailsGJ()});
+  map.addSource("enemy-routes",{type:"geojson",data:toEnemyRouteGJ()});
+  map.addSource("fwd-bases",{type:"geojson",data:toFwdBasesGJ()});
+
+  map.addLayer({id:"wx-fill",type:"fill",source:"weather",paint:{"fill-color":"#d9ecff","fill-opacity":.07}});
+  map.addLayer({id:"wx-line",type:"line",source:"weather",paint:{"line-color":"rgba(210,230,255,.4)","line-width":1.5,"line-opacity":.3}});
+  map.addLayer({id:"cov-fill",type:"fill",source:"coverage",paint:{"fill-color":["get","color"],"fill-opacity":.06}});
+  map.addLayer({id:"cov-line",type:"line",source:"coverage",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.35}});
+  map.addLayer({id:"routes-line",type:"line",source:"routes",paint:{"line-color":["get","color"],"line-width":["interpolate",["linear"],["zoom"],3,1.5,7,3],"line-opacity":.35,"line-dasharray":[2,2]}});
+  map.addLayer({id:"trails-line",type:"line",source:"trails",paint:{"line-color":["get","color"],"line-width":["interpolate",["linear"],["zoom"],3,1.2,7,2.5],"line-opacity":.25}});
+  map.addLayer({id:"refuel-line",type:"line",source:"refuel",paint:{"line-color":"#ffd166","line-width":2.5,"line-opacity":.65,"line-dasharray":[1.5,1.5]}});
+  map.addLayer({id:"bases-glow",type:"circle",source:"bases",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,10,7,22],"circle-color":"rgba(99,183,255,.25)","circle-blur":.65}});
+  map.addLayer({id:"bases",type:"circle",source:"bases",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,4,7,8],"circle-color":"#63b7ff","circle-stroke-width":2,"circle-stroke-color":"#072033"}});
+  map.addLayer({id:"bases-label",type:"symbol",source:"bases",layout:{"text-field":["get","name"],"text-size":["interpolate",["linear"],["zoom"],3,9,7,12],"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#eaf4ff","text-halo-color":"#08111c","text-halo-width":1.4}});
+  map.addLayer({id:"pkg-bubbles",type:"circle",source:"packages",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,10,7,18],"circle-color":"rgba(99,183,255,.16)","circle-stroke-color":"rgba(143,209,255,.7)","circle-stroke-width":1.8}});
+  map.addLayer({id:"pkg-labels",type:"symbol",source:"packages",minzoom:3.5,layout:{"text-field":["concat",["get","name"]," (",["to-string",["get","count"]],")"],"text-size":10,"text-offset":[0,1.4],"text-anchor":"top"},paint:{"text-color":"#f4f8ff","text-halo-color":"#08111c","text-halo-width":1.2}});
+  map.addLayer({id:"ac-sel",type:"circle",source:"aircraft",filter:["==",["get","sel"],1],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,16,7,26],"circle-color":"rgba(255,255,255,.14)","circle-stroke-width":2,"circle-stroke-color":"rgba(255,255,255,.5)"}});
+  map.addLayer({id:"ac-alert",type:"circle",source:"aircraft",filter:["==",["get","status"],"ALERT"],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,12,7,20],"circle-color":"rgba(255,200,87,.05)","circle-stroke-width":1.8,"circle-stroke-color":"rgba(255,200,87,.55)"}});
+  map.addLayer({id:"ac-icons",type:"symbol",source:"aircraft",layout:{"icon-image":["get","icon"],"icon-size":["interpolate",["linear"],["zoom"],2.5,.62,4.5,.44,6.5,.30,8.8,.20],"icon-allow-overlap":true,"icon-ignore-placement":true}});
+  map.addLayer({id:"ac-label",type:"symbol",source:"aircraft",minzoom:5.2,layout:{"text-field":["get","name"],"text-size":10,"text-offset":[0,1.4],"text-anchor":"top"},paint:{"text-color":"#f4f8ff","text-halo-color":"#08111c","text-halo-width":1.3}});
+
+
+  // ── Enemy layers ──
+  map.addLayer({id:"enemy-sam-ring-fill",type:"fill",source:"enemy-sam-rings",paint:{"fill-color":["get","color"],"fill-opacity":0.07}});
+  map.addLayer({id:"enemy-sam-ring-line",type:"line",source:"enemy-sam-rings",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.55,"line-dasharray":[3,2]}});
+  map.addLayer({id:"enemy-routes-line",type:"line",source:"enemy-routes",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.35,"line-dasharray":[2,2]}});
+  map.addLayer({id:"enemy-trails-line",type:"line",source:"enemy-trails",paint:{"line-color":["get","color"],"line-width":2,"line-opacity":.45}});
+  map.addLayer({id:"enemy-sam-icons",type:"symbol",source:"enemy-sams",layout:{"icon-image":["concat","E_",["get","icon"]],"icon-size":["interpolate",["linear"],["zoom"],2.5,.58,4.5,.40,6.5,.28,8.8,.18],"icon-allow-overlap":true,"icon-ignore-placement":true}});
+  map.addLayer({id:"enemy-sam-labels",type:"symbol",source:"enemy-sams",minzoom:4,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#ff6060","text-halo-color":"#08111c","text-halo-width":1.3}});
+  map.addLayer({id:"enemy-ac-icons",type:"symbol",source:"enemy-ac",layout:{"icon-image":["concat","E_",["get","icon"]],"icon-size":["interpolate",["linear"],["zoom"],2.5,.60,4.5,.42,6.5,.29,8.8,.19],"icon-allow-overlap":true,"icon-ignore-placement":true}});
+  map.addLayer({id:"enemy-ac-labels",type:"symbol",source:"enemy-ac",minzoom:4.5,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#ff6060","text-halo-color":"#08111c","text-halo-width":1.3}});
+  // Forward bases
+  map.addLayer({id:"fwd-bases-glow",type:"circle",source:"fwd-bases",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,14,7,26],"circle-color":"rgba(255,200,0,.22)","circle-blur":.6}});
+  map.addLayer({id:"fwd-bases",type:"circle",source:"fwd-bases",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,5,7,9],"circle-color":"#ffd700","circle-stroke-width":2,"circle-stroke-color":"#080810"}});
+  map.addLayer({id:"fwd-bases-label",type:"symbol",source:"fwd-bases",layout:{"text-field":["get","name"],"text-size":10,"text-offset":[0,1.3],"text-anchor":"top"},paint:{"text-color":"#ffe680","text-halo-color":"#08111c","text-halo-width":1.4}});
+
+  const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false});
+
+  map.on("mouseenter","ac-icons",e=>{
+    map.getCanvas().style.cursor="pointer";
+    const p=e.features[0].properties, ac=getAC(p.id);
+    pop.setLngLat(e.features[0].geometry.coordinates).setHTML(`
+      <div style="font-weight:800;margin-bottom:4px;font-size:13px;">${p.type} <span style="color:#8fd1ff;font-size:11px;font-family:monospace;">${ac?.tail||""}</span></div>
+      <div style="font-size:11px;color:#9ec1df;">${p.fn} · ${p.mission}</div>
+      <div style="font-size:11px;margin-top:5px;">Status: <b>${p.status}</b> · Fuel: <b>${p.fuel}%</b> · Auto: <b>${Number(p.auto)?"ON":"OFF"}</b></div>
+      ${ac?`<div style="font-size:10px;color:#6a90b8;margin-top:4px;font-family:monospace;">Tail: ${ac.tail}</div>`:""}
+    `).addTo(map);
+  });
+  map.on("mouseleave","ac-icons",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
+  map.on("mouseenter","pkg-bubbles",e=>{
+    map.getCanvas().style.cursor="pointer";
+    const p=e.features[0].properties;
+    pop.setLngLat(e.features[0].geometry.coordinates).setHTML(`
+      <div style="font-weight:800;margin-bottom:4px;">${p.name}</div>
+      <div style="font-size:11px;color:#9ec1df;">${p.role}</div>
+      <div style="font-size:11px;margin-top:5px;">Members: <b>${p.count}</b></div>
+    `).addTo(map);
+  });
+  map.on("mouseleave","pkg-bubbles",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
+
+  // Enemy hover popups
+  map.on("mouseenter","enemy-ac-icons",e=>{
+    map.getCanvas().style.cursor="crosshair";
+    const p=e.features[0].properties;
+    pop.setLngLat(e.features[0].geometry.coordinates).setHTML(`
+      <div style="font-weight:900;color:#ff6060;margin-bottom:4px;">⚠ THREAT: ${p.name}</div>
+      <div style="font-size:11px;color:#ffaa80;">${p.status} · Threat Level: ${p.threat}</div>
+      <div style="font-size:11px;margin-top:5px;color:#ffd0d0;">${p.detail}</div>
+    `).addTo(map);
+  });
+  map.on("mouseleave","enemy-ac-icons",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
+  map.on("mouseenter","enemy-sam-icons",e=>{
+    map.getCanvas().style.cursor="crosshair";
+    const p=e.features[0].properties;
+    pop.setLngLat(e.features[0].geometry.coordinates).setHTML(`
+      <div style="font-weight:900;color:#ff2244;margin-bottom:4px;">🚨 ${p.name}</div>
+      <div style="font-size:11px;color:#ffaa80;">Threat Level: ${p.threat} · Status: ACTIVE</div>
+      <div style="font-size:11px;margin-top:5px;color:#ffd0d0;">${p.detail}</div>
+    `).addTo(map);
+  });
+  map.on("mouseleave","enemy-sam-icons",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
+  map.on("click","ac-icons",e=>selectAC(e.features[0].properties.id,true,true));
+  map.on("click","pkg-bubbles",e=>selectPkg(e.features[0].properties.id,true));
+}
+
+function refreshMap(){
+  const upd=[["bases",toBasesGJ()],["aircraft",toAcGJ()],["routes",toRoutesGJ()],["trails",toTrailsGJ()],["coverage",toCovGJ()],["weather",toWxGJ()],["refuel",toRefuelGJ()],["packages",toPkgGJ()],
+    ["enemy-sam-rings",toEnemySAMRingGJ()],["enemy-sams",toEnemySAMGJ()],["enemy-ac",toEnemyACGJ()],["enemy-trails",toEnemyTrailsGJ()],["enemy-routes",toEnemyRouteGJ()],["fwd-bases",toFwdBasesGJ()]
+  ];
+  upd.forEach(([k,d])=>{ const s=map.getSource(k); if(s) s.setData(d); });
+  if(map.getLayer("cov-fill")) map.setPaintProperty("cov-fill","fill-opacity",combatMode?.10:.06);
+  if(map.getLayer("cov-line")) map.setPaintProperty("cov-line","line-opacity",combatMode?.55:.35);
+  if(map.getLayer("routes-line")) map.setPaintProperty("routes-line","line-opacity",combatMode?.65:.35);
+}
+
+/* ═══ UI RENDERS ═══════════════════════════════════════════════════════════ */
+function showNotice(t){
+  const n=document.getElementById("notification");
+  n.textContent=t; n.classList.add("show");
+  clearTimeout(showNotice._t);
+  showNotice._t=setTimeout(()=>n.classList.remove("show"),1800);
+}
+
+function renderMetrics(){
+  const f=filteredAC();
+  document.getElementById("metric-total").textContent=f.length;
+  document.getElementById("metric-ready").textContent=f.filter(a=>a.status==="READY").length;
+  document.getElementById("metric-alert").textContent=f.filter(a=>a.status==="ALERT").length;
+  document.getElementById("metric-maint").textContent=f.filter(a=>a.status==="MAINT").length;
+  const avg=f.length?Math.round(f.reduce((s,a)=>s+a.fuel,0)/f.length):0;
+  document.getElementById("metric-fuel").textContent=avg+"%";
+  document.getElementById("metric-alerts").textContent=alerts.filter(a=>!a.resolved).length;
+}
+
+function renderAcList(){
+  const el=document.getElementById("aircraftList");
+  el.innerHTML=filteredAC().map(a=>`
+    <div class="mini-card" data-id="${a.id}" title="Tail: ${a.tail} | ${a.type} | ${a.mission}">
+      <div class="mini-top">
+        <div class="mini-name">${acCallsign(a)} <span style="font-family:monospace;color:#8fd1ff;font-size:10px;">${a.tail}</span></div>
+        <div class="status ${STATUS_CLS[a.status]}"><span class="dot"></span>${a.status}</div>
+      </div>
+      <div class="mini-meta">${a.fn} · ${getBase(a.base).name} · Fuel ${Math.round(a.fuel)}%</div>
+      <div class="${fuelCls(a.fuel)} fuel-bar-wrap">
+        <div class="fuel-bar-bg"><div class="fuel-bar-fill" style="width:${Math.round(a.fuel)}%"></div></div>
+      </div>
+      <div style="margin-top:5px;display:flex;gap:5px;align-items:center;">
+        <span class="pill ${a.auto?"pill-auto-on":"pill-auto-off"}">${a.auto?"AUTO ON":"AUTO OFF"}</span>
+        <span style="font-size:9px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.mission}</span>
+      </div>
+    </div>`).join("")||`<div class="mini-meta">None visible.</div>`;
+  el.querySelectorAll("[data-id]").forEach(n=>n.addEventListener("click",()=>selectAC(n.dataset.id,true)));
+}
+
+function renderPkgList(){
+  // Legacy element still referenced by old code — keep it
+  const elOld=document.getElementById("packageList");
+  if(elOld) elOld.innerHTML='';
+
+  const el=document.getElementById("packageListAlt");
+  if(!el) return;
+
+  const pkgs = visiblePkgs();
+  // Update badge
+  const badge = document.getElementById("pkgBadge");
+  if(badge){ badge.textContent=pkgs.length; badge.style.display=pkgs.length?'':'none'; }
+
+  const FN_COLS={Fighter:"#7cd7ff",Bomber:"#ff8a65",ISR:"#b388ff",Tanker:"#ffd166",Cargo:"#7ee787","AEW&C":"#4dd0e1",SOF:"#ff9ecb"};
+  el.innerHTML=pkgs.map(pkg=>{
+    const ms=pkg.members.map(id=>getAC(id)).filter(Boolean);
+    const vis=ms.filter(a=>filteredAC().find(f=>f.id===a.id));
+    const ready=ms.filter(a=>a.status==='READY').length;
+    const alert=ms.filter(a=>a.status==='ALERT').length;
+    const maint=ms.filter(a=>a.status==='MAINT').length;
+    const ftr=ms.filter(a=>a.fn==='Fighter').length;
+    const isr=ms.filter(a=>a.fn==='ISR').length;
+    const tnk=ms.filter(a=>a.fn==='Tanker').length;
+    const avgFuel=ms.length?Math.round(ms.reduce((s,a)=>s+a.fuel,0)/ms.length):0;
+    const statusColor=ready===ms.length?'var(--green)':maint>0||alert>0?'var(--amber)':'var(--muted)';
+    const membersHtml=ms.map(a=>{
+      const col=FN_COLS[a.fn]||'#aaa';
+      const statDot=a.status==='READY'?'var(--green)':a.status==='ALERT'?'var(--amber)':'var(--red)';
+      return '<div style="display:flex;align-items:center;gap:5px;padding:3px 0;border-top:1px solid rgba(255,255,255,.04);">'+
+        '<span style="width:6px;height:6px;border-radius:50%;background:'+statDot+';flex-shrink:0;"></span>'+
+        '<span style="font-size:10px;font-weight:900;color:'+col+';min-width:60px;">'+a.cs+'</span>'+
+        '<span style="font-size:9px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+a.mission+'</span>'+
+        '<span style="font-size:9px;color:'+(a.fuel<30?'var(--red)':a.fuel<50?'var(--amber)':'var(--muted)')+';font-family:monospace;">'+Math.round(a.fuel)+'%</span>'+
+      '</div>';
+    }).join('');
+    return '<div class="rec-card" data-pid="'+pkg.id+'" style="margin-bottom:8px;cursor:pointer;padding:9px 11px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
+        '<div style="font-size:12px;font-weight:900;color:#e8f4ff;">'+pkg.name+'</div>'+
+        '<span style="font-size:9px;font-weight:900;padding:1px 7px;border-radius:5px;background:rgba(255,255,255,.05);color:'+statusColor+';">'+ms.length+' AC</span>'+
+      '</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">'+pkg.role+'</div>'+
+      '<div style="display:flex;gap:8px;font-size:9px;color:var(--muted);margin-bottom:5px;">'+
+        (ftr?'<span style="color:#7cd7ff;">FTR '+ftr+'</span>':'')+
+        (isr?'<span style="color:#b388ff;">ISR '+isr+'</span>':'')+
+        (tnk?'<span style="color:#ffd166;">TNK '+tnk+'</span>':'')+
+        '<span style="margin-left:auto;color:'+(avgFuel<30?'var(--red)':avgFuel<50?'var(--amber)':'var(--green)')+';">⛽ '+avgFuel+'%</span>'+
+      '</div>'+
+      '<div style="border-top:1px solid rgba(255,255,255,.05);padding-top:5px;">'+
+        membersHtml+
+      '</div>'+
+    '</div>';
+  }).join('')||'<div style="color:var(--muted);font-size:11px;padding:8px;">No packages visible.</div>';
+
+  el.querySelectorAll("[data-pid]").forEach(n=>n.addEventListener("click",()=>selectPkg(n.dataset.pid,true)));
+}
+
+function renderAlerts(){
+  const el=document.getElementById("alertsList");
+  const live=alerts.filter(a=>!a.resolved).slice(0,20);
+  el.innerHTML=live.map(a=>{
+    const ac=getAC(a.tid), pk=getPkg(a.tid), lbl=ac?`${ac.type} ${ac.tail}`:pk?pk.name:"System";
+    return `<div class="stack-card" data-aid="${a.id}">
+      <div class="mini-top"><div class="mini-name">${lbl}</div><div class="severity ${a.sev==="HIGH"?"sev-high":a.sev==="MED"?"sev-med":"sev-low"}">${a.sev}</div></div>
+      <div class="mini-meta">${a.msg}</div>
+      <div class="mini-meta" style="margin-top:4px;">→ ${a.action}</div>
+    </div>`;
+  }).join("")||`<div class="mini-meta">No active alerts.</div>`;
+  el.querySelectorAll("[data-aid]").forEach(n=>n.addEventListener("click",()=>{
+    const a=alerts.find(x=>x.id===n.dataset.aid);
+    if(!a) return;
+    if(getAC(a.tid)) selectAC(a.tid,true);
+    else if(getPkg(a.tid)) selectPkg(a.tid,true);
+  }));
+  updatePanelBadges();
+}
+
+function renderTasks(){
+  const el=document.getElementById("taskQueue");
+  const live=tasks.filter(t=>!t.done).slice(0,20);
+  if(!live.length){
+    el.innerHTML='<div class="mini-meta" style="padding:10px 0;text-align:center;opacity:.5;">\u2713 Recommendation stack clear</div>';
+    return;
+  }
+  el.innerHTML=live.map(t=>{
+    const ac=getAC(t.tid);
+    const pkg=getPkg(t.tid);
+    const subjectName=ac?(ac.type+' '+ac.tail):pkg?pkg.name:t.tid;
+    const subjectDetail=ac?('Base: '+getBase(ac.base).name+' · '+ac.fn+' · Fuel '+Math.round(ac.fuel)+'%'):'';
+    const sevCls=t.sev==='HIGH'?'sev-high':t.sev==='MED'?'sev-med':'sev-low';
+    const modeBadge=t.auto?'<span style="background:rgba(94,234,212,.15);border:1px solid rgba(94,234,212,.3);color:var(--teal);font-size:9px;font-weight:900;padding:1px 6px;border-radius:4px;letter-spacing:.08em;">AUTO</span>'
+                         :'<span style="background:rgba(99,183,255,.12);border:1px solid rgba(99,183,255,.25);color:var(--blue2);font-size:9px;font-weight:900;padding:1px 6px;border-radius:4px;letter-spacing:.08em;">OPR</span>';
+    const actionIcon={
+      'Assign Tanker':'⛽', 'RTB':'↩', 'QRA Launch':'🚀', 'Acknowledge':'✓',
+      'Forward Deploy':'↗', 'Assign SEAD':'🎯', 'Launch':'▶', 'default':'›'
+    };
+    const icon=actionIcon[t.action]||actionIcon['default'];
+    return '<div class="rec-card" data-tid="'+t.id+'" style="border-left-color:'+
+      (t.sev==='HIGH'?'var(--red)':t.sev==='MED'?'var(--amber)':'var(--teal)')+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:5px;">'+
+        '<div style="font-size:12px;font-weight:900;line-height:1.25;">'+t.label+'</div>'+
+        modeBadge+
+      '</div>'+
+      '<div style="font-size:11px;color:#8fd1ff;font-weight:700;margin-bottom:2px;">'+subjectName+'</div>'+
+      (subjectDetail?'<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">'+subjectDetail+'</div>':'')+
+      (t.detail?'<div style="font-size:9px;color:#7a9ab8;line-height:1.4;margin-bottom:5px;padding:4px 7px;border-radius:5px;background:rgba(0,0,0,.15);">'+t.detail+'</div>':'')+
+      '<div style="display:flex;gap:6px;align-items:center;margin-top:6px;">'+
+        '<button class="rec-btn rec-btn-primary" data-exec="'+t.id+'">'+icon+' '+t.action+'</button>'+
+        '<button class="rec-btn rec-btn-secondary" data-dismiss="'+t.id+'">Dismiss</button>'+
+        (ac?'<button class="rec-btn rec-btn-ghost" data-focus="'+ac.id+'">View →</button>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  // Wire buttons
+  updatePanelBadges();
+  el.querySelectorAll("[data-exec]").forEach(b=>b.addEventListener("click",e=>{
+    e.stopPropagation();
+    execTask(b.dataset.exec);
+    showNotice("Task executed");
+  }));
+  el.querySelectorAll("[data-dismiss]").forEach(b=>b.addEventListener("click",e=>{
+    e.stopPropagation();
+    const t=tasks.find(x=>x.id===b.dataset.dismiss);
+    if(t){ t.done=true; renderTasks(); showNotice("Dismissed"); }
+  }));
+  el.querySelectorAll("[data-focus]").forEach(b=>b.addEventListener("click",e=>{
+    e.stopPropagation();
+    selectAC(b.dataset.focus, true);
+  }));
+}
+
+function renderTimeline(){
+  const lanes=document.getElementById("timelineLanes");
+  const all=filteredAC(); // ALL aircraft, not just 8
+  let html=all.map(a=>{
+    const left=(a.tb.s/12)*100, width=Math.max(((a.tb.e-a.tb.s)/12)*100,3);
+    const cls=a.status==="MAINT"?"maint":a.status==="ALERT"?"alert":a.fn==="ISR"?"isr":a.fn==="Tanker"?"tanker":a.fn==="AEW&C"?"aewc":a.fn==="SOF"?"sof":"ready";
+    return `<div class="timeline-row"><div class="timeline-bar ${cls}" data-id="${a.id}" style="left:${left}%;width:${width}%;" title="${a.type} ${a.tail} · ${a.tb.l}">${a.type} ${a.tail} · ${a.tb.l}</div></div>`;
+  }).join("");
+  // Enemy threat tracks in combat mode
+  if(combatMode){
+    html+=ENEMY_THREATS.filter(e=>e.route).map(e=>{
+      const left=(e.tb.s/12)*100, width=Math.max(((e.tb.e-e.tb.s)/12)*100,4);
+      return `<div class="timeline-row"><div class="timeline-bar" style="left:${left}%;width:${width}%;background:#ff2244;color:#fff;opacity:.9;" title="${e.name}">${e.name}</div></div>`;
+    }).join("");
+  }
+  lanes.innerHTML=html;
+  lanes.querySelectorAll("[data-id]").forEach(n=>n.addEventListener("click",()=>selectAC(n.dataset.id,true)));
+  // Adjust inner container height for vertical scroll
+  const inner=document.querySelector(".timeline-inner");
+  const rows=all.length+(combatMode?ENEMY_THREATS.filter(e=>e.route).length:0);
+  if(inner) inner.style.minHeight=(rows*(15+5)+30)+"px";
+}
+
+/* ═══ DETAIL ═══════════════════════════════════════════════════════════════ */
+function selectAC(id,fly=false,open3D=false){
+  const a=getAC(id); if(!a) return;
+  selAcId=id; selPkgId=null;
+  renderAcDetail(a);
+  refreshMap();
+  if(fly) map.flyTo({center:acCoords(a),zoom:7.2,pitch:55,bearing:combatMode?35:15,speed:.85});
+  if(open3D) openInspector(a);
+}
+
+function selectPkg(id,fly=false){
+  const pkg=getPkg(id); if(!pkg) return;
+  selPkgId=id; selAcId=null;
+  renderPkgDetail(pkg);
+  refreshMap();
+  if(fly){
+    const ms=pkg.members.map(id=>getAC(id)).filter(Boolean).filter(a=>filteredAC().find(f=>f.id===a.id));
+    if(ms.length){ const al=ms.reduce((s,a)=>s+acCoords(a)[0],0)/ms.length, lt=ms.reduce((s,a)=>s+acCoords(a)[1],0)/ms.length; map.flyTo({center:[al,lt],zoom:5.8,speed:.8}); }
+  }
+}
+
+
+/* ═══ DETAIL PANEL TUCK ════════════════════════════════════════════════════ */
+function setDetailContent(html){
+  const el=document.getElementById("detailContent");
+  if(!el) return;
+  el.innerHTML=html;
+  // Always switch to details tab
+  if(typeof switchDetailTab==='function') switchDetailTab('detail');
+  // Un-minimize detail panel
+  const panel=document.getElementById('detailPanel');
+  if(panel&&detailMinimized){
+    detailMinimized=false;
+    panel.classList.remove('minimized');
+    const btn=document.getElementById('detailMinBtn');
+    if(btn) btn.textContent='◁';
+  }
+}
+
+function clearDetail(){
+  const el=document.getElementById("detailContent");
+  const panel=el?.closest(".detail");
+  if(!el||!panel) return;
+  el.className="detail-empty";
+  el.textContent="Click an aircraft, a package, or a recommendation to inspect it.";
+  panel.classList.remove("has-content");
+}
+
+function renderAcDetail(a){
+  const base=getBase(a.base), coords=acCoords(a);
+  const fCls=fuelCls(a.fuel), fLbl=a.fuel<20?"CRITICAL":a.fuel<35?"LOW":"Nominal";
+  const actAlerts=alerts.filter(x=>!x.resolved&&x.tid===a.id);
+  setDetailContent(`
+    <div class="detail-block">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+        <div class="detail-name">${a.cs||a.type}</div>
+        <div style="font-size:11px;color:var(--teal);font-weight:900;font-family:monospace;">${a.type}</div>
+      </div>
+      <div class="detail-type">${a.fn} · ${a.ccmd} · <span style="font-family:monospace;font-size:10px;color:#8fd1ff;">${a.tail}</span></div>
+      <div class="${fCls} fuel-bar-wrap">
+        <div class="fuel-bar-labels"><span>FUEL</span><span>${Math.round(a.fuel)}% — ${fLbl}</span></div>
+        <div class="fuel-bar-bg"><div class="fuel-bar-fill" style="width:${Math.round(a.fuel)}%"></div></div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="detail-stat-label">Tail</div><div class="detail-stat-value" style="font-family:monospace;">${a.tail}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Status</div><div class="detail-stat-value">${a.status}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Base</div><div class="detail-stat-value">${base.name}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Crew</div><div class="detail-stat-value">${a.crew?"Ready":"Not Ready"}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Mission</div><div class="detail-stat-value">${a.mission}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Automation</div><div class="detail-stat-value">${a.auto?"Enabled":"Disabled"}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Health</div><div class="detail-stat-value">${a.health}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Package</div><div class="detail-stat-value">${a.pkg||"None"}</div></div>
+      </div>
+    </div>
+    <div class="detail-block"><div class="section-title">Loadout</div><ul class="list">${a.loadout.map(x=>'<li>'+x+'</li>').join('')}</ul></div>
+    <div class="detail-block"><div class="section-title">Actions</div>
+      <div class="actions">
+        <div class="action" data-cmd="ToggleAuto" data-id="${a.id}">Toggle Automation</div>
+        <div class="action" data-cmd="Launch" data-id="${a.id}">Launch</div>
+        <div class="action" data-cmd="Retask" data-id="${a.id}">Retask</div>
+        <div class="action" data-cmd="RTB" data-id="${a.id}">RTB</div>
+        <div class="action" data-cmd="SetAlert" data-id="${a.id}">Set Alert</div>
+        <div class="action" data-cmd="Open3D" data-id="${a.id}">Open 3D Inspector</div>
+      </div>
+    </div>
+    <div class="detail-block"><div class="section-title">Position</div><div class="mini-meta" style="font-family:monospace;">${coords[0].toFixed(2)}°, ${coords[1].toFixed(2)}°</div></div>
+    <div class="detail-block"><div class="section-title">Active Alerts</div>
+      ${actAlerts.length?('<ul class="list">'+actAlerts.map(x=>'<li>'+x.sev+': '+x.msg+'</li>').join('')+'</ul>'):'<div class="mini-meta" style="color:var(--green);">None.</div>'}
+    </div>`);
+  document.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",()=>handleCmd(b.dataset.id,b.dataset.cmd)));
+}
+
+function renderPkgDetail(pkg){
+  const ms=pkg.members.map(id=>getAC(id)).filter(Boolean).filter(a=>filteredAC().find(f=>f.id===a.id));
+  setDetailContent(`
+    <div class="detail-block">
+      <div class="detail-name">${pkg.name}</div>
+      <div class="detail-type">Mission Package</div>
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="detail-stat-label">Role</div><div class="detail-stat-value">${pkg.role}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Members</div><div class="detail-stat-value">${ms.length}</div></div>
+      </div>
+    </div>
+    <div class="detail-block"><div class="section-title">Package Members</div>
+      <ul class="li      <ul class="list">${ms.map(a=>('<li>'+a.type+' <span style="font-family:monospace;color:#8fd1ff;">'+a.tail+'</span> \u00b7 '+a.fn+' \u00b7 '+a.status+' \u00b7 Fuel '+Math.round(a.fuel)+'%</li>')).join('')}</ul>
+    </div>
+    <div class="detail-block"><div class="section-title">Package Actions</div>
+      <div class="actions">
+        <div class="action" data-pkg-cmd="Focus" data-id="${pkg.id}">Focus Package</div>
+        <div class="action" data-pkg-cmd="Retask" data-id="${pkg.id}">Retask Package</div>
+        <div class="action" data-pkg-cmd="Escort" data-id="${pkg.id}">Generate Escort</div>
+        <div class="action" data-pkg-cmd="Rebuild" data-id="${pkg.id}">Rebuild Package</div>
+      </div>
+    </div>`);
+  document.querySelectorAll("[data-pkg-cmd]").forEach(b=>b.addEventListener("click",()=>showNotice(`${b.dataset.pkgCmd} queued for ${pkg.name}`)));
+}
+
+/* ═══ COMMANDS ═══════════════════════════════════════════════════════════ */
+function handleCmd(id,cmd){
+  const a=getAC(id); if(!a) return;
+  if(cmd==="ToggleAuto"){ a.auto=!a.auto; showNotice(`${a.type} ${a.tail} auto ${a.auto?"ON":"OFF"}`); }
+  else if(cmd==="Launch"){ a.status="READY"; a.mission="Launched"; if(!a.route){ const bc=getBase(a.base).coords; a.route=[bc,[bc[0]+3,bc[1]+2],bc]; a.rp=.02; a.rs=.004; } showNotice(`Launch: ${a.type} ${a.tail}`); }
+  else if(cmd==="Retask"){ a.mission=combatMode?"Combat Retask":"Peacetime Retask"; showNotice(`${a.type} ${a.tail} retasked`); }
+  else if(cmd==="RTB"){ setRTB(a); showNotice(`RTB: ${a.type} ${a.tail}`); }
+  else if(cmd==="SetAlert"){ a.status="ALERT"; showNotice(`${a.type} ${a.tail} → ALERT`); }
+  else if(cmd==="Open3D"){ openInspector(a); }
+  refreshAll();
+  if(selAcId===a.id) renderAcDetail(a);
+}
+
+function setRTB(a){ const cur=acCoords(a),bc=getBase(a.base).coords; a.route=[cur,bc]; a.rp=0; a.rs=.012; a.mission="Return to Base"; a.status="READY"; }
+
+/* ═══ ALERTS / TASKS ═══════════════════════════════════════════════════════ */
+function addAlert(type,tid,sev,msg,action){
+  if(alerts.find(a=>!a.resolved&&a.type===type&&a.tid===tid)) return null;
+  const a={id:"A"+(++alertCtr),tid,type,sev,msg,action,resolved:false};
+  alerts.unshift(a); if(alerts.length>40) alerts=alerts.slice(0,40); return a;
+}
+function resolveAlert(type,tid){ alerts.forEach(a=>{ if(a.type===type&&a.tid===tid&&!a.resolved) a.resolved=true; }); }
+function addTask(kind,tid,sev,label,action,auto=false){
+  if(tasks.find(t=>!t.done&&t.kind===kind&&t.tid===tid)) return null;
+  const t={id:"T"+(++taskCtr),kind,tid,sev,label,action,auto,done:false};
+  tasks.unshift(t); if(tasks.length>40) tasks=tasks.slice(0,40); return t;
+}
+function execTask(tid2, silent=false){
+  const t=tasks.find(x=>x.id===tid2&&!x.done); if(!t) return;
+  const a=getAC(t.tid); if(!a) return;
+  if(t.action==="RTB") setRTB(a);
+  else if(t.action==="Set Alert") a.status="ALERT";
+  else if(t.action==="Assign Tanker") a.mission="Refuel Coordination";
+  t.done=true;
+  // Only show notice for manual operator actions, not automation
+  if(!silent && !t.auto) showNotice(`${t.action} — ${a.type} ${a.tail}`);
+  refreshAll(); if(selAcId===a.id) renderAcDetail(a);
+}
+
+/* ═══ SIMULATION ═══════════════════════════════════════════════════════════ */
+function updateWeather(){
+  const f=timeMode==="replay"?.25:timeMul>=60?.14:timeMul>=10?.06:.01;
+  WEATHER_CELLS.forEach(w=>{ w.center[0]+=w.drift[0]*f*10; w.center[1]+=w.drift[1]*f*10; if(w.center[0]>40)w.center[0]=-5; if(w.center[0]<-5)w.center[0]=40; });
+}
+
+function updateMovement(){
+  const mf=timeMode==="replay"?.004:timeMul>=60?.02:timeMul>=10?.008:.002;
+  // Move enemy aircraft in combat mode
+  if(combatMode){
+    ENEMY_THREATS.filter(e=>e.type==="AC"&&e.route).forEach(e=>{
+      const c=enemyCoords(e);
+      if(c){ if(!enemyTrailState[e.id]) enemyTrailState[e.id]=[]; enemyTrailState[e.id].push(c); if(enemyTrailState[e.id].length>18) enemyTrailState[e.id].shift(); }
+      e.rp=(e.rp||0)+e.rs*(mf/.002);
+      if(e.rp>=1) e.rp=0;
+    });
+  }
+  AIRCRAFT.forEach(a=>{
+    const c=acCoords(a); if(c){ a.trail.push(c); if(a.trail.length>22)a.trail.shift(); }
+    if(a.route&&a.status!=="MAINT"){
+      a.rp+=a.rs*(combatMode?1.35:1)*(mf/.002);
+      if(a.route.length===2&&a.rp>=.98){ a.route=null;a.rp=0;a.rs=0;a.mission="On Ground";a.status="READY"; showNotice(`${a.type} ${a.tail} landed`); }
+      else if(a.rp>=1) a.rp=0;
+    }
+  });
+}
+
+function runAutomation(){
+  const bf=timeMode==="replay"?.15:timeMul>=60?8:timeMul>=10?2:1;
+  AIRCRAFT.forEach(a=>{
+    if(a.status==="MAINT"){ if(Math.random()<.003){ a.status="READY";a.fuel=60+Math.random()*35;a.health="Nominal";a.auto=true; showNotice(`${a.type} ${a.tail} returned to service`); } return; }
+    if(a.route){
+      const burn=(combatMode?.26:.14)*bf*(a.fn==="ISR"?.55:a.fn==="Tanker"||a.fn==="Cargo"||a.fn==="AEW&C"?.8:1);
+      a.fuel=Math.max(0,a.fuel-burn);
+    }
+    if(a.fuel<35&&a.fuel>=20){ a.health="Fuel Watch"; addAlert("LOW_FUEL",a.id,"MED",`Fuel low: ${Math.round(a.fuel)}%`,"Assign tanker or shorten mission"); const t=addTask("LOW_FUEL",a.id,"MED","Fuel Watch","Assign Tanker",autoMaster&&a.auto); if(t&&autoMaster&&a.auto) execTask(t.id, true); }
+    else resolveAlert("LOW_FUEL",a.id);
+    if(a.fuel<20){ a.health="Critical Fuel"; addAlert("CRIT_FUEL",a.id,"HIGH",`Critical fuel: ${Math.round(a.fuel)}%`,"Immediate RTB"); const t=addTask("CRIT_FUEL",a.id,"HIGH","Critical Fuel","RTB",autoMaster&&a.auto); if(t&&autoMaster&&a.auto) execTask(t.id, true); }
+    else resolveAlert("CRIT_FUEL",a.id);
+    if(a.fuel>=35&&a.crew&&!alerts.find(x=>!x.resolved&&x.tid===a.id)) a.health="Nominal";
+  });
+  // EW jamming effects in combat mode
+  if(combatMode){
+    const jamActive=ENEMY_THREATS.filter(e=>e.type==="EW"&&e.status==="ACTIVE").length>0;
+    if(jamActive && Math.random()<.04){
+      addAlert("EW_JAM","E12","MED","EW jamming degrading navigation. Recommend HAVE QUICK + INS backup.","Switch to SATCOM/backup comms");
+    }
+  }
+
+  PACKAGES.forEach(pkg=>{
+    const ms=pkg.members.map(id=>getAC(id)).filter(Boolean);
+    if(!ms.filter(a=>a.status!=="MAINT").length) addAlert("PKG_DEGRADED",pkg.id,"MED",`${pkg.name} has no active aircraft`,"Reassign mission");
+    else resolveAlert("PKG_DEGRADED",pkg.id);
+    if(ms.filter(a=>a.fuel<35&&a.status!=="MAINT").length>=2) addAlert("PKG_FUEL",pkg.id,"HIGH",`${pkg.name} has multiple low-fuel assets`,"Assign tanker support");
+    else resolveAlert("PKG_FUEL",pkg.id);
+  });
+}
+
+function refreshAll(){
+  if(typeof updatePanelBadges==="function") updatePanelBadges();
+  if(typeof stackPanels==="function") stackPanels();
+  if(typeof renderAocStrip==="function") renderAocStrip();
+  if(typeof renderIntelReport==="function" && document.getElementById("tabIntel") && document.getElementById("tabIntel").style.display!=="none") renderIntelReport();
+  refreshMap();
+  renderMetrics();
+  renderAcList();
+  renderPkgList();
+  renderAlerts();
+  renderTasks();
+  renderTimeline();
+}
+
+
+
+
+
+/* SITREP → moved to detail tab system above */
+
+/* ═══ DETAIL PANEL TABS + MINIMIZE ══════════════════════════════════════════ */
+let detailMinimized = false;
+let activeDetailTab = 'detail';
+
+function initDetailPanel(){
+  // Minimize button
+  document.getElementById('detailMinBtn').addEventListener('click', ()=>{
+    detailMinimized = !detailMinimized;
+    const panel = document.getElementById('detailPanel');
+    panel.classList.toggle('minimized', detailMinimized);
+    document.getElementById('detailMinBtn').textContent = detailMinimized ? '▷' : '◁';
+  });
+
+  // Tabs
+  document.querySelectorAll('.detail-tab').forEach(btn => {
+    btn.addEventListener('click', ()=>{
+      // Un-minimize if clicking a tab
+      if(detailMinimized){
+        detailMinimized = false;
+        document.getElementById('detailPanel').classList.remove('minimized');
+        document.getElementById('detailMinBtn').textContent = '◁';
+      }
+      switchDetailTab(btn.dataset.tab);
+    });
+  });
+}
+
+function switchDetailTab(name){
+  activeDetailTab = name;
+  document.querySelectorAll('.detail-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.detail-tab-pane').forEach(p => p.style.display = 'none');
+  const pane = document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1));
+  if(pane) pane.style.display = '';
+  if(name === 'intel') renderIntelReport();
+}
+
+/* ═══ QUEUE + ALERTS COLLAPSE ═══════════════════════════════════════════════ */
+function stackPanels(){
+  const alertsEl = document.getElementById('alertsPanel');
+  const queueEl  = document.getElementById('queuePanel');
+  const pkgEl    = document.getElementById('pkgPanel');
+  const tlhPx    = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tlh')) || 164;
+  const gap = 8;
+  if(!alertsEl||!queueEl) return;
+  // Alerts: bottom = tlh + gap (right side)
+  alertsEl.style.bottom = (tlhPx + gap) + 'px';
+  // Queue: above alerts
+  const alertsH = alertsEl.offsetHeight || 44;
+  queueEl.style.bottom = (tlhPx + gap + alertsH + gap) + 'px';
+  // pkgPanel: stacks above timeline at left:380px
+  if(pkgEl) pkgEl.style.bottom = (tlhPx + gap) + 'px';
+}
+
+
+/* ═══ DETAIL PANEL DRAG RESIZE ═══════════════════════════════════════════════ */
+function initDetailDragResize(){
+  const detailEl = document.getElementById('detailPanel');
+  const handle   = document.getElementById('detailDragHandle');
+  if(!handle || !detailEl) return;
+
+  // Move handle inside detail panel so it rides along with it
+  detailEl.style.position = 'absolute';
+  detailEl.appendChild(handle);
+  handle.style.position = 'absolute';
+  handle.style.top    = '0';
+  handle.style.bottom = '0';
+  handle.style.left   = '0';
+  handle.style.right  = 'auto';
+  handle.style.width  = '8px';
+  handle.style.zIndex = '55';
+
+  const MIN_W = 280, MAX_W = 780;
+  let dragging = false, startX = 0, startW = 0;
+
+  function getDetailW(){
+    return detailEl.offsetWidth || 348;
+  }
+  function setDetailW(w){
+    w = Math.max(MIN_W, Math.min(MAX_W, Math.round(w)));
+    // Disable transition during drag for snappy feel
+    detailEl.style.transition = dragging ? 'none' : '';
+    detailEl.style.width = w + 'px';
+    document.documentElement.style.setProperty('--detail-w', w+'px');
+    // Shift queue + alerts right offset
+    const qr = w + 12 + 8;
+    document.querySelectorAll('.queue,.alerts').forEach(el=>{ el.style.right = qr+'px'; });
+  }
+
+  handle.addEventListener('mousedown', e=>{
+    dragging = true;
+    startX   = e.clientX;
+    startW   = getDetailW();
+    handle.classList.add('dragging');
+    document.body.style.cursor     = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    const dx = startX - e.clientX; // drag left → wider
+    setDetailW(startW + dx);
+  });
+  document.addEventListener('mouseup', ()=>{
+    if(!dragging) return;
+    dragging = false;
+    detailEl.style.transition = '';
+    handle.classList.remove('dragging');
+    document.body.style.cursor     = '';
+    document.body.style.userSelect = '';
+    stackPanels();
+  });
+}
+
+function initCollapsePanels(){
+  const pairs = [
+    { btnId:'queueCollapseBtn',   panelId:'queuePanel',  minimizedClass:'minimized' },
+    { btnId:'alertsCollapseBtn',  panelId:'alertsPanel', minimizedClass:'minimized' },
+    { btnId:'pkgCollapseBtn',     panelId:'pkgPanel',    minimizedClass:'minimized' },
+  ];
+  pairs.forEach(({btnId, panelId, minimizedClass})=>{
+    const btn = document.getElementById(btnId);
+    const panel = document.getElementById(panelId);
+    if(!btn||!panel) return;
+    let collapsed = false;
+    btn.addEventListener('click', ()=>{
+      collapsed = !collapsed;
+      panel.classList.toggle(minimizedClass, collapsed);
+      btn.textContent = collapsed ? '▸' : '▾';
+      // Re-stack after transition
+      setTimeout(stackPanels, 270);
+    });
+  });
+  // Initial stack
+  setTimeout(stackPanels, 100);
+  // Re-stack on timeline resize
+  const orig = document.documentElement.style.setProperty.bind(document.documentElement.style);
+  // Watch for --tlh changes via MutationObserver on style
+  const obs = new MutationObserver(()=> stackPanels());
+  obs.observe(document.documentElement, {attributes:true, attributeFilter:['style']});
+}
+
+function updatePanelBadges(){
+  const liveRecs = (typeof tasks !== 'undefined') ? tasks.filter(t=>!t.done).length : 0;
+  const liveAlerts = (typeof alerts !== 'undefined') ? alerts.filter(a=>!a.resolved).length : 0;
+  const qb = document.getElementById('queueBadge');
+  const ab = document.getElementById('alertsBadge');
+  if(qb){ qb.textContent = liveRecs; qb.style.display = liveRecs ? '' : 'none'; }
+  if(ab){ ab.textContent = liveAlerts; ab.style.display = liveAlerts ? '' : 'none'; }
+}
+
+/* ═══ TIMELINE DRAG RESIZE ═══════════════════════════════════════════════════ */
+function initTimelineResize(){
+  const handle = document.getElementById('timelineDragHandle');
+  if(!handle) return;
+  let dragging = false, startY = 0, startH = 0;
+  const MIN_H = 38, MAX_H = 420;
+
+  handle.addEventListener('mousedown', e=>{
+    dragging = true;
+    startY = e.clientY;
+    startH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tl-h')) || 148;
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    const delta = startY - e.clientY; // drag up = increase height
+    const newH = Math.min(MAX_H, Math.max(MIN_H, startH + delta));
+    document.documentElement.style.setProperty('--tl-h', newH + 'px');
+    // Update panel bottom offsets
+    const tlh = newH + 16;
+    document.documentElement.style.setProperty('--tlh', tlh + 'px');
+    // Move drag handle
+    handle.style.bottom = (newH + 8) + 'px';
+  });
+  document.addEventListener('mouseup', ()=>{
+    if(dragging){ dragging = false; document.body.style.userSelect = ''; }
+  });
+}
+
+/* ═══ INTEL REPORT GENERATOR ════════════════════════════════════════════════ */
+function renderIntelReport(){
+  const el = document.getElementById('intelContent');
+  if(!el) return;
+
+  const zuluStr = document.getElementById('zuluTime')?.textContent || '----Z';
+  const ownForces = (typeof AIRCRAFT !== 'undefined') ? AIRCRAFT : [];
+  const fwdDeployed = ownForces.filter(a=>a._fwdBase);
+  const fighters  = ownForces.filter(a=>a.fn==='Fighter');
+  const isrAC     = ownForces.filter(a=>a.fn==='ISR');
+  const tankers   = ownForces.filter(a=>a.fn==='Tanker');
+  const aewc      = ownForces.filter(a=>a.fn==='AEW&C');
+
+  // ── threat data ──────────────────────────────────────────
+  const threatItems = (typeof ENEMY_THREATS !== 'undefined') ? ENEMY_THREATS : [];
+  const samSites  = threatItems.filter(e=>e.type==='SAM');
+  const enemyAC   = threatItems.filter(e=>e.type==='AC');
+  const ewNodes   = threatItems.filter(e=>e.type==='EW');
+  const highSAM   = samSites.filter(e=>e.threat==='HIGH');
+  const airborne  = enemyAC.filter(e=>e.status==='AIRBORNE');
+
+  // ── Classification banner ────────────────────────────────
+  const classColor = combatMode ? '#ff6060' : 'var(--teal)';
+  const classLabel = combatMode ? 'SIM/SECRET — NOFORN' : 'SIM/UNCLASS';
+
+  // ── Peacetime vs Combat header ───────────────────────────
+  const modeTag = combatMode
+    ? '<span style="padding:2px 9px;border-radius:5px;background:rgba(255,50,50,.18);border:1px solid rgba(255,50,50,.35);color:#ff8080;font-size:9px;font-weight:900;letter-spacing:.07em;">⚠ COMBAT — THREAT PICTURE ACTIVE</span>'
+    : '<span style="padding:2px 9px;border-radius:5px;background:rgba(94,234,212,.1);border:1px solid rgba(94,234,212,.25);color:var(--teal);font-size:9px;font-weight:900;letter-spacing:.07em;">PEACETIME — ROUTINE POSTURE</span>';
+
+  // ══════════════════════════════════════════════════════════
+  // SECTION A — EXECUTIVE SUMMARY (always shown)
+  // ══════════════════════════════════════════════════════════
+  const execText = combatMode
+    ? 'OPFOR has transitioned to offensive posture. Multiple SAM systems active with engagement envelopes overlapping NATO airspace. Enemy air activity assessed as pre-kinetic shaping. Tu-95MS BEAR-H track poses ALCM threat to rear-area logistics and C2 nodes. Su-57 pair assessed LO penetration profile. EW disruption degrading GPS and datalink across eastern sector. Recommend SEAD tasking prior to any further push east of 20°E.'
+    : 'OPFOR maintains elevated readiness along the NATO-Russia interface. No imminent offensive indicators. Routine exercise activity observed in western military district. SAM systems assessed ACTIVE but non-provocative posture. Air activity consistent with training tempo. Recommend continued ISR coverage of Kaliningrad corridor and Belarusian airspace. No significant change from previous 24hr assessment.';
+
+  // ══════════════════════════════════════════════════════════
+  // SECTION B — ORDER OF BATTLE (always shown, populated)
+  // ══════════════════════════════════════════════════════════
+  const orbRows = [
+    {cat:'IADS / SAM', count: combatMode ? samSites.length : '6 (est)', color:'#ff8080', detail: combatMode ? highSAM.length+' HIGH threat · '+samSites.filter(e=>e.threat==='MED').length+' MED threat' : '2× SA-21 GROWLER · 1× SA-10 · 1× SA-17 · 1× SA-15 · 1× SA-23'},
+    {cat:'Enemy Air',  count: combatMode ? enemyAC.length : '12+ (est)', color:'#ffaa60', detail: combatMode ? airborne.length+' airborne · '+enemyAC.filter(e=>e.status!=='AIRBORNE').length+' on ground' : 'Su-35S, Su-57, Tu-95MS, Su-24M tracked. A-50U AEW&C orbit Belarus.'},
+    {cat:'EW Nodes',   count: combatMode ? ewNodes.length : '2–4 (est)', color:'#ffd166', detail: combatMode ? ewNodes.map(e=>e.name).join(' · ') : 'Krasukha-4 assessed Bryansk. GPS jammer Zhukov node assessed active.'},
+    {cat:'Own Fighters',count:fighters.length,color:'#7cd7ff',detail:fighters.filter(a=>a.status==='READY').length+' ready · '+fighters.filter(a=>a.status==='ALERT').length+' alert · '+fighters.filter(a=>a.status==='MAINT').length+' maint'},
+    {cat:'Own ISR',     count:isrAC.length,   color:'#b388ff',detail:isrAC.filter(a=>a.status==='READY').length+' ready · covering North Sea / Med / Black Sea'},
+    {cat:'Own Tankers', count:tankers.length,  color:'#ffd166',detail:tankers.filter(a=>a.status==='READY').length+' ready · AAR coverage North Sea + Baltic + Med'},
+    {cat:'Own AEW&C',   count:aewc.length,     color:'#4dd0e1',detail:aewc.filter(a=>a.status==='READY').length+' E-3G airborne · picture covers 420km radius'},
+  ].map(r=>'<div style="display:grid;grid-template-columns:auto 32px 1fr;align-items:start;gap:6px 10px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);margin-bottom:4px;">'+
+    '<div style="font-size:10px;font-weight:900;color:'+r.color+';white-space:nowrap;">'+r.cat+'</div>'+
+    '<div style="font-size:12px;font-weight:900;color:#e8f4ff;text-align:right;">'+r.count+'</div>'+
+    '<div style="font-size:9px;color:var(--muted);line-height:1.4;">'+r.detail+'</div>'+
+  '</div>').join('');
+
+  // ══════════════════════════════════════════════════════════
+  // SECTION C — SIGINT / IMINT INDICATORS (always shown)
+  // ══════════════════════════════════════════════════════════
+  const sigintItems = combatMode ? [
+    {sev:'HIGH',  src:'SIGINT', text:'Increase in encrypted VHF traffic Minsk-Brest axis. Pattern consistent with 6th Air Army pre-strike comm discipline.'},
+    {sev:'HIGH',  src:'IMINT',  text:'S-400 TELs repositioned to pre-surveyed firing positions western Belarus. Assessed: within 2hr of engagement-ready status.'},
+    {sev:'HIGH',  src:'SIGINT', text:'Tu-95MS crew comms intercepted. ALCM pre-launch checklist sequences detected. Weapons release assessment: 30–60min.'},
+    {sev:'MED',   src:'IMINT',  text:'Su-57 pair departed Engels-2. Stealth configuration. Track west — assessed penetration training or actual approach.'},
+    {sev:'MED',   src:'SIGINT', text:'GPS jamming signals active from Zhukov node. Frequency band overlaps NATO LINK 16 and JREAP-A relay. JREAP-A degradation confirmed.'},
+    {sev:'MED',   src:'HUMINT', text:'Unconfirmed: armored vehicle column moving toward Brest corridor. Potential aviation support request from ground forces imminent.'},
+    {sev:'LOW',   src:'OSINT',  text:'Russian state media broadcasting mobilization narrative. Information ops indicators elevated. Public positioning for kinetic action.'},
+  ] : [
+    {sev:'MED',   src:'SIGINT', text:'Routine encrypted traffic on Russian Air Force frequencies. No significant increase from baseline. Monitoring 6th Air Army comms.'},
+    {sev:'MED',   src:'IMINT',  text:'S-400 sites Kyiv and Belarus region assessed operational but in garrison posture. TELs not repositioned from surveyed positions.'},
+    {sev:'MED',   src:'IMINT',  text:'Su-35S pair training sorties noted Rostov area. Within normal exercise window. Duration <4hr. No offensive profile.'},
+    {sev:'LOW',   src:'SIGINT', text:'A-50U MAINSTAY conducting routine AEW&C orbit Belarus. Track consistent with prior 14-day pattern. No deviation.'},
+    {sev:'LOW',   src:'HUMINT', text:'No significant HUMINT indicators of imminent offensive action. Population movement normal. No civilian evacuation observed.'},
+    {sev:'LOW',   src:'OSINT',  text:'Russian media exercise coverage routine. No mobilization narrative detected. Information ops below threshold.'},
+  ];
+
+  const sevColor={HIGH:'#ff6060',MED:'var(--amber)',LOW:'var(--green)'};
+  const srcColor={SIGINT:'#b388ff',IMINT:'#4dd0e1',HUMINT:'#ffd166',OSINT:'#7ee787'};
+  const sigintRows = sigintItems.map(s=>'<div style="padding:6px 9px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-left:3px solid '+sevColor[s.sev]+';margin-bottom:5px;">'+
+    '<div style="display:flex;gap:7px;align-items:center;margin-bottom:3px;">'+
+      '<span style="font-size:9px;font-weight:900;color:'+sevColor[s.sev]+';padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.05);">'+s.sev+'</span>'+
+      '<span style="font-size:9px;font-weight:900;color:'+srcColor[s.src]+';letter-spacing:.06em;">'+s.src+'</span>'+
+    '</div>'+
+    '<div style="font-size:10px;color:#c0d8f0;line-height:1.5;">'+s.text+'</div>'+
+  '</div>').join('');
+
+  // ══════════════════════════════════════════════════════════
+  // SECTION D — THREAT PICTURE (always shown, richer in combat)
+  // ══════════════════════════════════════════════════════════
+  let threatHTML = '';
+  if(combatMode){
+    // SAM sites
+    const samRows = samSites.map(e=>'<div style="padding:7px 10px;border-radius:9px;background:rgba(255,20,40,.05);border:1px solid rgba(255,40,40,.12);border-left:3px solid '+e.color+';margin-bottom:5px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">'+
+        '<span style="font-size:11px;font-weight:900;color:#ff8080;">'+e.name+'</span>'+
+        '<span style="font-size:9px;font-weight:900;padding:1px 7px;border-radius:4px;background:rgba(255,40,40,.12);color:'+(e.threat==='HIGH'?'#ff6060':'var(--amber)')+';">'+e.threat+'</span>'+
+      '</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-bottom:3px;">'+e.detail+'</div>'+
+      '<div style="display:flex;gap:12px;font-size:9px;">'+
+        '<span style="color:#ffaa60;">Range: <strong>'+e.radiusKm+'km</strong></span>'+
+        '<span style="color:#ffaa60;">Status: <strong>'+e.status+'</strong></span>'+
+        '<span style="color:var(--muted);">Nation: <strong style="color:#ff8080;">'+e.nation+'</strong></span>'+
+      '</div>'+
+    '</div>').join('');
+
+    // Enemy aircraft
+    const acRows = enemyAC.map(e=>'<div style="padding:7px 10px;border-radius:9px;background:rgba(255,20,40,.04);border:1px solid rgba(255,40,40,.1);border-left:3px solid '+e.color+';margin-bottom:5px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">'+
+        '<span style="font-size:11px;font-weight:900;color:#ff8080;">'+e.name+'</span>'+
+        '<span style="font-size:9px;font-weight:900;padding:1px 7px;border-radius:4px;background:rgba(255,40,40,.1);color:'+(e.threat==='HIGH'?'#ff6060':'var(--amber)')+';">'+e.status+'</span>'+
+      '</div>'+
+      '<div style="font-size:10px;color:var(--muted);">'+e.detail+'</div>'+
+    '</div>').join('');
+
+    // EW
+    const ewRows = ewNodes.map(e=>'<div style="padding:7px 10px;border-radius:9px;background:rgba(255,150,0,.04);border:1px solid rgba(255,150,0,.1);border-left:3px solid '+e.color+';margin-bottom:5px;">'+
+      '<div style="font-size:11px;font-weight:900;color:#ffaa60;margin-bottom:3px;">'+e.name+'</div>'+
+      '<div style="font-size:10px;color:var(--muted);">'+e.detail+'</div>'+
+    '</div>').join('');
+
+    threatHTML = '<div class="detail-block">'+
+      '<div class="section-title" style="color:#ff6060;margin-bottom:8px;">IADS — SURFACE-TO-AIR</div>'+
+      samRows+
+      '<div class="section-title" style="color:#ff8080;margin-top:10px;margin-bottom:8px;">ENEMY AIR ORDER OF BATTLE</div>'+
+      acRows+
+      '<div class="section-title" style="color:#ffaa60;margin-top:10px;margin-bottom:8px;">EW / ELECTRONIC ORDER OF BATTLE</div>'+
+      ewRows+
+    '</div>';
+  } else {
+    // Peacetime: standing threat assessment (always filled)
+    threatHTML = '<div class="detail-block">'+
+      '<div class="section-title" style="margin-bottom:8px;">STANDING THREAT ASSESSMENT</div>'+
+      '<div style="font-size:10px;color:#c0d8f0;line-height:1.6;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);margin-bottom:8px;">'+
+        'Primary threat: Russian Air Force (VKS) 6th Air Army operating from Leningrad/Rostov MDs. '+
+        'IADS network assessed capable of denying airspace east of 20°E. Key nodes: S-400 Kyiv, '+
+        'S-400 Belarus corridor, S-300V4 eastern Ukraine. Threat posture: ELEVATED but non-offensive.'+
+      '</div>'+
+      [
+        {name:'SA-21 GROWLER (S-400)',     nation:'RU', range:'400km', locs:'Kyiv region + W Belarus', threat:'HIGH',  note:'Long-range engagement. Covers NATO eastern airspace.'},
+        {name:'SA-23 GLADIATOR (S-300V4)', nation:'RU', range:'250km', locs:'Eastern Ukraine',         threat:'HIGH',  note:'Upgraded S-300. Advanced ECCM suite.'},
+        {name:'SA-10 GRUMBLE (S-300PM)',   nation:'RU', range:'90km',  locs:'Kharkiv corridor',        threat:'HIGH',  note:'Air defense umbrella. Fixed site.'},
+        {name:'SA-17 GRIZZLY (Buk-M2)',    nation:'RU', range:'50km',  locs:'Minsk suburbs',           threat:'MED',   note:'Mobile unit. Rapid redeployment assessed <2hr.'},
+        {name:'SA-15 GAUNTLET (Tor-M2)',   nation:'RU', range:'25km',  locs:'S Ukraine (suspected)',   threat:'MED',   note:'Suspected mobile battery. IMINT not confirmed.'},
+      ].map(t=>'<div style="padding:6px 9px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-left:3px solid '+(t.threat==='HIGH'?'#ff6060':'var(--amber)')+';margin-bottom:4px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">'+
+          '<span style="font-size:11px;font-weight:900;color:'+(t.threat==='HIGH'?'#ff8080':'#ffcc80')+';">'+t.name+'</span>'+
+          '<span style="font-size:9px;color:var(--muted);">'+t.range+'</span>'+
+        '</div>'+
+        '<div style="font-size:9px;color:var(--muted);margin-bottom:2px;">'+t.locs+' · '+t.note+'</div>'+
+      '</div>').join('')+
+      '<div class="section-title" style="margin-top:10px;margin-bottom:8px;">ENEMY AIR ASSESSMENT</div>'+
+      [
+        {name:'Su-35S Flanker-E', count:'12+ assessed', role:'Air superiority CAP. Standard A2A loadout. Operating pairs/fours.'},
+        {name:'Su-57 Felon',      count:'4 (Akhtubinsk)', role:'5th-gen LO. Limited numbers. Strategic deterrence platform.'},
+        {name:'Tu-95MS Bear-H',   count:'8 assessed',   role:'Strategic bomber. ALCM delivery. Kalibr/Kh-101 armed.'},
+        {name:'Su-24M Fencer',    count:'20+ assessed', role:'Strike. Low-altitude fast attack. Night capable.'},
+        {name:'A-50U Mainstay',   count:'2 (Belarus)',  role:'AEW&C. Battle management. 600km radar coverage.'},
+      ].map(t=>'<div style="display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:6px 9px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);margin-bottom:4px;">'+
+        '<div style="font-size:11px;font-weight:900;color:#ff8080;">'+t.name+'</div>'+
+        '<div style="font-size:9px;color:var(--muted);text-align:right;">'+t.count+'</div>'+
+        '<div style="font-size:9px;color:var(--muted);grid-column:1/-1;">'+t.role+'</div>'+
+      '</div>').join('')+
+    '</div>';
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SECTION E — COA ASSESSMENT
+  // ══════════════════════════════════════════════════════════
+  const coaRows = combatMode ? [
+    {label:'COA 1 — Air Denial',    prob:'HIGH', color:'#ff6060', text:'OPFOR establishes exclusion zone east of 20°E via IADS umbrella. Fighter CAP + SAM layered defence. Goal: deny NATO freedom of maneuver without kinetic strike on NATO soil.'},
+    {label:'COA 2 — Cruise Strike', prob:'MED',  color:'var(--amber)', text:'Tu-95MS ALCM salvo targeting C2 nodes, logistics hubs, or airfields. Deniable attribution strategy. BEAR-H track vectoring west supports this assessment.'},
+    {label:'COA 3 — Air Incursion', prob:'MED',  color:'var(--amber)', text:'Su-57/Su-35S deliberate airspace penetration to test NATO QRA response times and ROE. Intelligence collection profile.'},
+    {label:'COA 4 — EW Escalation', prob:'HIGH', color:'#ff6060', text:'Expanded GPS / datalink jamming. Degrade NATO C2 architecture prior to or in lieu of kinetic action. Krasukha-4 + Zhukov node assessed fully operational.'},
+  ] : [
+    {label:'COA 1 — Continued Probing', prob:'HIGH', color:'var(--amber)', text:'Routine airspace incursions, SIGINT collection missions, and ISR activity continue near NATO borders. Consistent with established pattern. No escalation expected.'},
+    {label:'COA 2 — Exercise Escalation', prob:'LOW', color:'var(--green)', text:'Large-scale snap exercise could be used as cover for force generation. Monitoring VVO exercise calendar and force disposition. No indicators at this time.'},
+    {label:'COA 3 — Hybrid Pressure', prob:'MED', color:'var(--amber)', text:'Information operations combined with limited airspace probing to signal resolve without kinetic escalation. Pattern consistent with prior Baltic/Black Sea incidents.'},
+  ];
+
+  const coaHTML = coaRows.map(c=>'<div style="padding:8px 10px;border-radius:9px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-left:3px solid '+c.color+';margin-bottom:6px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
+      '<span style="font-size:11px;font-weight:900;color:#e8f4ff;">'+c.label+'</span>'+
+      '<span style="font-size:9px;font-weight:900;padding:1px 8px;border-radius:4px;background:rgba(255,255,255,.06);color:'+c.color+';">'+c.prob+'</span>'+
+    '</div>'+
+    '<div style="font-size:10px;color:#a8c4d8;line-height:1.5;">'+c.text+'</div>'+
+  '</div>').join('');
+
+  // ══════════════════════════════════════════════════════════
+  // ASSEMBLE FULL REPORT
+  // ══════════════════════════════════════════════════════════
+  el.innerHTML =
+    // Header
+    '<div style="padding:11px 14px 9px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.12);">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">'+
+        '<div>'+
+          '<div style="font-size:11px;font-weight:900;color:var(--blue2);letter-spacing:.12em;text-transform:uppercase;">Intelligence Report</div>'+
+          '<div style="font-size:10px;color:var(--muted);margin-top:1px;">603d AOC · USAFE-AFAFRICA · '+zuluStr+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;">'+modeTag+'</div>'+
+      '</div>'+
+      '<div style="font-size:9px;font-weight:900;color:'+classColor+';letter-spacing:.1em;margin-top:3px;">'+classLabel+'</div>'+
+    '</div>'+
+    // Executive Summary
+    '<div class="detail-block">'+
+      '<div class="section-title" style="margin-bottom:6px;">Executive Summary</div>'+
+      '<div style="font-size:10px;color:#b8d4e8;line-height:1.6;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);">'+execText+'</div>'+
+    '</div>'+
+    // Order of Battle
+    '<div class="detail-block">'+
+      '<div class="section-title" style="margin-bottom:8px;">Order of Battle</div>'+
+      orbRows+
+    '</div>'+
+    // SIGINT/IMINT/HUMINT
+    '<div class="detail-block">'+
+      '<div class="section-title" style="margin-bottom:8px;">Activity Indicators</div>'+
+      sigintRows+
+    '</div>'+
+    // Threat Picture / Standing Assessment
+    threatHTML+
+    // COA Assessment
+    '<div class="detail-block">'+
+      '<div class="section-title" style="margin-bottom:8px;">COA Assessment</div>'+
+      coaHTML+
+    '</div>'+
+    // Footer
+    '<div style="padding:10px 14px;border-top:1px solid rgba(255,255,255,.05);">'+
+      '<button onclick="switchDetailTab(\'sitrep\');generateSitrep();" style="width:100%;padding:8px;border-radius:9px;border:1px solid rgba(99,183,255,.25);background:rgba(99,183,255,.08);color:var(--blue2);font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;">↗ View Full SITREP</button>'+
+    '</div>';
+}
+
+/* ═══ PATCH generateSitrep to write to sitrep tab ══════════════════════════ */
+const _origGenerateSitrep = typeof generateSitrep === 'function' ? generateSitrep : null;
+function generateSitrep(switchTab=true){
+  // Switch to sitrep tab (only when user clicks button)
+  if(switchTab) switchDetailTab('sitrep');
+  if(!detailMinimized){
+    document.getElementById('detailPanel').classList.remove('minimized');
+    detailMinimized = false;
+  }
+  // Run the original sitrep logic but target sitrepContent
+  const saved = document.getElementById('detailContent');
+  const sitrepEl = document.getElementById('sitrepContent');
+  if(!sitrepEl) return;
+
+  const ac=AIRCRAFT, f=filteredAC();
+  const ready=ac.filter(a=>a.status==='READY').length;
+  const alert=ac.filter(a=>a.status==='ALERT').length;
+  const maint=ac.filter(a=>a.status==='MAINT').length;
+  const avgFuel=Math.round(ac.reduce((s,a)=>s+a.fuel,0)/ac.length);
+  const critFuel=ac.filter(a=>a.fuel<20&&a.status!=='MAINT');
+  const lowFuel=ac.filter(a=>a.fuel>=20&&a.fuel<35&&a.status!=='MAINT');
+  const liveAlerts=alerts.filter(a=>!a.resolved);
+  const now=new Date();
+  const zuluStr=document.getElementById('zuluTime')?.textContent||'----Z';
+
+  const threatSummary=combatMode?`
+    <div class="detail-stat" style="grid-column:1/-1;border-color:rgba(255,60,60,.3);background:rgba(255,20,40,.06);">
+      <div class="detail-stat-label" style="color:#ff6060;">Threat Picture</div>
+      <div class="detail-stat-value" style="font-size:12px;color:#ffc0c0;">
+        ${ENEMY_THREATS.filter(e=>e.type==='SAM').length} SAM · ${ENEMY_THREATS.filter(e=>e.type==='AC'&&e.status==='AIRBORNE').length} enemy AC · ${ENEMY_THREATS.filter(e=>e.type==='EW').length} EW nodes
+      </div>
+    </div>`:'';
+
+  sitrepEl.className = '';
+  sitrepEl.innerHTML=`
+    <div class="detail-block">
+      <div class="detail-name">SITUATION REPORT</div>
+      <div class="detail-type">${zuluStr} · ${combatMode?'⚠ COMBAT':'PEACETIME'}</div>
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="detail-stat-label">Total AC</div><div class="detail-stat-value">${ac.length}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Ready</div><div class="detail-stat-value" style="color:var(--green)">${ready}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Alert</div><div class="detail-stat-value" style="color:var(--amber)">${alert}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Maint</div><div class="detail-stat-value" style="color:var(--red)">${maint}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Fleet Fuel</div><div class="detail-stat-value">${avgFuel}%</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Open Alerts</div><div class="detail-stat-value" style="color:${liveAlerts.length>3?'var(--red)':'var(--amber)'};">${liveAlerts.length}</div></div>
+        ${threatSummary}
+      </div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Fuel Status</div>
+      ${critFuel.length?'<div style="color:var(--red);font-size:12px;margin-bottom:6px;">🔴 Critical (&lt;20%): '+critFuel.map(a=>a.type+' '+a.tail).join(', ')+'</div>':''}
+      ${lowFuel.length?'<div style="color:var(--amber);font-size:12px;">🟡 Low (&lt;35%): '+lowFuel.map(a=>a.type+' '+a.tail).join(', ')+'</div>':''}
+      ${!critFuel.length&&!lowFuel.length?'<div style="color:var(--green);font-size:12px;">✅ All aircraft fuel nominal</div>':''}
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Active Alerts (${liveAlerts.length})</div>
+      ${liveAlerts.slice(0,6).map(a=>{
+        const ac2=getAC(a.tid),pk=getPkg(a.tid);
+        const lbl=ac2?ac2.type+' '+ac2.tail:pk?pk.name:'System';
+        return '<div style="font-size:11px;margin-bottom:5px;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,.03);border-left:3px solid '+(a.sev==='HIGH'?'var(--red)':a.sev==='MED'?'var(--amber)':'var(--teal)')+'"><strong>'+lbl+'</strong> — '+a.msg+'</div>';
+      }).join('')}
+    </div>
+  `;
+}
+
+
+/* ═══ 603 AOC RENDERING ════════════════════════════════════════════════════ */
+function statusColor(s){
+  if(s==="UP"||s==="STAFFED") return "var(--green)";
+  if(s==="DEGRADED"||s==="REDUCED") return "var(--amber)";
+  if(s==="DOWN") return "var(--red)";
+  return "var(--muted)";
+}
+function statusBg(s){
+  if(s==="UP"||s==="STAFFED") return "rgba(76,226,138,.12)";
+  if(s==="DEGRADED"||s==="REDUCED") return "rgba(255,184,0,.12)";
+  if(s==="DOWN") return "rgba(255,90,90,.12)";
+  return "rgba(255,255,255,.04)";
+}
+function jreapIcon(s){ return s==="UP"?"●":s==="DEGRADED"?"◑":"○"; }
+
+function renderAocStrip(){
+  // ── Op/Phase/Threat strip ──
+  const opStrip = document.getElementById("aocOpStrip");
+  if(opStrip){
+    const tc = AOC_603.threatCondition;
+    const tcCol = tc.includes("CHARLIE")||tc.includes("DELTA") ? "var(--red)"
+                : tc.includes("BRAVO")                         ? "var(--amber)"
+                :                                                "var(--green)";
+    const tcBg  = tc.includes("CHARLIE")||tc.includes("DELTA") ? "rgba(255,80,80,.12)"
+                : tc.includes("BRAVO")                         ? "rgba(255,184,0,.10)"
+                :                                                "rgba(76,226,138,.08)";
+    const phaseCol = AOC_603.opPhase.includes("0") ? "var(--green)"
+                   : AOC_603.opPhase.includes("1") ? "var(--teal)"
+                   : AOC_603.opPhase.includes("2") ? "var(--amber)"
+                   :                                 "var(--red)";
+    opStrip.innerHTML =
+      // Row 1: Op + ThreatCon
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px;">'+
+        '<div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);grid-column:1/3;">'+
+          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Operation</div>'+
+          '<div style="font-size:12px;font-weight:900;color:#e8f4ff;">'+AOC_603.currentOp+'</div>'+
+        '</div>'+
+        '<div style="padding:5px 7px;border-radius:7px;background:'+tcBg+';border:1px solid rgba(255,255,255,.05);">'+
+          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">ThreatCon</div>'+
+          '<div style="font-size:10px;font-weight:900;color:'+tcCol+';">'+tc.replace("THREATCON ","")+'</div>'+
+        '</div>'+
+      '</div>'+
+      // Row 2: Phase + ATO + ACO
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px;">'+
+        '<div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);">'+
+          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Phase</div>'+
+          '<div style="font-size:10px;font-weight:900;color:'+phaseCol+';">'+AOC_603.opPhase.replace(" — "," / ")+'</div>'+
+        '</div>'+
+        '<div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);">'+
+          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">ATO</div>'+
+          '<div style="font-size:10px;font-weight:900;color:#e8f4ff;">'+AOC_603.ato+'</div>'+
+        '</div>'+
+        '<div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);">'+
+          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">JICO</div>'+
+          '<div style="font-size:10px;font-weight:900;color:var(--green);">On Watch</div>'+
+        '</div>'+
+      '</div>';
+  }
+
+  // ── JREAP strip (wider sidebar — show latency + uptime + nodes inline) ──
+  const strip = document.getElementById("jreapStrip");
+  if(!strip) return;
+  const links = [AOC_603.jreap.a, AOC_603.jreap.b, AOC_603.jreap.c];
+  strip.innerHTML = links.map(l=>{
+    const col = statusColor(l.status);
+    const bg  = statusBg(l.status);
+    const icon = l.status==="UP" ? "●" : l.status==="DEGRADED" ? "◑" : "○";
+    return '<div style="display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:8px;padding:5px 9px;border-radius:8px;background:'+bg+';border:1px solid rgba(255,255,255,.06);">'+
+      '<span style="color:'+col+';font-size:12px;line-height:1;">'+icon+'</span>'+
+      '<span style="font-size:11px;font-weight:900;color:#e8f4ff;">'+l.label+'</span>'+
+      '<span style="font-size:9px;color:var(--muted);font-family:monospace;">'+l.nodes+' nodes</span>'+
+      '<span style="font-size:9px;color:var(--muted);font-family:monospace;">'+l.latencyMs+'ms</span>'+
+      '<span style="font-size:9px;font-weight:900;color:'+col+';text-transform:uppercase;letter-spacing:.04em;">'+l.status+'</span>'+
+    '</div>';
+  }).join("");
+}
+
+function openAocDetail(){
+  // Build full AOC detail panel
+  const j = AOC_603.jreap;
+  const jrows = [j.a, j.b, j.c].map(l=>{
+    const col = statusColor(l.status), bg = statusBg(l.status);
+    return '<div style="padding:9px 11px;border-radius:10px;border:1px solid rgba(255,255,255,.06);border-left:3px solid '+col+';background:'+bg+';margin-bottom:7px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'+
+        '<div style="font-size:13px;font-weight:900;color:#e8f4ff;">'+l.label+'</div>'+
+        '<div style="display:flex;gap:8px;align-items:center;">'+
+          '<span style="font-size:10px;color:var(--muted);font-family:monospace;">'+l.latencyMs+'ms · '+l.uptime+' up</span>'+
+          '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:5px;background:'+bg+';color:'+col+';">'+l.status+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-bottom:3px;">'+l.desc+'</div>'+
+      '<div style="font-size:10px;color:#aac8e0;background:rgba(0,0,0,.15);border-radius:5px;padding:4px 7px;margin-top:4px;">'+l.detail+'</div>'+
+      '<div style="font-size:9px;color:var(--muted);margin-top:4px;">Active Nodes: <strong style="color:#8fd1ff;">'+l.nodes+'</strong></div>'+
+    '</div>';
+  }).join("");
+
+  const divRows = AOC_603.divisions.map(d=>{
+    const col = statusColor(d.status), bg = statusBg(d.status);
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:4px;">'+
+      '<div>'+
+        '<div style="font-size:11px;font-weight:900;color:#e8f4ff;">'+d.abbr+'</div>'+
+        '<div style="font-size:9px;color:var(--muted);">'+d.officer+' · '+d.personnel+' pax</div>'+
+        (d.note?'<div style="font-size:9px;color:var(--amber);margin-top:2px;">⚠ '+d.note+'</div>':'')+
+      '</div>'+
+      '<span style="font-size:9px;font-weight:900;padding:2px 8px;border-radius:5px;background:'+bg+';color:'+col+';text-transform:uppercase;letter-spacing:.05em;">'+d.status+'</span>'+
+    '</div>';
+  }).join("");
+
+  const netRows = AOC_603.networks.map(n=>{
+    const col = statusColor(n.status), bg = statusBg(n.status);
+    return '<div style="padding:6px 9px;border-radius:8px;background:'+bg+';border:1px solid rgba(255,255,255,.05);border-left:2px solid '+col+';margin-bottom:4px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+        '<span style="font-size:11px;font-weight:900;color:#e8f4ff;">'+n.name+'</span>'+
+        '<span style="font-size:9px;font-weight:900;color:'+col+';">'+n.status+'</span>'+
+      '</div>'+
+      '<div style="font-size:9px;color:var(--muted);margin-top:2px;">'+n.detail+'</div>'+
+    '</div>';
+  }).join("");
+
+  const html =
+    '<div class="detail-block">'+
+      '<div class="detail-name">603d Air Operations Center</div>'+
+      '<div class="detail-type">USAFE-AFAFRICA · Ramstein AB, Germany</div>'+
+      '<div class="detail-grid" style="margin-top:10px;">'+
+        '<div class="detail-stat"><div class="detail-stat-label">Operation</div><div class="detail-stat-value">'+AOC_603.currentOp+'</div></div>'+
+        '<div class="detail-stat"><div class="detail-stat-label">Phase</div><div class="detail-stat-value" style="color:var(--blue2);">'+AOC_603.opPhase+'</div></div>'+
+        '<div class="detail-stat"><div class="detail-stat-label">ATO Cycle</div><div class="detail-stat-value">'+AOC_603.ato+'</div></div>'+
+        '<div class="detail-stat"><div class="detail-stat-label">ACO</div><div class="detail-stat-value">'+AOC_603.acm+'</div></div>'+
+        '<div class="detail-stat" style="grid-column:1/-1;border-color:rgba(255,184,0,.25);background:rgba(255,184,0,.06);">'+
+          '<div class="detail-stat-label">Threat Con</div>'+
+          '<div class="detail-stat-value" style="color:var(--amber);">'+AOC_603.threatCondition+'</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="detail-block">'+
+      '<div class="section-title">JICO — Data Link Status</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:5px 8px;background:rgba(94,234,212,.06);border-radius:7px;border-left:2px solid var(--teal);">'+
+        'JICO: <strong style="color:#e8f4ff;">'+AOC_603.jico.officer+'</strong> · '+AOC_603.jico.position+' · <span style="color:var(--green);">'+AOC_603.jico.watchStatus+'</span>'+
+      '</div>'+
+      jrows+
+    '</div>'+
+    '<div class="detail-block">'+
+      '<div class="section-title">AOC Divisions</div>'+
+      divRows+
+    '</div>'+
+    '<div class="detail-block">'+
+      '<div class="section-title">C2 Networks</div>'+
+      netRows+
+    '</div>';
+
+  setDetailContent(html);
+}
+
+/* ── Simulate JREAP jitter every ~15s ─────────────────────────────────── */
+setInterval(()=>{
+  // Random latency jitter ±15ms
+  AOC_603.jreap.a.latencyMs = Math.max(60, Math.round(210 + (Math.random()-.5)*80));
+  AOC_603.jreap.b.latencyMs = Math.max(18, Math.round(42  + (Math.random()-.5)*20));
+  AOC_603.jreap.c.latencyMs = Math.max(8,  Math.round(18  + (Math.random()-.5)*10));
+  // Occasional JREAP-A degradation
+  if(Math.random()<.04){
+    AOC_603.jreap.a.status = AOC_603.jreap.a.status==="UP"?"DEGRADED":"UP";
+    AOC_603.jreap.a.detail = AOC_603.jreap.a.status==="DEGRADED"
+      ? "Packet loss detected on nodes 2-3. Latency spike. Attempting re-sync."
+      : "High latency on node 3 — packet loss 8%. Node 4 backup active.";
+  }
+  renderAocStrip();
+}, 15000);
+
+/* ═══ KEYBOARD SHORTCUTS ════════════════════════════════════════════════════ */
+const MAP_STYLE_CYCLE=["dark","osm","satellite","terrain"];
+document.addEventListener("keydown", e=>{
+  if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
+  const overlay=document.getElementById("shortcutsOverlay");
+  if(!overlay.classList.contains("hidden")){ overlay.classList.add("hidden"); return; }
+
+  const key=e.key.toLowerCase();
+  if(key==="?")   { overlay.classList.remove("hidden"); }
+  else if(key==="c"){ document.getElementById("combatSwitch").click(); }
+  else if(key==="a"){ document.getElementById("automationSwitch").click(); }
+  else if(key==="t"){ setTimelineHeight(!timelineMinimized); }
+  else if(key==="m"){
+    const cur=MAP_STYLE_CYCLE.indexOf(currentMapStyle);
+    switchMapStyle(MAP_STYLE_CYCLE[(cur+1)%MAP_STYLE_CYCLE.length]);
+  }
+  else if(key==="1"){ document.querySelector(".time-btn[data-speed='1']")?.click(); }
+  else if(key==="2"){ document.querySelector(".time-btn[data-speed='10']")?.click(); }
+  else if(key==="3"){ document.querySelector(".time-btn[data-speed='60']")?.click(); }
+  else if(key==="r"){ document.querySelector(".time-btn[data-speed='replay']")?.click(); }
+  else if(key==="escape"){ document.getElementById("aircraftInspector").classList.add("hidden"); clearDetail(); }
+  else if(key==="f"){ document.querySelector(".chip[data-function='Fighter']")?.click(); }
+  else if(key==="i"){ document.querySelector(".chip[data-function='ISR']")?.click(); }
+});
+
+/* ═══ TIMELINE MINIMIZE ════════════════════════════════════════════════════ */
+let timelineMinimized = false;
+const TL_H_FULL = 156;   // px (148 + 8 bottom gap)
+const TL_H_MIN  = 46;    // px minimized
+
+function setTimelineHeight(minimized){
+  timelineMinimized = minimized;
+  const tl = document.querySelector(".timeline");
+  const btn = document.getElementById("timelineToggle");
+  const legend = document.getElementById("timelineLegend");
+  const sub = document.getElementById("timelineSub");
+  if(!tl) return;
+
+  if(minimized){
+    tl.classList.add("minimized");
+    if(btn) btn.textContent = "▸";
+    if(legend) legend.style.display = "none";
+    if(sub) sub.style.display = "none";
+    document.documentElement.style.setProperty("--tlh", TL_H_MIN + "px");
+  } else {
+    tl.classList.remove("minimized");
+    if(btn) btn.textContent = "▾";
+    if(legend) legend.style.display = "";
+    if(sub) sub.style.display = "";
+    document.documentElement.style.setProperty("--tlh", TL_H_FULL + "px");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  // Timeline minimize button
+  const btn = document.getElementById("timelineToggle");
+  if(btn) btn.addEventListener("click", ()=>setTimelineHeight(!timelineMinimized));
+
+  // Detail panel tabs + minimize
+  initDetailPanel();
+
+  // Queue/Alerts collapse
+  initCollapsePanels();
+
+  // Timeline drag resize
+  initTimelineResize();
+});
+
+/* ═══ MAP STYLE SWITCHER ═══════════════════════════════════════════════════ */
+const MAP_STYLES={
+  dark:{
+    // OSM tiles with heavy dark filter — default COP mode
+    tile:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    cls:"", label:"Dark"
+  },
+  osm:{
+    // Standard OpenStreetMap — full colour, no filter
+    tile:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    cls:"osm-mode", label:"OSM"
+  },
+  satellite:{
+    // ESRI World Imagery
+    tile:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    cls:"satellite-mode", label:"Satellite"
+  },
+  terrain:{
+    // OpenTopoMap — contour/terrain
+    tile:"https://tile.opentopomap.org/{z}/{x}/{y}.png",
+    cls:"terrain-mode", label:"Terrain"
+  }
+};
+
+let currentMapStyle="osm";
+
+function switchMapStyle(name){
+  currentMapStyle=name;
+  const st=MAP_STYLES[name];
+  if(map.getSource("osm")){
+    map.getSource("osm").setTiles([st.tile]);
+  }
+  // Swap body class for CSS filter
+  document.body.classList.remove("satellite-mode","tactical-mode","osm-mode","terrain-mode");
+  if(st.cls) document.body.classList.add(st.cls);
+
+  // Style buttons
+  document.querySelectorAll(".style-btn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.style===name);
+  });
+  showNotice(`Map: ${st.label}`);
+}
+
+document.querySelectorAll(".style-btn").forEach(b=>{
+  b.addEventListener("click",()=>switchMapStyle(b.dataset.style));
+});
+
+/* ═══ ZULU CLOCK ═══════════════════════════════════════════════════════════ */
+function startZulu(){
+  const tick=()=>{
+    const n=new Date();
+    const h=String(n.getUTCHours()).padStart(2,"0");
+    const m=String(n.getUTCMinutes()).padStart(2,"0");
+    const s=String(n.getUTCSeconds()).padStart(2,"0");
+    // Julian Day (day-of-year, 1-based)
+    const yr=n.getUTCFullYear();
+    const jan1=new Date(Date.UTC(yr,0,1));
+    const jday=Math.ceil((n-jan1)/86400000);
+    const jStr="J"+String(jday).padStart(3,"0");
+    (document.getElementById("zuluTime")||document.getElementById("zuluClock")).textContent=`${jStr} ${h}:${m}:${s}Z`;
+  };
+  tick(); setInterval(tick,1000);
+}
+
+/* ═══ LAYOUT SYNC ═══════════════════════════════════════════════════════════ */
+function syncLayout(){
+  const tb=document.querySelector(".topbar");
+  if(!tb) return;
+  const h=Math.round(tb.getBoundingClientRect().bottom)+8;
+  document.documentElement.style.setProperty("--th",h+"px");
+  // zulu is now inline in topbar, no repositioning needed
+}
+window.addEventListener("resize",syncLayout);
+
+/* ═══ 3D INSPECTOR ═══════════════════════════════════════════════════════════ */
+const insp={
+  root:document.getElementById("aircraftInspector"),
+  title:document.getElementById("inspectorTitle"),
+  stateEl:document.getElementById("inspectorState"),
+  autoEl:document.getElementById("inspectorAutomation"),
+  loadEl:document.getElementById("inspectorLoadout"),
+  canvas:document.getElementById("aircraft3DCanvas"),
+  renderer:null,scene:null,camera:null,controls:null,
+  loader:new THREE.GLTFLoader(),model:null,ac:null,mode:"flight",animId:null,
+  grid:null,ground:null
+};
+
+function initInspector(){
+  if(insp.renderer) return;
+  insp.renderer=new THREE.WebGLRenderer({canvas:insp.canvas,antialias:true,alpha:true});
+  insp.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  insp.scene=new THREE.Scene();
+  insp.camera=new THREE.PerspectiveCamera(45,1,.1,5000);
+  insp.camera.position.set(0,10,28);
+  insp.controls=new THREE.OrbitControls(insp.camera,insp.renderer.domElement);
+  insp.controls.enableDamping=true; insp.controls.dampingFactor=.06; insp.controls.target.set(0,4,0);
+  insp.scene.add(new THREE.AmbientLight(0xffffff,1.7));
+  const d=new THREE.DirectionalLight(0xffffff,2.2); d.position.set(18,22,14); insp.scene.add(d);
+  const r=new THREE.DirectionalLight(0x88bbff,1.1); r.position.set(-20,10,-10); insp.scene.add(r);
+  insp.grid=new THREE.GridHelper(120,40,0x335577,0x1a2f44); insp.scene.add(insp.grid);
+  insp.ground=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.MeshStandardMaterial({color:0x1a2632,roughness:.95,metalness:.05}));
+  insp.ground.rotation.x=-Math.PI/2; insp.scene.add(insp.ground);
+  window.addEventListener("resize",resizeInsp);
+  resizeInsp();
+  document.getElementById("closeInspectorBtn").addEventListener("click",()=>insp.root.classList.add("hidden"));
+  document.getElementById("modeFlightBtn").addEventListener("click",()=>setInspMode("flight"));
+  document.getElementById("modeTarmacBtn").addEventListener("click",()=>setInspMode("tarmac"));
+}
+
+function resizeInsp(){
+  if(!insp.renderer) return;
+  const w=insp.canvas.parentElement.clientWidth, h=insp.canvas.parentElement.clientHeight;
+  insp.renderer.setSize(w,h,false); insp.camera.aspect=w/h; insp.camera.updateProjectionMatrix();
+}
+
+function clearInspModel(){
+  if(!insp.model) return;
+  insp.scene.remove(insp.model);
+  insp.model.traverse(o=>{ if(o.geometry)o.geometry.dispose?.(); if(o.material){ if(Array.isArray(o.material))o.material.forEach(m=>m.dispose?.()); else o.material.dispose?.(); } });
+  insp.model=null;
+}
+
+function buildFallback(a){
+  const g=new THREE.Group(), c=new THREE.Color(FN_COLORS[a.fn]||"#63b7ff");
+  const mat=new THREE.MeshStandardMaterial({color:c,roughness:.45,metalness:.6});
+  let fus,wing,tail;
+  if(a.fn==="Fighter"||a.fn==="SOF"){ fus=new THREE.Mesh(new THREE.CylinderGeometry(.65,1.0,12,18),mat); wing=new THREE.Mesh(new THREE.BoxGeometry(1.2,.18,7.5),mat); tail=new THREE.Mesh(new THREE.BoxGeometry(.25,2.2,1.4),mat); tail.position.set(-4.8,1.1,0); }
+  else if(a.fn==="Bomber"){ fus=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.5,22,22),mat); wing=new THREE.Mesh(new THREE.BoxGeometry(1.4,.2,18),mat); tail=new THREE.Mesh(new THREE.BoxGeometry(.35,3.0,2.0),mat); tail.position.set(-8.5,1.6,0); }
+  else { fus=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.5,18,22),mat); wing=new THREE.Mesh(new THREE.BoxGeometry(1.3,.22,14),mat); tail=new THREE.Mesh(new THREE.BoxGeometry(.3,3.0,1.8),mat); tail.position.set(-6.8,1.5,0); }
+  fus.rotation.z=Math.PI/2;
+  const nose=new THREE.Mesh(new THREE.ConeGeometry(.7,2.0,18),mat); nose.rotation.z=-Math.PI/2; nose.position.set(6.4,0,0);
+  const cock=new THREE.Mesh(new THREE.SphereGeometry(.9,16,16),new THREE.MeshStandardMaterial({color:0x99dfff,transparent:true,opacity:.75,metalness:.2,roughness:.2}));
+  cock.position.set(2.2,.75,0); cock.scale.set(1.1,.6,.8);
+  if(a.fn==="AEW&C"){ const radar=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,.25,28),new THREE.MeshStandardMaterial({color:0x4dd0e1,metalness:.45,roughness:.4})); radar.position.set(0,2.1,0); radar.rotation.x=Math.PI/2; g.add(radar); }
+  g.add(fus,wing,tail,nose,cock); return g;
+}
+
+function applyInspPose(a){
+  if(!insp.model) return;
+  if(insp.mode==="flight"){
+    insp.grid.visible=false; insp.ground.visible=false;
+    insp.model.position.set(0,8,0);
+    insp.model.rotation.set(THREE.MathUtils.degToRad(-4),THREE.MathUtils.degToRad(220),THREE.MathUtils.degToRad(8));
+    insp.camera.position.set(0,10,28); insp.controls.target.set(0,7,0);
+  } else {
+    insp.grid.visible=true; insp.ground.visible=true;
+    insp.model.position.set(0,.25,0);
+    insp.model.rotation.set(0,THREE.MathUtils.degToRad(215),0);
+    insp.camera.position.set(0,6,24); insp.controls.target.set(0,2.2,0);
+  }
+  insp.stateEl.innerHTML=`<div><b>Type:</b> ${a.type}</div><div><b>Tail:</b> <span style="font-family:monospace;color:#8fd1ff;">${a.tail}</span></div><div><b>Status:</b> ${a.status}</div><div><b>Fuel:</b> ${Math.round(a.fuel)}%</div><div><b>Mission:</b> ${a.mission}</div>`;
+  insp.autoEl.innerHTML=`<div><b>Automation:</b> ${a.auto?"Enabled":"Disabled"}</div><div><b>Crew:</b> ${a.crew?"Ready":"Not Ready"}</div><div><b>Health:</b> ${a.health}</div>`;
+  insp.loadEl.innerHTML=`<ul style="margin:0;padding-left:16px;font-size:12px;line-height:1.6;">${a.loadout.map(x=>'<li>'+x+'</li>').join('')}</ul>`;
+}
+
+function inspLoop(){
+  insp.animId=requestAnimationFrame(inspLoop);
+  if(insp.model){ if(insp.mode==="flight"){ insp.model.position.y=8+Math.sin(performance.now()*.0018)*.18; insp.model.rotation.y+=.0035; } else insp.model.rotation.y+=.0015; }
+  insp.controls.update();
+  insp.renderer.render(insp.scene,insp.camera);
+}
+
+function setInspMode(m){ insp.mode=m; if(insp.ac) applyInspPose(insp.ac); }
+
+async function openInspector(a){
+  initInspector();
+  insp.root.classList.remove("hidden");
+  insp.ac=a;
+  insp.title.textContent=`${a.type} · ${a.tail}`;
+  clearInspModel();
+
+  const modelCfg=MODEL_LIBRARY[a.type];
+  if(modelCfg?.glb){
+    try{
+      const gltf=await insp.loader.loadAsync(modelCfg.glb);
+      insp.model=gltf.scene;
+      insp.model.scale.setScalar(modelCfg.scale||1.0);
+      insp.scene.add(insp.model);
+    }catch{
+      insp.model=buildFallback(a);
+      insp.scene.add(insp.model);
+    }
+  } else {
+    insp.model=buildFallback(a);
+    insp.scene.add(insp.model);
+  }
+
+  applyInspPose(a);
+  if(!insp.animId) inspLoop();
+  resizeInsp();
+}
+
+/* ═══ CONTROLS ═══════════════════════════════════════════════════════════ */
+document.getElementById("combatSwitch").addEventListener("click",()=>{
+  combatMode=!combatMode;
+  document.getElementById("combatSwitch").classList.toggle("active",combatMode);
+  document.body.classList.toggle("combat-mode",combatMode);
+  document.getElementById("modeLabel").textContent=combatMode?"⚠ COMBAT":"Peacetime";
+
+  if(combatMode){
+    showNotice("⚠ COMBAT MODE — Threat picture loading...");
+    activateCombatMode();
+  } else {
+    deactivateCombatMode();
+    showNotice("Peacetime restored — standing down");
+  }
+  refreshAll();
+});
+
+function activateCombatMode(){
+  // ── Update AOC state for combat ──
+  AOC_603.currentOp       = "Op IRONCLAD";
+  AOC_603.opPhase         = "Phase 2 — Shaping";
+  AOC_603.threatCondition = "THREATCON CHARLIE";
+  setTimeout(()=>{ if(typeof renderIntelReport==="function") renderIntelReport(); }, 900);
+  AOC_603.jico.watchStatus = "On Watch — Heightened";
+  // Degrade JREAP-A under combat conditions
+  AOC_603.jreap.a.status  = "DEGRADED";
+  AOC_603.jreap.a.detail  = "EW jamming detected. Packet loss 18% nodes 2-4. JREAP-C primary backup active.";
+  // Add AOCS Link degradation
+  const aocLink = AOC_603.networks.find(n=>n.name==="AOCS Link");
+  if(aocLink){ aocLink.status="DEGRADED"; aocLink.detail="Combat comms saturation — 18% packet loss. SATCOM failover active."; }
+  renderAocStrip();
+
+  // ── Fly to Eastern Europe threat zone ──
+  setTimeout(()=>{
+    map.flyTo({center:[27.5,51.5], zoom:4.8, pitch:45, bearing:10, speed:.7});
+  }, 400);
+
+  // ── Generate HIGH priority threat alerts ──
+  setTimeout(()=>{
+    addAlert("THREAT_SAM","E04","HIGH","S-400 SA-21 GROWLER active western Belarus. Engagement range covers Warsaw. Suppress before push.","Assign SEAD package to PKG-SEAD");
+    addAlert("THREAT_SAM","E01","HIGH","S-400 GROWLER active Kyiv region. 400km engagement envelope overlaps NATO airspace.","Hold all penetrators east of 20° until suppressed");
+    addAlert("THREAT_AC","E09","HIGH","Tu-95MS BEAR-H airborne. ALCM profile. Estimated 6–8 ALCMs. Track vectoring west.","Scramble QRA and cue E-3G on BEAR-H track");
+    addAlert("THREAT_AC","E10","HIGH","Su-57 pair penetrators airborne eastern Ukraine. LO profile — limited radar coverage.","Activate L-band radar chain. PKG-ALPHA QRA cleared HOT.");
+    addAlert("THREAT_AC","E07","MED","4× Su-35S CAP over central Ukraine. Denied airspace band forming.","Maintain standoff. F-35 section for suppression if authorized.");
+    addAlert("THREAT_EW","E12","MED","GPS/datalink jamming active Zhukov node. Expect comms degradation within 200km.","Switch to HAVE QUICK and SATCOM backup.");
+    showNotice("⚠ 6 threat alerts generated");
+  }, 800);
+
+  // ── Auto-task aircraft forward to Poland / Romania ──
+  setTimeout(()=>{
+    taskAircraftForward();
+  }, 1400);
+}
+
+function deactivateCombatMode(){
+  // ── Restore AOC peacetime state ──
+  AOC_603.currentOp       = "Op DETERRENCE";
+  AOC_603.opPhase         = "Phase 0 — Deterrence";
+  AOC_603.threatCondition = "THREATCON ALPHA";
+  setTimeout(()=>{ if(typeof renderIntelReport==="function") renderIntelReport(); }, 300);
+  AOC_603.jico.watchStatus = "On Watch";
+  AOC_603.jreap.a.status  = "DEGRADED"; // stays slightly degraded — realistic
+  AOC_603.jreap.a.detail  = "High latency on node 3 — packet loss 8%. Node 4 backup active.";
+  const aocLink = AOC_603.networks.find(n=>n.name==="AOCS Link");
+  if(aocLink){ aocLink.status="DEGRADED"; aocLink.detail="AOC-to-CAOC primary link 12% packet loss. Failover standby."; }
+  renderAocStrip();
+
+  // Clear threat alerts
+  alerts.forEach(a=>{ if(a.type&&a.type.startsWith("THREAT_")) a.resolved=true; });
+  tasks.forEach(t=>{ if(t.kind&&t.kind.startsWith("FWD_")) t.done=true; });
+  // Reset enemy trails
+  Object.keys(enemyTrailState).forEach(k=>{ enemyTrailState[k]=[]; });
+  // Restore friendly aircraft to home bases
+  AIRCRAFT.forEach(a=>{
+    if(a._fwdBase){ a.route=null; a.mission=a._origMission||"Recovery"; delete a._fwdBase; delete a._origMission; }
+  });
+}
+
+function taskAircraftForward(){
+  const fwdTasks=[
+    // Push fighters to Polish forward bases
+    {acId:"A01",base:FORWARD_BASES[0], mission:"Forward Deploy — 32 BLT Łask",      label:"Fwd: Łask Poland"},
+    {acId:"A05",base:FORWARD_BASES[1], mission:"Forward Deploy — 22 BLT Malbork",   label:"Fwd: Malbork Poland"},
+    {acId:"A04",base:FORWARD_BASES[0], mission:"Combat Air Patrol — Poland Sector",  label:"CAP Poland Sector"},
+    {acId:"A06",base:FORWARD_BASES[1], mission:"QRA Forward — Malbork",              label:"QRA Malbork"},
+    // Push ISR / tanker support to Romania
+    {acId:"A13",base:FORWARD_BASES[2], mission:"Fwd ISR — Fetești Romania",          label:"Fwd: ISR Romania"},
+    {acId:"A08",base:FORWARD_BASES[3], mission:"Fwd Tanker — Kogălniceanu",          label:"Fwd: Tanker Romania"},
+    {acId:"A17",base:FORWARD_BASES[2], mission:"AEW&C Orbit — Eastern Europe",       label:"Fwd: AEW Romania"},
+    // SOF pre-position
+    {acId:"A10",base:FORWARD_BASES[1], mission:"SOF Pre-Position — Poland",          label:"Fwd: SOF Poland"},
+  ];
+
+  fwdTasks.forEach((t,i)=>{
+    setTimeout(()=>{
+      const ac=getAC(t.acId); if(!ac) return;
+      const current=acCoords(ac);
+      const dest=t.base.coords;
+      // Waypoint route: current → mid-point → destination
+      const mid=[(current[0]+dest[0])/2+((Math.random()-.5)*2),(current[1]+dest[1])/2+((Math.random()-.5)*1.5)];
+      ac._fwdBase=t.base.id;
+      ac._origMission=ac.mission;
+      ac.route=[current, mid, dest];
+      ac.rp=0.01;
+      ac.rs=combatMode?0.008:0.005;
+      ac.mission=t.mission;
+      ac.status="READY";
+      addTask("FWD_DEPLOY",ac.id,"HIGH",t.label,"Forward Deploy",true);
+      showNotice(`↗ ${ac.type} ${ac.tail} → ${t.base.name}`);
+      refreshAll();
+    }, i*350);
+  });
+}
+
+
+document.getElementById("automationSwitch").addEventListener("click",()=>{
+  autoMaster=!autoMaster;
+  document.getElementById("automationSwitch").classList.toggle("active",autoMaster);
+  document.getElementById("automationLabel").textContent=autoMaster?"On":"Off";
+  showNotice(autoMaster?"Automation master ON":"Automation master OFF");
+});
+
+document.querySelectorAll(".time-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".time-btn").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    timeMode=btn.dataset.speed;
+    if(timeMode==="replay"){ timeMul=1; AIRCRAFT.forEach(a=>{a.rp=0;a.trail=[];}); showNotice("Replay reset"); }
+    else { timeMul=Number(timeMode); showNotice(`Time: ${timeMul}x`); }
+  });
+});
+
+document.getElementById("ccmdFilter").addEventListener("change",e=>{
+  selCCMD=e.target.value; selAcId=null; selPkgId=null; metricFilter="ALL";
+  map.flyTo({center:selCCMD==="GLOBAL"?[5,52]:[14.5,49.5],zoom:selCCMD==="GLOBAL"?3.2:3.8,speed:.7});
+  setDetailContent(`<div class="detail-empty">Select an aircraft or package.</div>`);
+  refreshAll();
+});
+
+document.querySelectorAll("#functionChips .chip").forEach(btn=>{
+  btn.addEventListener("click",()=>{ document.querySelectorAll("#functionChips .chip").forEach(x=>x.classList.remove("active")); btn.classList.add("active"); selFn=btn.dataset.function; refreshAll(); });
+});
+document.querySelectorAll("#statusChips .chip").forEach(btn=>{
+  btn.addEventListener("click",()=>{ document.querySelectorAll("#statusChips .chip").forEach(x=>x.classList.remove("active")); btn.classList.add("active"); selStatus=btn.dataset.status; refreshAll(); });
+});
+document.querySelectorAll(".metric[data-filter]").forEach(c=>{
+  c.addEventListener("click",()=>{ metricFilter=c.dataset.filter; refreshAll(); });
+});
+
+/* ═══ BOOTSTRAP ═══════════════════════════════════════════════════════════ */
+
+/* ═══ SEED INITIAL RECOMMENDATIONS ════════════════════════════════════════ */
+function seedInitialRecs(){
+  // These are standing recommendations present at startup
+  const seeds = [
+    { kind:"CREW_REST",  tid:"A07", sev:"MED",  label:"RAZOR 41 — Crew Rest Required",       action:"Schedule Relief Crew",  detail:"F-16CM crew at 14.2hr duty day. Exceeds 12hr threshold. Relief crew required before next sortie." },
+    { kind:"ISR_GAP",    tid:"PKG-ECHO", sev:"MED", label:"ISR Gap — Northern Baltic",        action:"Extend MQ-9 Orbit",     detail:"MQ-9 coverage gap emerging between Keflavik and Mildenhall sectors. GHOST 91 repositioning recommended." },
+    { kind:"AAR_PLAN",   tid:"A05", sev:"LOW",   label:"FALCON 31 — AAR Window",             action:"Coord with SHELL 51",   detail:"FALCON 31 Baltic CAP fuel profile requires AAR coordination within 90min. SHELL 51 on station." },
+    { kind:"PKG_POSTURE",tid:"PKG-BRAVO", sev:"MED", label:"PKG BRAVO — Posture Review",     action:"Review Baltic Package",  detail:"Baltic Air Policing package BRAVO has 1 alert AC. Review readiness posture given elevated SIGINT indicators." },
+    { kind:"MAINT",      tid:"A25", sev:"LOW",   label:"RAPTOR 32 — Scheduled Mx",           action:"Schedule Mx Slot",       detail:"RAPTOR 32 F-35A approaching 100hr periodic inspection. Coordinate maintenance slot at Łask." },
+    { kind:"AAR_PLAN",   tid:"A20", sev:"LOW",   label:"BONE 31 — Long-Range AAR",           action:"Coord Tanker Chain",     detail:"B-52H PKG-THUNDER requires tanker chain coordination for return leg. ARCO 21 availability window: 4hr." },
+    { kind:"ISR_GAP",    tid:"A16", sev:"LOW",   label:"SPECTRE 92 — Orbit Extension",       action:"Extend RC-135 Orbit",    detail:"RC-135V completing current orbit. Kaliningrad SIGINT window opening in 45min. Recommend extend 1hr." },
+  ];
+  seeds.forEach(s=>{
+    // Check not already added
+    if(tasks.find(t=>t.kind===s.kind&&t.tid===s.tid)) return;
+    const t=addTask(s.kind, s.tid, s.sev, s.label, s.action, false);
+    if(t && s.detail) t.detail = s.detail;
+  });
+}
+
+map.on("load",async()=>{
+  await initLayers();
+  document.getElementById("timelineGrid").innerHTML=Array.from({length:12},(_,i)=>`<div><span>${String(i).padStart(2,"0")}:00</span></div>`).join("");
+  seedInitialRecs();
+  renderAocStrip();
+  renderIntelReport();
+  initDetailDragResize();
+  generateSitrep(false);    // auto-generate on load, stay on Details tab
+  refreshAll();
+  startZulu();
+
+  // Sync layout now and after assets load
+  syncLayout();
+  setTimeout(syncLayout,400);
+  setTimeout(syncLayout,1200);
+
+  setInterval(()=>{
+    updateWeather();
+    updateMovement();
+    runAutomation();
+    refreshAll();
+    if(selAcId){ const a=getAC(selAcId); if(a) renderAcDetail(a); }
+    if(insp.ac){ const a=getAC(insp.ac.id); if(a){ insp.ac=a; applyInspPose(a); } }
+  },1550);
+});
+</script>
 </body>
 </html>
