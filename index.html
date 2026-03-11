@@ -33,6 +33,10 @@
 
   --shadow:0 16px 42px rgba(0,0,0,.28);
   --shadow-strong:0 24px 54px rgba(0,0,0,.42);
+
+  --banner-bg:#ff8c1a;
+  --banner-bg-2:#ff9d33;
+  --banner-text:#1a1206;
 }
 
 *{box-sizing:border-box}
@@ -85,6 +89,51 @@ body::after{
     radial-gradient(circle at 28% 62%, rgba(255,255,255,.85) 0 1px, transparent 1.5px),
     radial-gradient(circle at 58% 78%, rgba(255,255,255,.8) 0 1px, transparent 1.5px),
     radial-gradient(circle at 90% 72%, rgba(255,255,255,.8) 0 1px, transparent 1.5px);
+}
+
+/* top warning banner */
+.top-banner{
+  position:sticky;
+  top:0;
+  z-index:50;
+  width:100%;
+  height:32px;
+  overflow:hidden;
+  background:linear-gradient(90deg, var(--banner-bg) 0%, var(--banner-bg-2) 50%, var(--banner-bg) 100%);
+  border-bottom:1px solid rgba(255,255,255,.18);
+  box-shadow:0 4px 18px rgba(0,0,0,.24);
+}
+
+.top-banner-track{
+  display:flex;
+  align-items:center;
+  width:max-content;
+  min-width:200%;
+  height:100%;
+  animation:bannerScroll 24s linear infinite;
+  white-space:nowrap;
+}
+
+.top-banner-text{
+  display:inline-block;
+  padding-right:56px;
+  font-family:"Orbitron",sans-serif;
+  font-size:12px;
+  line-height:1;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--banner-text);
+  text-shadow:0 1px 0 rgba(255,255,255,.12);
+}
+
+@keyframes bannerScroll{
+  0%{
+    transform:translateX(0);
+  }
+  100%{
+    transform:translateX(-50%);
+  }
 }
 
 /* background earth */
@@ -238,33 +287,6 @@ h1{
   text-shadow:0 0 12px rgba(125,180,255,.06);
 }
 
-.status-banner{
-  width:min(760px, 94%);
-  margin:0 auto 14px;
-  padding:14px 18px;
-  border-radius:16px;
-  border:1px solid rgba(127,197,255,.18);
-  background:linear-gradient(180deg, rgba(10,22,36,.76), rgba(6,14,24,.68));
-  box-shadow:
-    0 12px 28px rgba(0,0,0,.24),
-    inset 0 1px 0 rgba(255,255,255,.04);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-}
-
-.status-line{
-  font-family:"Orbitron",sans-serif;
-  font-size:clamp(11px,1.1vw,14px);
-  line-height:1.45;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  color:#d9ebff;
-}
-
-.status-line + .status-line{
-  margin-top:4px;
-}
-
 .sub{
   max-width:760px;
   margin:0 auto;
@@ -365,7 +387,7 @@ h1{
   z-index:3;
   padding:18px 18px 16px;
   display:grid;
-  grid-template-rows: 1fr auto auto auto;
+  grid-template-rows:1fr auto auto auto;
   align-items:end;
 }
 
@@ -545,6 +567,16 @@ h1{
     width:min(100% - 16px, 1380px);
   }
 
+  .top-banner{
+    height:28px;
+  }
+
+  .top-banner-text{
+    font-size:10px;
+    letter-spacing:.11em;
+    padding-right:40px;
+  }
+
   .hero{
     padding:18px 0 10px;
   }
@@ -556,18 +588,6 @@ h1{
 
   h1{
     font-size:34px;
-  }
-
-  .status-banner{
-    padding:12px 14px;
-    margin-bottom:12px;
-    border-radius:14px;
-  }
-
-  .status-line{
-    font-size:11px;
-    letter-spacing:.09em;
-    line-height:1.4;
   }
 
   .sub{
@@ -620,6 +640,17 @@ h1{
 </head>
 <body>
 
+<div class="top-banner" aria-label="Controlled environment notice">
+  <div class="top-banner-track">
+    <span class="top-banner-text">Controlled Demonstration Environment</span>
+    <span class="top-banner-text">Simulated Operational Data</span>
+    <span class="top-banner-text">AX-Futures Concept Platform</span>
+    <span class="top-banner-text">Controlled Demonstration Environment</span>
+    <span class="top-banner-text">Simulated Operational Data</span>
+    <span class="top-banner-text">AX-Futures Concept Platform</span>
+  </div>
+</div>
+
 <div class="earth-stage">
   <div class="earth-glow"></div>
   <div class="earth-container">
@@ -634,12 +665,6 @@ h1{
     </div>
 
     <h1>AX-Futures</h1>
-
-    <div class="status-banner" aria-label="Environment status">
-      <div class="status-line">Controlled Demonstration Environment</div>
-      <div class="status-line">Simulated Operational Data</div>
-      <div class="status-line">AX-Futures Concept Platform</div>
-    </div>
 
     <p class="sub">
       Explore domain-specific operational concepts and mission-focused learning environments.
