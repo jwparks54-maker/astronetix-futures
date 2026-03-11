@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /
+
+# AX-Futures sandbox
+# Prevent search engines from crawling or indexing this environment
