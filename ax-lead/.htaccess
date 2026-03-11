@@ -1,4 +1,0 @@
-AuthType Basic
-AuthName "AX-Futures Demonstration Environment"
-AuthUserFile /home/guest/.htpasswd
-Require valid-user
