@@ -220,48 +220,6 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 }
 #gnd-card.show{display:block;}
 @keyframes gndCardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-/* ═══ ENTITY CARD (USER / TASK) ═══ */
-#ent-card{
-  position:absolute;bottom:52px;left:14px;z-index:200;
-  width:240px;
-  background:rgba(3,7,18,.96);border:1px solid rgba(0,232,255,.28);
-  border-radius:10px;padding:0;overflow:hidden;
-  backdrop-filter:blur(24px);box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px rgba(0,232,255,.08);
-  display:none;animation:gndCardIn .18s ease-out;pointer-events:auto;
-}
-#ent-card.show{display:block;}
-.ent-hdr{display:flex;align-items:center;gap:8px;padding:9px 11px 8px;border-bottom:1px solid rgba(255,255,255,.07);}
-.ent-icon{font-size:15px;flex:none;}
-.ent-icon.pnt{color:#39ff9a;text-shadow:0 0 10px rgba(57,255,154,.5);}
-.ent-icon.comm{color:#f4c96b;text-shadow:0 0 10px rgba(244,201,107,.5);}
-.ent-icon.task-h{color:#ff5050;text-shadow:0 0 10px rgba(255,80,80,.5);}
-.ent-icon.task-m{color:#f4c96b;text-shadow:0 0 10px rgba(244,201,107,.5);}
-.ent-icon.task-l{color:#39ff9a;text-shadow:0 0 10px rgba(57,255,154,.5);}
-.ent-type{font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--muted);margin-top:1px;}
-.ent-name{font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.4px;color:#fff;line-height:1.1;}
-.ent-close{margin-left:auto;flex:none;background:rgba(255,255,255,.06);border:none;
-  color:var(--muted);font-size:10px;width:20px;height:20px;border-radius:5px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.ent-close:hover{background:rgba(255,255,255,.14);color:#fff;}
-.ent-badges{display:flex;gap:5px;padding:7px 11px;flex-wrap:wrap;align-items:center;border-bottom:1px solid rgba(255,255,255,.05);}
-.ent-badge{font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.12em;
-  padding:2px 7px;border-radius:3px;}
-.ent-badge.cyan{background:rgba(0,232,255,.1);border:1px solid rgba(0,232,255,.35);color:#00e8ff;}
-.ent-badge.green{background:rgba(57,255,154,.1);border:1px solid rgba(57,255,154,.35);color:#39ff9a;}
-.ent-badge.amber{background:rgba(244,201,107,.1);border:1px solid rgba(244,201,107,.35);color:#f4c96b;}
-.ent-badge.red{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.35);color:#ff5050;}
-.ent-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:8px 11px;}
-.ent-cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:5px;padding:5px 7px;}
-.ent-ck{font-family:var(--mono);font-size:6px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
-.ent-cv{font-size:9px;font-weight:700;font-family:var(--mono);}
-.ent-cv.c{color:var(--cyan)}.ent-cv.g{color:#39ff9a}.ent-cv.a{color:#f4c96b}.ent-cv.r{color:#ff5050}.ent-cv.w{color:rgba(255,255,255,.85);}
-.ent-desc{font-family:var(--mono);font-size:7.5px;line-height:1.55;color:var(--muted);padding:0 11px 9px;border-top:1px solid rgba(255,255,255,.06);margin-top:0;padding-top:7px;}
-.ent-svrow{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);}
-.ent-svrow-id{font-family:var(--mono);font-size:7px;color:var(--muted);width:46px;flex:none;}
-.ent-svrow-name{font-family:var(--cond);font-size:10px;font-weight:600;flex:1;color:rgba(255,255,255,.85);}
-.ent-svlbl{font-family:var(--mono);font-size:7px;letter-spacing:.16em;color:var(--blue2);padding:6px 11px 3px;opacity:.8;}
-.ent-svlist{padding:0 9px 9px;display:flex;flex-direction:column;gap:3px;max-height:90px;overflow-y:auto;}
 .gnd-hdr{display:flex;align-items:center;gap:9px;padding:10px 12px 9px;
   border-bottom:1px solid rgba(255,255,255,.07);}
 .gnd-icon{font-size:13px;color:var(--cyan2);flex:none;text-shadow:0 0 10px rgba(0,232,255,.5);}
@@ -778,7 +736,6 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
     <div id="vtog">
       <button class="vbtn on" id="b3d">3D Globe</button>
       <button class="vbtn" id="b2d">2D Map</button>
-      <button class="vbtn" id="b2dreset" style="display:none;font-size:9px;padding:2px 8px;letter-spacing:.05em;opacity:.85" title="Reset zoom/pan">⌖ RESET</button>
     </div>
     <div id="sidepanel">
       <div class="sp-title">Orbital Regimes</div>
@@ -878,22 +835,6 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
       <div class="gnd-section-lbl">ACTIVE CONTACTS</div>
       <div id="gc-sats" class="gnd-sats"></div>
     </div>
-
-    <div id="ent-card">
-      <div class="ent-hdr">
-        <div class="ent-icon" id="ec-icon">◆</div>
-        <div>
-          <div class="ent-type" id="ec-type">—</div>
-          <div class="ent-name" id="ec-name">—</div>
-        </div>
-        <button class="ent-close" onclick="closeEntCard()">✕</button>
-      </div>
-      <div class="ent-badges" id="ec-badges"></div>
-      <div class="ent-grid" id="ec-grid"></div>
-      <div class="ent-svlbl" id="ec-svlbl" style="display:none">SERVING SVs</div>
-      <div class="ent-svlist" id="ec-svlist" style="display:none"></div>
-      <div class="ent-desc" id="ec-desc" style="display:none"></div>
-    </div>
   </div>
 </div>
 
@@ -939,11 +880,15 @@ const combatantCommands = [
   {id:"indopacom",name:"INDOPACOM",color:"#4dabf7", defaultPriority:2,operatorPriority:2,type:"geographic",
    region:"Indo-Pacific",
    landISO3:["AUS","BGD","BRN","BTN","KHM","CHN","PRK","KOR","FJI","IND","IDN","JPN","KIR","LAO","MYS","MDV","MHL","FSM","MNG","MMR","NRU","NPL","NZL","PLW","PNG","PHL","WSM","SGP","SLB","LKA","THA","TLS","TON","TUV","VUT","VNM"],
-   maritime:[[25,35],[180,65],[180,-60],[95,-60],[60,-45],[25,-10],[25,35]]},
+   maritime:[],
+   polys:[
+     [[60,35],[60,5],[68,-10],[80,-45],[100,-50],[115,-38],[130,-12],[135,5],[145,20],[155,35],[170,50],[175,65],[140,55],[110,40],[90,28],[75,8],[60,5],[60,35]],
+     [[175,65],[180,65],[180,-50],[165,-50],[150,-35],[140,-22],[155,-22],[160,-10],[165,5],[175,20],[175,65]]
+   ]},
   {id:"eucom",    name:"EUCOM",    color:"#e599f7", defaultPriority:3,operatorPriority:3,type:"geographic",
    region:"Europe / Russia",
    landISO3:["ALB","AND","ARM","AUT","AZE","BEL","BIH","BGR","HRV","CYP","CZE","DNK","EST","FIN","FRA","GEO","DEU","GRC","HUN","ISL","IRL","ITA","LVA","LIE","LTU","LUX","MLT","MDA","MCO","MNE","NLD","MKD","NOR","POL","PRT","ROU","SMR","SRB","SVK","SVN","ESP","SWE","CHE","TUR","UKR","GBR","VAT","RUS","GRL"],
-   maritime:[[-45,82],[70,82],[70,25],[42,25],[20,30],[-10,35],[-30,55],[-45,82]]},
+   maritime:[[-28,72],[32,72],[70,68],[70,36],[42,28],[28,36],[26,36],[22,34],[14,36],[-6,36],[-10,44],[-10,52],[-28,62],[-28,72]]},
   {id:"northcom", name:"NORTHCOM", color:"#51cf66", defaultPriority:4,operatorPriority:4,type:"geographic",
    region:"North America / Arctic",
    landISO3:["USA","CAN","MEX","GRL"],
@@ -955,7 +900,7 @@ const combatantCommands = [
   {id:"southcom", name:"SOUTHCOM", color:"#20c997", defaultPriority:6,operatorPriority:6,type:"geographic",
    region:"Latin America / Caribbean",
    landISO3:["BLZ","CRI","SLV","GTM","HND","NIC","PAN","ATG","BHS","BRB","CUB","DMA","DOM","GRD","HTI","JAM","KNA","LCA","VCT","TTO","ARG","BOL","BRA","CHL","COL","ECU","GUY","PRY","PER","SUR","URY","VEN"],
-   maritime:[[-100,25],[-20,25],[-20,-60],[-90,-60],[-100,25]]},
+   maritime:[[-120,33],[-55,33],[-55,25],[-30,15],[-28,-58],[-82,-58],[-82,-56],[-95,-5],[-120,18],[-120,33]]},
   {id:"spacecom", name:"SPACECOM", color:"#9b5de5", defaultPriority:7,operatorPriority:7,type:"functional",region:"Space Domain",landISO3:[],maritime:[]},
   {id:"stratcom", name:"STRATCOM", color:"#f06595", defaultPriority:8,operatorPriority:8,type:"functional",region:"Global Strike / Nuclear",landISO3:[],maritime:[]},
 ];
@@ -1483,7 +1428,6 @@ window.selSVFn=selSVFn;window.selCCFn=selCCFn;window.triggerRemediate=triggerRem
 window.setF=setF;window.setS=setS;window.alClick=alClick;
 window.chP=chP;window.resetP=resetP;
 window.closeTelem=function(){selSV=null;_remediating=null;_remDone=null;renderAll();if(typeof window.focusSV==='function')window.focusSV(null);};
-window.closeEntCard=closeEntCard;
 
 // ── Ground Station Card ──────────────────────────────────────
 let _selGnd=null;
@@ -1541,172 +1485,7 @@ function closeGndCard(){
 }
 window.closeGndCard=closeGndCard;
 window.showGndCard=showGndCard;
-
-// ── Entity Card (USER PNT / USER COMM / TASK) ─────────────────
-let _selEnt=null;
-function closeEntCard(){
-  _selEnt=null;
-  const c=document.getElementById('ent-card');
-  if(c)c.classList.remove('show');
-}
-window.closeEntCard=closeEntCard;
-
-function showEntCard(ent, kind){ // kind = 'pnt' | 'comm' | 'task'
-  _selEnt=ent;
-  const c=document.getElementById('ent-card');
-  if(!c)return;
-
-  const iconEl=document.getElementById('ec-icon');
-  const typeEl=document.getElementById('ec-type');
-  const nameEl=document.getElementById('ec-name');
-  const badgesEl=document.getElementById('ec-badges');
-  const gridEl=document.getElementById('ec-grid');
-  const svlbl=document.getElementById('ec-svlbl');
-  const svlist=document.getElementById('ec-svlist');
-  const descEl=document.getElementById('ec-desc');
-
-  const fmtLL=(lat,lon)=>(Math.abs(lat).toFixed(2)+'°'+(lat>=0?'N':'S'))+' '+(Math.abs(lon).toFixed(2)+'°'+(lon>=0?'E':'W'));
-
-  if(kind==='pnt'){
-    iconEl.className='ent-icon pnt'; iconEl.textContent='◆';
-    typeEl.textContent='GPS/PNT RECEIVER';
-    nameEl.textContent=ent.name;
-
-    // Badges
-    badgesEl.innerHTML=`
-      <span class="ent-badge green">PNT USER</span>
-      <span class="ent-badge cyan">MEO/GPS</span>`;
-
-    // Find serving MEO SVs (closest in view)
-    const servSVs=[];
-    if(typeof SATS!=='undefined'){
-      SATS.filter(s=>s.regime==='MEO').forEach(s=>{
-        const dLat=(s.lat-ent.lat)*Math.PI/180,dLon=(s.lon-ent.lon)*Math.PI/180;
-        const ha=Math.sin(dLat/2)**2+Math.cos(ent.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;
-        const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;
-        if(gc<55) servSVs.push({s,gc});
-      });
-      servSVs.sort((a,b)=>a.gc-b.gc);
-    }
-    const pdop=(4-servSVs.length*0.3).toFixed(1);
-    const acc=servSVs.length>=4?'<1.5m':servSVs.length>=3?'~5m':servSVs.length>=2?'~15m':'UNAVAIL';
-
-    gridEl.innerHTML=`
-      <div class="ent-cell"><div class="ent-ck">POSITION</div><div class="ent-cv w">${fmtLL(ent.lat,ent.lon)}</div></div>
-      <div class="ent-cell"><div class="ent-ck">ACCURACY</div><div class="ent-cv ${servSVs.length>=4?'g':servSVs.length>=2?'a':'r'}">${acc}</div></div>
-      <div class="ent-cell"><div class="ent-ck">SVs IN VIEW</div><div class="ent-cv c">${servSVs.length}</div></div>
-      <div class="ent-cell"><div class="ent-ck">PDOP</div><div class="ent-cv ${parseFloat(pdop)<3?'g':parseFloat(pdop)<6?'a':'r'}">${servSVs.length?pdop:'—'}</div></div>`;
-
-    if(servSVs.length){
-      svlbl.style.display=''; svlist.style.display='';
-      svlist.innerHTML=servSVs.slice(0,5).map(({s,gc})=>`
-        <div class="ent-svrow">
-          <span class="ent-svrow-id">${s.id}</span>
-          <span class="ent-svrow-name">${s.n}</span>
-          <span class="ent-badge cyan" style="font-size:6px;padding:1px 5px">${gc.toFixed(0)}°</span>
-        </div>`).join('');
-    } else {
-      svlbl.style.display='none'; svlist.style.display='none';
-    }
-    descEl.style.display='none';
-
-  } else if(kind==='comm'){
-    iconEl.className='ent-icon comm'; iconEl.textContent='■';
-    typeEl.textContent='SATCOM TERMINAL';
-    nameEl.textContent=ent.name;
-
-    badgesEl.innerHTML=`
-      <span class="ent-badge amber">COMM USER</span>
-      <span class="ent-badge cyan">GEO/SATCOM</span>`;
-
-    // Find serving GEO SVs
-    const servSVs=[];
-    if(typeof SATS!=='undefined'){
-      SATS.filter(s=>s.regime==='GEO').forEach(s=>{
-        const dLon=Math.abs(s.lon-ent.lon);
-        const el=90-dLon; // rough elevation angle for GEO
-        if(el>5) servSVs.push({s,el});
-      });
-      servSVs.sort((a,b)=>b.el-a.el);
-    }
-    const dataRate=servSVs.length>=2?'256 Mbps':servSVs.length===1?'64 Mbps':'NO LINK';
-    const latMs=servSVs.length?'535 ms':'—';
-
-    gridEl.innerHTML=`
-      <div class="ent-cell"><div class="ent-ck">POSITION</div><div class="ent-cv w">${fmtLL(ent.lat,ent.lon)}</div></div>
-      <div class="ent-cell"><div class="ent-ck">DATA RATE</div><div class="ent-cv ${servSVs.length>=2?'g':servSVs.length===1?'a':'r'}">${dataRate}</div></div>
-      <div class="ent-cell"><div class="ent-ck">GEO SVs</div><div class="ent-cv c">${servSVs.length}</div></div>
-      <div class="ent-cell"><div class="ent-ck">LATENCY</div><div class="ent-cv a">${latMs}</div></div>`;
-
-    if(servSVs.length){
-      svlbl.style.display=''; svlist.style.display='';
-      svlist.innerHTML=servSVs.slice(0,4).map(({s,el})=>`
-        <div class="ent-svrow">
-          <span class="ent-svrow-id">${s.id}</span>
-          <span class="ent-svrow-name">${s.n}</span>
-          <span class="ent-badge amber" style="font-size:6px;padding:1px 5px">${Math.max(5,el).toFixed(0)}° el</span>
-        </div>`).join('');
-    } else {
-      svlbl.style.display='none'; svlist.style.display='none';
-    }
-    descEl.style.display='none';
-
-  } else { // task
-    const pCls=ent.p==='h'?'task-h':ent.p==='m'?'task-m':'task-l';
-    const pLabel=ent.p==='h'?'HIGH':ent.p==='m'?'MED':'LOW';
-    const pColor=ent.p==='h'?'red':ent.p==='m'?'amber':'green';
-    iconEl.className=`ent-icon ${pCls}`; iconEl.textContent='▣';
-    typeEl.textContent='ISR COLLECTION TASK';
-    nameEl.textContent=ent.name;
-
-    const ccmd=combatantCommands.find(c=>c.id===ent.cc);
-    badgesEl.innerHTML=`
-      <span class="ent-badge ${pColor}">P1-${pLabel}</span>
-      ${ccmd?`<span class="ent-badge cyan">${ccmd.name}</span>`:''}
-      <span class="ent-badge amber">ACTIVE</span>`;
-
-    // Find serving LEO SVs (ISR)
-    const servSVs=[];
-    if(typeof SATS!=='undefined'){
-      SATS.filter(s=>s.regime==='LEO').forEach(s=>{
-        const dLat=(s.lat-ent.lat)*Math.PI/180,dLon=(s.lon-ent.lon)*Math.PI/180;
-        const ha=Math.sin(dLat/2)**2+Math.cos(ent.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;
-        const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;
-        if(gc<22) servSVs.push({s,gc});
-      });
-      servSVs.sort((a,b)=>a.gc-b.gc);
-    }
-    const coverage=servSVs.length>=2?'FULL':servSVs.length===1?'PARTIAL':'GAP';
-    const covCls=servSVs.length>=2?'g':servSVs.length===1?'a':'r';
-    const revisit=servSVs.length>=2?'<8 min':servSVs.length===1?'~22 min':'>60 min';
-
-    gridEl.innerHTML=`
-      <div class="ent-cell"><div class="ent-ck">LOCATION</div><div class="ent-cv w">${fmtLL(ent.lat,ent.lon)}</div></div>
-      <div class="ent-cell"><div class="ent-ck">COVERAGE</div><div class="ent-cv ${covCls}">${coverage}</div></div>
-      <div class="ent-cell"><div class="ent-ck">LEO SVs</div><div class="ent-cv c">${servSVs.length}</div></div>
-      <div class="ent-cell"><div class="ent-ck">REVISIT</div><div class="ent-cv ${covCls}">${revisit}</div></div>`;
-
-    if(servSVs.length){
-      svlbl.style.display=''; svlist.style.display='';
-      svlist.innerHTML=servSVs.slice(0,4).map(({s,gc})=>`
-        <div class="ent-svrow">
-          <span class="ent-svrow-id">${s.id}</span>
-          <span class="ent-svrow-name">${s.n}</span>
-          <span class="ent-badge ${pColor}" style="font-size:6px;padding:1px 5px">${gc.toFixed(0)}° off</span>
-        </div>`).join('');
-    } else {
-      svlbl.style.display='none'; svlist.style.display='none';
-    }
-
-    // Sensor type guess from name
-    const sensor=ent.name.includes('SIGINT')?'SIGINT / ELINT':ent.name.includes('FMV')?'Full-Motion Video':ent.name.includes('WMD')||ent.name.includes('Nuclear')?'WMD/CBRN Detection':ent.name.includes('SAR')||ent.name.includes('Sub')||ent.name.includes('Naval')?'SAR / GMTI':ent.name.includes('Launch')?'Launch Detection / SBIRS':'Electro-Optical / IR';
-    descEl.style.display='';
-    descEl.textContent=`Sensor: ${sensor}`;
-  }
-
-  c.classList.add('show');
-}
-window.showEntCard=showEntCard;
+console.log('[ASTRONETIX] Initial render complete. Unified command band active.');
 
 // ════════════════════════════════════════════════════════
 //  GLOBE ENGINE
@@ -2251,22 +2030,6 @@ function showTip(sat,cx,cy){
   tip.classList.add('show');
 }
 function hideTip(){const t=document.getElementById('tip');t.classList.remove('show');setTimeout(()=>{if(!t.classList.contains('show'))t.style.display='none';},200);}
-
-// Lightweight name tooltip for users/tasks on 2D map
-let _nameTipEl=null;
-function _showNameTip(name,sub,cx,cy){
-  if(!_nameTipEl){
-    _nameTipEl=document.createElement('div');
-    _nameTipEl.id='nametip';
-    _nameTipEl.style.cssText='position:fixed;z-index:9999;pointer-events:none;background:rgba(3,7,18,.93);border:1px solid rgba(0,232,255,.3);border-radius:5px;padding:4px 9px;font-family:"Share Tech Mono",monospace;white-space:nowrap;display:none;';
-    document.body.appendChild(_nameTipEl);
-  }
-  _nameTipEl.innerHTML=`<div style="font-size:7px;letter-spacing:.16em;color:#00e8ff;margin-bottom:2px">${sub}</div><div style="font-size:10px;font-weight:700;color:#fff;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px">${name}</div>`;
-  _nameTipEl.style.display='block';
-  _nameTipEl.style.left=(cx+14)+'px';
-  _nameTipEl.style.top=(cy-10)+'px';
-}
-function _hideNameTip(){if(_nameTipEl)_nameTipEl.style.display='none';}
 document.getElementById('tip-close').addEventListener('click',hideTip);
 
 let _hoverTipSat=null;
@@ -2340,167 +2103,99 @@ let mapSrcIdx=0;
 function tryLoadMap(){worldImg.crossOrigin='anonymous';worldImg.onload=()=>{mapLoaded=true;console.log('[ASTRONETIX] Map texture loaded:',MAP_SRCS[mapSrcIdx]);};worldImg.onerror=(e)=>{console.error('[ASTRONETIX] Map load failed src#'+mapSrcIdx+':',MAP_SRCS[mapSrcIdx]);mapSrcIdx++;if(mapSrcIdx<MAP_SRCS.length)tryLoadMap();else console.warn('[ASTRONETIX] All map sources failed - using canvas fallback');};worldImg.src=MAP_SRCS[mapSrcIdx];}tryLoadMap();
 const nightImg=new Image();let nightLoaded=false;nightImg.crossOrigin='anonymous';nightImg.onload=()=>{nightLoaded=true;};nightImg.onerror=(e)=>console.error('[ASTRONETIX] Night lights image failed:',e);nightImg.src='https://eoimages.gsfc.nasa.gov/images/imagerecords/55000/55167/earth_lights_lrg.jpg';
 
-// 2D viewport state — scale and pan offsets in canvas pixels
-const vp2d={s:1,x:0,y:0};
-let _vpDrag=null,_vpDragMoved=false;
+function ll2px(lat,lon,W,H){return{x:((lon+180)/360)*W,y:((90-lat)/180)*H};}
 
+// ── 2D viewport (zoom + pan) ──────────────────────────────────────────────
+const vp={s:1,x:0,y:0};
+const VP_MIN=1, VP_MAX=16;
+function _vpToMap(cx,cy){return{x:(cx-vp.x)/vp.s,y:(cy-vp.y)/vp.s};}
 function _vpClamp(W,H){
-  // Don't let map pan outside the canvas
-  vp2d.x=Math.min(0,Math.max(W-W*vp2d.s, vp2d.x));
-  vp2d.y=Math.min(0,Math.max(H-H*vp2d.s, vp2d.y));
+  const mw=W*vp.s,mh=H*vp.s;
+  vp.x=Math.min(0,Math.max(vp.x,W-mw));
+  vp.y=Math.min(0,Math.max(vp.y,H-mh));
 }
-function _vpToMap(cx,cy){
-  // Canvas pixel → map pixel (inverse of viewport transform)
-  return{x:(cx-vp2d.x)/vp2d.s, y:(cy-vp2d.y)/vp2d.s};
-}
-function resetVP(){
-  vp2d.s=1;vp2d.x=0;vp2d.y=0;
-  const rb=document.getElementById('b2dreset');if(rb)rb.classList.remove('on');
-}
-window.resetVP=resetVP;
+function resetVP(){vp.s=1;vp.x=0;vp.y=0;}
+window.resetMap2D=resetVP;
 
-// Wheel zoom — zoom toward cursor
+// Wheel zoom — toward cursor
 c2d.addEventListener('wheel',e=>{
-  if(!is2D)return;
   e.preventDefault();
   const rect=c2d.getBoundingClientRect();
   const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
-  const W=c2d.width, H=c2d.height;
   const factor=e.deltaY<0?1.25:0.8;
-  const ns=Math.max(1,Math.min(16, vp2d.s*factor));
-  // Zoom toward cursor: adjust offset so map-point under cursor stays fixed
-  vp2d.x=cx-(cx-vp2d.x)*(ns/vp2d.s);
-  vp2d.y=cy-(cy-vp2d.y)*(ns/vp2d.s);
-  vp2d.s=ns;
-  _vpClamp(W,H);
-  const rb=document.getElementById('b2dreset');if(rb)rb.classList.toggle('on',vp2d.s>1.01||Math.abs(vp2d.x)>2||Math.abs(vp2d.y)>2);
+  const ns=Math.max(VP_MIN,Math.min(VP_MAX,vp.s*factor));
+  vp.x=cx-(cx-vp.x)*(ns/vp.s);
+  vp.y=cy-(cy-vp.y)*(ns/vp.s);
+  vp.s=ns;
+  _vpClamp(c2d.width,c2d.height);
 },{passive:false});
 
-// Mouse drag pan
+// Drag pan
+let _drag=false,_dragX=0,_dragY=0,_dragOX=0,_dragOY=0,_dragMoved=false;
 c2d.addEventListener('mousedown',e=>{
-  if(!is2D||e.button!==0)return;
-  _vpDrag={ox:e.clientX,oy:e.clientY,vx:vp2d.x,vy:vp2d.y};
-  _vpDragMoved=false;
-});
-window.addEventListener('mousemove',e=>{
-  if(!_vpDrag)return;
-  const dx=e.clientX-_vpDrag.ox, dy=e.clientY-_vpDrag.oy;
-  if(Math.abs(dx)>4||Math.abs(dy)>4)_vpDragMoved=true;
-  if(!_vpDragMoved)return;
-  const W=c2d.width,H=c2d.height;
-  vp2d.x=_vpDrag.vx+dx; vp2d.y=_vpDrag.vy+dy;
-  _vpClamp(W,H);
+  _drag=true;_dragMoved=false;
+  _dragX=e.clientX;_dragY=e.clientY;_dragOX=vp.x;_dragOY=vp.y;
   c2d.style.cursor='grabbing';
 });
-window.addEventListener('mouseup',()=>{
-  if(_vpDrag){_vpDrag=null; c2d.style.cursor=vp2d.s>1.01?'grab':'';}
+window.addEventListener('mousemove',e=>{
+  if(!_drag)return;
+  const dx=e.clientX-_dragX,dy=e.clientY-_dragY;
+  if(Math.abs(dx)+Math.abs(dy)>3)_dragMoved=true;
+  vp.x=_dragOX+dx;vp.y=_dragOY+dy;
+  _vpClamp(c2d.width,c2d.height);
 });
+window.addEventListener('mouseup',()=>{_drag=false;c2d.style.cursor='crosshair';});
+// ─────────────────────────────────────────────────────────────────────────
 
-document.getElementById('b2dreset').addEventListener('click',()=>{
-  resetVP();
-});
-
-function ll2px(lat,lon,W,H){return{x:((lon+180)/360)*W,y:((90-lat)/180)*H};}
 let hoverSat=null,hoveredCCMD2D=null;
 
-c2d.addEventListener('mouseleave',()=>{hoverSat=null;document.getElementById('hlabel').style.display='none';hideCCMDTip();hideTip();_hideNameTip();});
+c2d.addEventListener('mouseleave',()=>{hoverSat=null;document.getElementById('hlabel').style.display='none';hideCCMDTip();hideTip();});
 function ptInRing(px,py,ring,W,H){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const pi=ll2px(ring[i][1],ring[i][0],W,H),pj=ll2px(ring[j][1],ring[j][0],W,H);if(((pi.y>py)!==(pj.y>py))&&(px<(pj.x-pi.x)*(py-pi.y)/(pj.y-pi.y)+pi.x))inside=!inside;}return inside;}
 function ptInFeature(px,py,geom,W,H){const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];return polys.some(poly=>ptInRing(px,py,poly[0],W,H));}
 function getHovCCMD2D(mx,my,W,H){for(const pid of PRIORITY_ORDER){const feats=ccmdFeatures[pid];if(!feats)continue;if(feats.some(geom=>ptInFeature(mx,my,geom,W,H)))return pid;}return null;}
 
 c2d.addEventListener('mousemove',e=>{
-  if(_vpDragMoved&&_vpDrag)return;
+  if(_drag)return;
   const rect=c2d.getBoundingClientRect(),W=c2d.width,H=c2d.height;
   const raw={x:e.clientX-rect.left,y:e.clientY-rect.top};
-  const m=_vpToMap(raw.x,raw.y);
-
-  // Always update CCMD hover for region highlight (no tooltip)
-  hoveredCCMD2D=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(m.x,m.y,W,H):null;
+  const {x:mx,y:my}=_vpToMap(raw.x,raw.y); // map-space coords for all hit tests
+  const hr=18/vp.s; // scale hit radius with zoom
+  hoveredCCMD2D=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
   if(!hoveredCCMD2D&&show.gcc){
     for(const pid of PRIORITY_ORDER){
       const cmd=combatantCommands.find(c=>c.id===pid);
-      if(cmd&&cmd.maritime&&cmd.maritime.length){
-        if(ptInRing(m.x,m.y,cmd.maritime.map(([lo,la])=>[lo,la]),W,H)){hoveredCCMD2D=pid;break;}
-      }
+      const hRings=cmd&&(cmd.polys||(cmd.maritime&&cmd.maritime.length?[cmd.maritime]:null));
+      if(hRings&&hRings.some(r=>ptInRing(mx,my,r,W,H))){hoveredCCMD2D=pid;break;}
     }
   }
-  hideCCMDTip(); // never show CCMD tooltip on 2D map
-
-  const hl=document.getElementById('hlabel');
-  hl.style.display='none';
-
-  // SVs — keep existing sat tooltip
-  const hitR=18/vp2d.s;
-  let best=null,bd=hitR;
-  SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bd){bd=d;best=s;}});
+  let best=null,bd=hr;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
   const prevHover=hoverSat;hoverSat=best;
-  if(best){if(best!==prevHover){_hideNameTip();showTip(best,e.clientX,e.clientY);}return;}
-
-  // Users / Tasks — show a lightweight name tooltip
-  if(show.users){
-    const hr=12/vp2d.s;
-    let bestU=null,bdU=hr;
-    USERS_PNT.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdU){bdU=d;bestU=ut;}});
-    if(bestU){hideTip();_hideNameTip();_showNameTip(bestU.name,'PNT RECEIVER',e.clientX,e.clientY);return;}
-
-    let bestC=null,bdC=hr;
-    USERS_COMM.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdC){bdC=d;bestC=ut;}});
-    if(bestC){hideTip();_hideNameTip();_showNameTip(bestC.name,'SATCOM TERM',e.clientX,e.clientY);return;}
+  const hl=document.getElementById('hlabel');
+  if(best){
+    hl.style.display='none';
+    hideCCMDTip();
+    if(best!==prevHover)showTip(best,e.clientX,e.clientY);
   }
-  const hr2=14/vp2d.s;
-  let bestTk=null,bdTk=hr2;
-  TASKS.forEach(tk=>{const p=ll2px(tk.lat,tk.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdTk){bdTk=d;bestTk=tk;}});
-  if(bestTk){
-    hideTip();
-    const pLabel=bestTk.p==='h'?'P1-HIGH':bestTk.p==='m'?'P1-MED':'P1-LOW';
-    _showNameTip(bestTk.name,pLabel,e.clientX,e.clientY);
-    return;
-  }
-
-  hideTip();_hideNameTip();
+  else if(hoveredCCMD2D){hl.style.display='none';hideTip();showCCMDTip(e,hoveredCCMD2D);}
+  else{hl.style.display='none';hideTip();hideCCMDTip();}
 });
 c2d.addEventListener('click',e=>{
-  if(_vpDragMoved){_vpDragMoved=false;return;}
+  if(_dragMoved){_dragMoved=false;return;} // suppress click after drag
   const rect=c2d.getBoundingClientRect(),W=c2d.width,H=c2d.height;
-  const m=_vpToMap(e.clientX-rect.left,e.clientY-rect.top);
-  const hitR=10/vp2d.s;
-
-  // GND stations (highest priority, 3D markers)
+  const {x:mx,y:my}=_vpToMap(e.clientX-rect.left,e.clientY-rect.top);
+  const hr=12/vp.s;
+  const hitCmd=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
   if(show.ground){
-    let bestGnd=null,bdGnd=hitR;
-    GND.forEach(gs=>{const p=ll2px(gs.lat,gs.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdGnd){bdGnd=d;bestGnd=gs;}});
-    if(bestGnd){closeEntCard();showGndCard(bestGnd);return;}
+    let bestGnd=null,bdGnd=hr;
+    GND.forEach(gs=>{const p=ll2px(gs.lat,gs.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bdGnd){bdGnd=d;bestGnd=gs;}});
+    if(bestGnd){if(typeof showGndCard==='function')showGndCard(bestGnd);return;}
   }
-
-  // SVs
-  const hitR2=14/vp2d.s;
-  let bestSV=null,bdSV=hitR2;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdSV){bdSV=d;bestSV=s;}});
-  if(bestSV){closeEntCard();closeGndCard();selSVFn(bestSV.id);hideTip();return;}
-
-  // USERS_PNT (green diamond, ~4px half-size)
-  if(show.users){
-    let bestU=null,bdU=hitR;
-    USERS_PNT.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdU){bdU=d;bestU=ut;}});
-    if(bestU){closeGndCard();showEntCard(bestU,'pnt');return;}
-
-    let bestC=null,bdC=hitR;
-    USERS_COMM.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdC){bdC=d;bestC=ut;}});
-    if(bestC){closeGndCard();showEntCard(bestC,'comm');return;}
-  }
-
-  // TASKS (box center hit)
-  const hitRT=12/vp2d.s;
-  let bestTk=null,bdTk=hitRT;
-  TASKS.forEach(tk=>{const p=ll2px(tk.lat,tk.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdTk){bdTk=d;bestTk=tk;}});
-  if(bestTk){closeGndCard();showEntCard(bestTk,'task');return;}
-
-  // CCMD region click
-  const hitCmd=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(m.x,m.y,W,H):null;
+  let best=null,bd=20/vp.s;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
+  if(best){if(typeof selSVFn==='function')selSVFn(best.id);hideTip();return;}
   if(hitCmd){selCCFn(hitCmd);return;}
-
-  // Empty space — close all cards, deselect SV
-  closeGndCard();closeEntCard();
-  if(selSV)selSVFn(selSV);
+  // Click empty space — deselect SV and close gnd card
+  closeGndCard();
+  if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
   hideTip();
 });
 
@@ -2514,20 +2209,55 @@ const CONTINENTS=[
 [[-44,84],[-20,84],[-18,76],[-22,72],[-28,70],[-32,70],[-38,72],[-44,76],[-46,80]],
 ];
 
+// Draw a ring of [lon,lat] points, breaking the path whenever a dateline jump occurs
+// so no streak is drawn across the full map width.
+function _strokeRing(pts,W,H){
+  const JUMP=160; // degrees — if lon diff exceeds this, lift the pen
+  ctx.beginPath();
+  let penDown=false;
+  for(let i=0;i<pts.length;i++){
+    const [lo,la]=pts[i];
+    if(i>0){
+      const prevLo=pts[i-1][0];
+      if(Math.abs(lo-prevLo)>JUMP){penDown=false;} // lift pen at dateline
+    }
+    const p=ll2px(la,lo,W,H);
+    penDown?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);
+    penDown=true;
+  }
+}
+// Fill version — only safe for non-dateline-crossing rings; skips fill if ring spans >JUMP
+function _fillRing(pts,W,H){
+  const lons=pts.map(p=>p[0]);
+  const span=Math.max(...lons)-Math.min(...lons);
+  if(span>160)return; // skip fill for dateline-crossing polygons
+  ctx.beginPath();
+  pts.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawCCMD2D(W,H){
   if(!show.gcc)return;
   if(!ccmdGeoLoaded){
-    // Maritime AOR fallback
-    combatantCommands.filter(c=>c.type==='geographic'&&c.maritime&&c.maritime.length).forEach(cmd=>{
+    // Maritime AOR fallback — supports both single maritime ring and multi-polygon (polys)
+    combatantCommands.filter(c=>c.type==='geographic').forEach(cmd=>{
+      const rings=cmd.polys||(cmd.maritime&&cmd.maritime.length?[cmd.maritime]:null);
+      if(!rings)return;
       const isActive=activeCCMD_globe===cmd.id,isHov=hoveredCCMD2D===cmd.id,hilite=isActive||isHov;
       const col=cmd.color;ctx.save();
-      ctx.strokeStyle=col;ctx.setLineDash([5,5]);ctx.lineWidth=hilite?1.5:0.8;ctx.globalAlpha=hilite?0.55:0.22;
+      ctx.strokeStyle=col;ctx.setLineDash([5,5]);ctx.lineWidth=hilite?1.5:0.8;
       ctx.fillStyle=col;
-      ctx.beginPath();cmd.maritime.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();
-      ctx.globalAlpha=hilite?0.15:0.06;ctx.fill();
-      ctx.globalAlpha=hilite?0.70:0.28;ctx.stroke();
+      rings.forEach(ring=>{
+        ctx.globalAlpha=hilite?0.14:0.05;_fillRing(ring,W,H);
+        ctx.globalAlpha=hilite?0.70:0.22;_strokeRing(ring,W,H);ctx.stroke();
+      });
       ctx.setLineDash([]);
-      if(hilite){let cxC=0,cyC=0;cmd.maritime.forEach(([lo,la])=>{cxC+=lo;cyC+=la;});cxC/=cmd.maritime.length;cyC/=cmd.maritime.length;const lp=ll2px(cyC,cxC,W,H);ctx.globalAlpha=1;ctx.fillStyle=col;ctx.font=`bold 11px 'Share Tech Mono',monospace`;ctx.shadowColor=col;ctx.shadowBlur=12;ctx.textAlign='center';ctx.fillText(cmd.name,lp.x,lp.y);ctx.shadowBlur=0;ctx.textAlign='left';}
+      if(hilite){
+        // Label at centroid of first ring
+        const r0=rings[0];let cxC=0,cyC=0;r0.forEach(([lo,la])=>{cxC+=lo;cyC+=la;});cxC/=r0.length;cyC/=r0.length;
+        const lp=ll2px(cyC,cxC,W,H);ctx.globalAlpha=1;ctx.fillStyle=col;ctx.font=`bold 11px 'Share Tech Mono',monospace`;ctx.shadowColor=col;ctx.shadowBlur=12;ctx.textAlign='center';ctx.fillText(cmd.name,lp.x,lp.y);ctx.shadowBlur=0;ctx.textAlign='left';
+      }
       ctx.restore();
     });
     return;
@@ -2539,17 +2269,19 @@ function drawCCMD2D(W,H){
     feats.forEach(geom=>{
       const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];
       polys.forEach(poly=>poly.forEach((ring,ri)=>{
-        ctx.beginPath();ring.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();
         if(ri===0){
-          ctx.fillStyle=col;
-          ctx.globalAlpha=hilite?0.22:activeCCMD_globe?0.04:0.08;
-          ctx.fill();
-          if(hilite){ctx.globalAlpha=0.90;ctx.strokeStyle=col;ctx.lineWidth=1.4;ctx.stroke();}
-          else if(activeCCMD_globe){ctx.globalAlpha=0.18;ctx.strokeStyle=col;ctx.lineWidth=0.5;ctx.stroke();}
+          ctx.fillStyle=col;ctx.globalAlpha=hilite?0.22:activeCCMD_globe?0.04:0.10;
+          _fillRing(ring,W,H);
+          ctx.globalAlpha=hilite?0.90:activeCCMD_globe?0.25:0.45;
+          ctx.strokeStyle=col;ctx.lineWidth=hilite?1.4:0.7;
+          _strokeRing(ring,W,H);ctx.stroke();
         }
       }));
     });
-    if(hilite&&cmd.maritime&&cmd.maritime.length){ctx.globalAlpha=0.35;ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.setLineDash([5,5]);ctx.beginPath();cmd.maritime.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();ctx.stroke();ctx.setLineDash([]);}
+    if(cmd.maritime&&cmd.maritime.length){
+      ctx.globalAlpha=hilite?0.30:0.10;ctx.strokeStyle=col;ctx.lineWidth=hilite?1.2:0.5;ctx.setLineDash([5,5]);
+      _strokeRing(cmd.maritime,W,H);ctx.stroke();ctx.setLineDash([]);
+    }
     if(hilite&&feats[0]){
       const f0=feats[0],ring0=(f0.type==='Polygon'?f0.coordinates[0]:f0.coordinates[0]&&f0.coordinates[0][0])||[];
       let cxC=0,cyC=0;ring0.forEach(([lo,la])=>{cxC+=lo;cyC+=la;});
@@ -2561,12 +2293,16 @@ function drawCCMD2D(W,H){
 
 function drawMap(W,H,t){
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#08192e';ctx.fillRect(0,0,W,H);
-  ctx.save();
-  ctx.translate(vp2d.x,vp2d.y);
-  ctx.scale(vp2d.s,vp2d.s);
   const now=new Date(),utcH=now.getUTCHours()+now.getUTCMinutes()/60+now.getUTCSeconds()/3600;
-  const sunLon=((utcH/24)*360-180+360)%360-180,antiLon=((sunLon+180)+360)%360-180,antiX=((antiLon+180)/360)*W;
+  const sunLon=((utcH/24)*360-180+360)%360-180,antiLon=((sunLon+180)+360)%360-180;
+
+  // ── apply viewport transform — all map content scaled/panned ──
+  ctx.save();
+  ctx.translate(vp.x,vp.y);
+  ctx.scale(vp.s,vp.s);
+
+  const antiX=((antiLon+180)/360)*W;
+  ctx.fillStyle='#08192e';ctx.fillRect(0,0,W,H);
   if(mapLoaded){ctx.save();ctx.globalAlpha=0.92;ctx.filter='saturate(0.75) brightness(0.78)';ctx.drawImage(worldImg,0,0,W,H);ctx.filter='none';ctx.restore();}
   else{CONTINENTS.forEach(poly=>{ctx.beginPath();poly.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();ctx.fillStyle='#1a3a22';ctx.fill();ctx.strokeStyle='rgba(80,160,100,0.5)';ctx.lineWidth=0.7;ctx.stroke();});}
   const ng2=ctx.createRadialGradient(antiX,H*0.5,0,antiX,H*0.5,W*0.52);ng2.addColorStop(0,'rgba(0,3,12,0.88)');ng2.addColorStop(0.5,'rgba(0,3,12,0.65)');ng2.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=ng2;ctx.fillRect(0,0,W,H);
@@ -2721,15 +2457,16 @@ function drawMap(W,H,t){
   // Sun position
   {const sp=ll2px(0,sunLon,W,H);ctx.save();ctx.shadowColor='#ffee88';ctx.shadowBlur=18;ctx.fillStyle='#ffe066';ctx.globalAlpha=0.9;ctx.beginPath();ctx.arc(sp.x,sp.y,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffe066';ctx.lineWidth=1;ctx.globalAlpha=0.5;for(let a=0;a<8;a++){const ang=a*Math.PI/4;ctx.beginPath();ctx.moveTo(sp.x+Math.cos(ang)*7,sp.y+Math.sin(ang)*7);ctx.lineTo(sp.x+Math.cos(ang)*11,sp.y+Math.sin(ang)*11);ctx.stroke();}ctx.restore();}
   const vg=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.75);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(1,6,16,.7)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
-  ctx.restore(); // end viewport transform
+
+  // ── close viewport transform — legend stays in screen space ──
+  ctx.restore();
+
   ctx.save();ctx.fillStyle='rgba(84,142,255,.3)';ctx.font=`8px 'Share Tech Mono',monospace`;ctx.fillText('✛ LEO·550km   ◻ MEO·20,200km   ◆ GEO·35,786km   ☀ Sub-solar   WGS-84',12,H-8);ctx.restore();
 }
 
 function setView(to2D){
   is2D=to2D;g3dEl.style.display=to2D?'none':'block';g2dEl.style.display=to2D?'block':'none';
   document.getElementById('b3d').classList.toggle('on',!to2D);document.getElementById('b2d').classList.toggle('on',to2D);
-  const rb=document.getElementById('b2dreset');if(rb)rb.style.display=to2D?'':'none';
-  if(!to2D){resetVP();closeEntCard();}
   hideTip();if(to2D)SATS.forEach(s=>{s.trail=[];s.lastLon=null;});
   // Cones: hide in 2D (redundant with footprint ellipses), restore in 3D
   if(typeof coneObjects!=='undefined'){
