@@ -2149,7 +2149,22 @@ window.addEventListener('mouseup',()=>{_drag=false;c2d.style.cursor='crosshair';
 
 let hoverSat=null,hoveredCCMD2D=null;
 
-c2d.addEventListener('mouseleave',()=>{hoverSat=null;document.getElementById('hlabel').style.display='none';hideCCMDTip();hideTip();});
+// Lightweight name tooltip for tasks / users on 2D map
+function _showNameTip(name,sub,cx,cy){
+  let el=document.getElementById('_nametip');
+  if(!el){
+    el=document.createElement('div');el.id='_nametip';
+    el.style.cssText='position:fixed;z-index:9500;pointer-events:none;padding:5px 9px;background:rgba(2,8,20,.88);border:1px solid rgba(134,203,255,.3);border-radius:6px;font-family:"Share Tech Mono",monospace;font-size:11px;color:#eef6ff;white-space:nowrap;transition:opacity .1s;';
+    document.body.appendChild(el);
+  }
+  el.innerHTML=`<span style="color:#86cbff;font-size:9px;letter-spacing:.1em">${sub}</span><br>${name}`;
+  el.style.left=(cx+14)+'px';el.style.top=(cy-10)+'px';el.style.opacity='1';el.style.display='block';
+}
+function _hideNameTip(){
+  const el=document.getElementById('_nametip');if(el){el.style.opacity='0';el.style.display='none';}
+}
+
+c2d.addEventListener('mouseleave',()=>{hoverSat=null;hoveredCCMD2D=null;document.getElementById('hlabel').style.display='none';hideCCMDTip();hideTip();_hideNameTip();});
 function ptInRing(px,py,ring,W,H){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const pi=ll2px(ring[i][1],ring[i][0],W,H),pj=ll2px(ring[j][1],ring[j][0],W,H);if(((pi.y>py)!==(pj.y>py))&&(px<(pj.x-pi.x)*(py-pi.y)/(pj.y-pi.y)+pi.x))inside=!inside;}return inside;}
 function ptInFeature(px,py,geom,W,H){const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];return polys.some(poly=>ptInRing(px,py,poly[0],W,H));}
 function getHovCCMD2D(mx,my,W,H){for(const pid of PRIORITY_ORDER){const feats=ccmdFeatures[pid];if(!feats)continue;if(feats.some(geom=>ptInFeature(mx,my,geom,W,H)))return pid;}return null;}
@@ -2158,8 +2173,66 @@ c2d.addEventListener('mousemove',e=>{
   if(_drag)return;
   const rect=c2d.getBoundingClientRect(),W=c2d.width,H=c2d.height;
   const raw={x:e.clientX-rect.left,y:e.clientY-rect.top};
-  const {x:mx,y:my}=_vpToMap(raw.x,raw.y); // map-space coords for all hit tests
-  const hr=18/vp.s; // scale hit radius with zoom
+  const {x:mx,y:my}=_vpToMap(raw.x,raw.y);
+  const hr=18/vp.s;
+  const hl=document.getElementById('hlabel');
+  hl.style.display='none';
+
+  // Priority 1: SVs
+  let best=null,bd=hr;
+  SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
+  const prevHover=hoverSat;hoverSat=best;
+  if(best){
+    hideCCMDTip();hideTip();
+    if(best!==prevHover)showTip(best,e.clientX,e.clientY);
+    // still update CCMD for visual highlight only (no tooltip)
+    hoveredCCMD2D=null;
+    return;
+  }
+  hideTip();
+
+  // Priority 2: GND stations
+  if(show.ground){
+    let bestGnd=null,bdGnd=12/vp.s;
+    GND.forEach(gs=>{const p=ll2px(gs.lat,gs.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bdGnd){bdGnd=d;bestGnd=gs;}});
+    if(bestGnd){hideCCMDTip();hoveredCCMD2D=null;return;}
+  }
+
+  // Priority 3: USERS_PNT
+  if(show.users){
+    let bestU=null,bdU=12/vp.s;
+    USERS_PNT.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bdU){bdU=d;bestU=ut;}});
+    if(bestU){
+      hideCCMDTip();hoveredCCMD2D=null;
+      if(typeof _showNameTip==='function')_showNameTip(bestU.name,'PNT RECEIVER',e.clientX,e.clientY);
+      return;
+    }
+    // Priority 4: USERS_COMM
+    let bestC=null,bdC=12/vp.s;
+    USERS_COMM.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bdC){bdC=d;bestC=ut;}});
+    if(bestC){
+      hideCCMDTip();hoveredCCMD2D=null;
+      if(typeof _showNameTip==='function')_showNameTip(bestC.name,'SATCOM TERM',e.clientX,e.clientY);
+      return;
+    }
+  }
+  if(typeof _hideNameTip==='function')_hideNameTip();
+
+  // Priority 5: TASKS
+  {
+    let bestTk=null,bdTk=14/vp.s;
+    TASKS.forEach(tk=>{const p=ll2px(tk.lat,tk.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bdTk){bdTk=d;bestTk=tk;}});
+    if(bestTk){
+      hideCCMDTip();hoveredCCMD2D=null;
+      if(typeof _showNameTip==='function'){
+        const pLabel=bestTk.p==='h'?'P1-HIGH':bestTk.p==='m'?'P2-MED':'P3-LOW';
+        _showNameTip(bestTk.name,pLabel,e.clientX,e.clientY);
+      }
+      return;
+    }
+  }
+
+  // Priority 6: CCMD region — visual highlight only, NO tooltip
   hoveredCCMD2D=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
   if(!hoveredCCMD2D&&show.gcc){
     for(const pid of PRIORITY_ORDER){
@@ -2168,16 +2241,7 @@ c2d.addEventListener('mousemove',e=>{
       if(hRings&&hRings.some(r=>ptInRing(mx,my,r,W,H))){hoveredCCMD2D=pid;break;}
     }
   }
-  let best=null,bd=hr;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
-  const prevHover=hoverSat;hoverSat=best;
-  const hl=document.getElementById('hlabel');
-  if(best){
-    hl.style.display='none';
-    hideCCMDTip();
-    if(best!==prevHover)showTip(best,e.clientX,e.clientY);
-  }
-  else if(hoveredCCMD2D){hl.style.display='none';hideTip();showCCMDTip(e,hoveredCCMD2D);}
-  else{hl.style.display='none';hideTip();hideCCMDTip();}
+  hideCCMDTip(); // CCMD never shows tooltip on 2D map
 });
 c2d.addEventListener('click',e=>{
   if(_dragMoved){_dragMoved=false;return;} // suppress click after drag
