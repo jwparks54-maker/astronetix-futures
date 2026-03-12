@@ -433,6 +433,8 @@
     }
     .timeline.minimized{ height:38px !important; }
     .timeline.minimized .timeline-body{ display:none; }
+    .timeline.minimized #tlEventLog{ display:none !important; }
+
     /* Drag handle — sits above timeline */
     #timelineDragHandle{
       position:absolute; z-index:31;
@@ -451,9 +453,9 @@
     .timeline.minimized ~ #timelineDragHandle,
     .timeline.minimized + #timelineDragHandle{ display:none; }
     .timeline-head{
-      padding:8px 12px; border-right:1px solid rgba(255,255,255,.06);
+      padding:8px 12px 6px; border-right:1px solid rgba(255,255,255,.06);
       display:flex; flex-direction:column; gap:3px;
-      min-height:0; overflow:hidden;
+      width:180px; flex-shrink:0; min-height:0; overflow:hidden;
     }
     .timeline-title{ font-size:13px; font-weight:900; }
     .timeline-sub{ font-size:10px; color:var(--muted); }
@@ -462,8 +464,8 @@
     .tl-dot{ width:8px; height:8px; border-radius:2px; flex-shrink:0; }
 
     .timeline-body{
-      position:relative; padding:0;
-      overflow:scroll; /* both axes */
+      position:relative; padding:0; flex:1;
+      overflow:scroll;
       scrollbar-width:thin;
       scrollbar-color:rgba(99,183,255,.25) transparent;
     }
@@ -477,14 +479,14 @@
     .timeline-grid span{ position:absolute; top:-18px; left:6px; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
     .timeline-hour-row{ height:18px; display:flex; align-items:center; padding:0 10px; border-bottom:1px solid rgba(255,255,255,.04); }
     .timeline-hour-label{ font-size:9px; color:rgba(99,183,255,.5); min-width:1200px; }
-    .timeline-lanes{ position:relative; z-index:2; display:grid; gap:5px; padding-top:22px; }
+    .timeline-lanes{ position:relative; z-index:2; display:grid; gap:2px; padding-top:22px; }
     .timeline-row{
-      position:relative; height:15px;
+      position:relative; height:13px;
       border-radius:999px; background:rgba(255,255,255,.02);
     }
     .timeline-bar{
-      position:absolute; top:0; height:16px; line-height:16px;
-      border-radius:999px; padding:0 7px; font-size:9px; font-weight:800;
+      position:absolute; top:0; height:13px; line-height:13px;
+      border-radius:999px; padding:0 7px; font-size:8px; font-weight:800;
       overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
       cursor:pointer; color:#05111c;
     }
@@ -495,6 +497,7 @@
     .timeline-bar.aewc{ background:#5eead4; color:#05111c; }
     .timeline-bar.tanker{ background:#fcd34d; color:#05111c; }
     .timeline-bar.sof{ background:#ff9ecb; color:#05111c; }
+    .timeline-section-label{ font-size:9px;font-weight:900;color:rgba(99,183,255,.6);text-transform:uppercase;letter-spacing:.1em;padding:6px 0 2px;grid-column:1/-1; }
 
     /* ── NOTIFICATION ── */
     .notification{
@@ -830,7 +833,24 @@
       </div>
     </div>
     <div class="section">
-      <div class="section-title">Aircraft</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+        <div class="section-title" style="margin-bottom:0;">Aircraft</div>
+        <div style="flex:1;position:relative;">
+          <input id="acSearch" type="text" placeholder="Search callsign / tail…"
+            style="width:100%;box-sizing:border-box;padding:4px 7px 4px 22px;border-radius:7px;
+            border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+            color:#eaf4ff;font-size:10px;font-family:inherit;outline:none;"
+            oninput="acSearchFilter=this.value.trim().toLowerCase();renderAcList()"
+            onfocus="this.style.borderColor='rgba(94,234,212,.5)'"
+            onblur="this.style.borderColor='rgba(255,255,255,.1)'" />
+          <span style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted);pointer-events:none;">🔍</span>
+        </div>
+        <button id="clearAcSearch" onclick="acSearchFilter='';document.getElementById('acSearch').value='';renderAcList()"
+          style="padding:3px 6px;border-radius:5px;border:1px solid rgba(255,255,255,.08);
+          background:rgba(255,255,255,.04);color:var(--muted);font-size:9px;cursor:pointer;
+          flex-shrink:0;display:none;">✕</button>
+      </div>
+      <div id="acSearchCount" style="font-size:9px;color:var(--muted);margin-bottom:5px;display:none;"></div>
       <div id="aircraftList" class="mini-list"></div>
     </div>
   </aside>
@@ -927,15 +947,23 @@
 
   <!-- ── TIMELINE ── -->
   <div class="panel timeline">
+    <!-- Left info column: title + Event Log tab + legend -->
     <div class="timeline-head">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <div class="timeline-title">Activity Timeline</div>
           <div class="timeline-sub" id="timelineSub">12-hr rolling strip · scroll →</div>
         </div>
         <button id="timelineToggle" title="Minimize / Expand"
-          style="flex-shrink:0;width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin-top:1px;"
-        >▾</button>
+          style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;flex-shrink:0;">▾</button>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:5px;">
+        <button id="tlTabTimeline" onclick="switchTlTab('timeline')"
+          style="padding:2px 8px;border-radius:5px;border:1px solid rgba(99,183,255,.4);background:rgba(99,183,255,.15);color:#8fd1ff;font-size:9px;font-weight:900;cursor:pointer;">Sortie</button>
+        <button id="tlTabLog" onclick="switchTlTab('log')"
+          style="padding:2px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-size:9px;font-weight:900;cursor:pointer;">Events
+          <span id="evLogBadge" style="display:none;background:rgba(179,136,255,.22);border-radius:4px;padding:0 4px;color:#b388ff;font-size:8px;margin-left:2px;">0</span>
+        </button>
       </div>
       <div class="timeline-legend" id="timelineLegend">
         <div class="tl-key"><div class="tl-dot" style="background:#7ee787"></div>Ready</div>
@@ -945,7 +973,12 @@
         <div class="tl-key"><div class="tl-dot" style="background:#5eead4"></div>AEW&amp;C</div>
         <div class="tl-key"><div class="tl-dot" style="background:#fcd34d"></div>Tanker</div>
         <div class="tl-key"><div class="tl-dot" style="background:#ff9ecb"></div>SOF</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#ff2244"></div>Enemy</div>
       </div>
+    </div>
+    <!-- Right: scrollable bar tracks or event log -->
+    <div id="tlEventLog" style="display:none;overflow-y:auto;overflow-x:hidden;background:rgba(6,13,22,.9);">
+      <div id="eventLogList" style="font-family:inherit;"></div>
     </div>
     <div class="timeline-body" id="timelineScroll">
       <div class="timeline-inner">
@@ -1290,12 +1323,18 @@ const ICON_SVG={
 
 /* ═══ STATE ═══════════════════════════════════════════════════════════════ */
 let selCCMD="EUCOM", selFn="ALL", selStatus="ALL";
-let selAcId=null, selPkgId=null, selMulti=[];
+let selAcId=null, selPkgId=null, selMulti=[], selThreatId=null;
+let hoveredPkgId=null;
+let hoveredAcId=null;
+let _prevCamera=null; // saved before any fly-to
+let acSearchFilter="";
 let combatMode=false, autoMaster=true;
 let metricFilter="ALL";
 let timeMode="1", timeMul=1;
 let alertCtr=0, taskCtr=0;
 let alerts=[], tasks=[];
+let eventLog=[], _eventLogEl=null;
+let timelineEvents=[], _tlEvtCtr=0;
 
 /* ═══ HELPERS ═══════════════════════════════════════════════════════════════ */
 const getBase=id=>BASES.find(b=>b.id===id);
@@ -1416,7 +1455,7 @@ const map=new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
 
 function toBasesGJ(){ return {type:"FeatureCollection",features:visibleBases().map(b=>({type:"Feature",properties:{id:b.id,name:b.name,country:b.country,role:b.role},geometry:{type:"Point",coordinates:b.coords}}))}; }
-function toAcGJ(){ return {type:"FeatureCollection",features:filteredAC().map(a=>({type:"Feature",properties:{id:a.id,name:(a.cs||a.type),type:a.type,tail:a.tail,fn:a.fn,status:a.status,mission:a.mission,fuel:Math.round(a.fuel),auto:a.auto?1:0,icon:a.fn,color:FN_COLORS[a.fn]||"#63b7ff",sel:selAcId===a.id?1:selMulti.includes(a.id)?2:0},geometry:{type:"Point",coordinates:acCoords(a)}}))}; }
+function toAcGJ(){ return {type:"FeatureCollection",features:filteredAC().map(a=>({type:"Feature",properties:{id:a.id,name:(a.cs||a.type),type:a.type,tail:a.tail,fn:a.fn,status:a.status,mission:a.mission,fuel:Math.round(a.fuel),auto:a.auto?1:0,icon:a.fn,color:FN_COLORS[a.fn]||"#63b7ff",sel:selAcId===a.id?1:selMulti.includes(a.id)?2:0,fuel_critical:a.fuel<20},geometry:{type:"Point",coordinates:acCoords(a)}}))}; }
 function toRoutesGJ(){ return {type:"FeatureCollection",features:filteredAC().filter(a=>a.route).map(a=>({type:"Feature",properties:{color:FN_COLORS[a.fn]||"#63b7ff"},geometry:{type:"LineString",coordinates:a.route}}))}; }
 function toTrailsGJ(){ return {type:"FeatureCollection",features:filteredAC().filter(a=>a.trail.length>1).map(a=>({type:"Feature",properties:{color:FN_COLORS[a.fn]||"#63b7ff"},geometry:{type:"LineString",coordinates:a.trail}}))}; }
 function toCovGJ(){ return {type:"FeatureCollection",features:COVERAGE_OBJECTS.map(c=>{const p=getAC(c.parent);if(!p||!filteredAC().find(x=>x.id===p.id))return null;return{type:"Feature",properties:{color:c.color},geometry:{type:"Polygon",coordinates:[makeCircle(acCoords(p),c.radiusKm)]}};}).filter(Boolean)}; }
@@ -1540,6 +1579,20 @@ async function initLayers(){
   map.addLayer({id:"pkg-labels",type:"symbol",source:"packages",minzoom:3.5,layout:{"text-field":["concat",["get","name"]," (",["to-string",["get","count"]],")"],"text-size":10,"text-offset":[0,1.4],"text-anchor":"top"},paint:{"text-color":"#f4f8ff","text-halo-color":"#08111c","text-halo-width":1.2}});
   map.addLayer({id:"ac-sel",type:"circle",source:"aircraft",filter:["==",["get","sel"],1],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,16,7,26],"circle-color":"rgba(255,255,255,.14)","circle-stroke-width":2,"circle-stroke-color":"rgba(255,255,255,.5)"}});
   map.addLayer({id:"ac-alert",type:"circle",source:"aircraft",filter:["==",["get","status"],"ALERT"],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,12,7,20],"circle-color":"rgba(255,200,87,.05)","circle-stroke-width":1.8,"circle-stroke-color":"rgba(255,200,87,.55)"}});
+  // Hover-pulse ring — bold expanding ring on hovered aircraft
+  map.addSource("hover-pulse-src",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
+  map.addLayer({id:"ac-hover-pulse",type:"circle",source:"hover-pulse-src",paint:{
+    "circle-radius":18,
+    "circle-color":"rgba(94,234,212,0.08)",
+    "circle-stroke-width":5,
+    "circle-stroke-color":"rgba(94,234,212,1)",
+    "circle-stroke-opacity":0.95,
+    "circle-blur":0.15
+  }});
+  // Fuel-critical pulsing ring (bright red, animated via tick)
+  map.addLayer({id:"ac-rings-crit",type:"circle",source:"aircraft",filter:["==",["get","fuel_critical"],true],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,11,6,16,8,20],"circle-color":"transparent","circle-stroke-width":2.5,"circle-stroke-color":"rgba(255,60,60,1)","circle-stroke-opacity":0.9}});
+  // Friendly status ring (colored outline: alert=amber, normal=blue)
+  map.addLayer({id:"ac-rings",type:"circle",source:"aircraft",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,9,6,13,8,17],"circle-color":"transparent","circle-stroke-width":1.5,"circle-stroke-color":["case",["==",["get","status"],"ALERT"],"rgba(255,210,70,.75)",["==",["get","status"],"MAINT"],"rgba(255,130,80,.55)","rgba(99,183,255,.25)"],"circle-stroke-opacity":["interpolate",["linear"],["zoom"],3,.3,5,.6,7,.85]}});
   map.addLayer({id:"ac-icons",type:"symbol",source:"aircraft",layout:{"icon-image":["get","icon"],"icon-size":["interpolate",["linear"],["zoom"],2.5,.62,4.5,.44,6.5,.30,8.8,.20],"icon-allow-overlap":true,"icon-ignore-placement":true}});
   map.addLayer({id:"ac-label",type:"symbol",source:"aircraft",minzoom:5.2,layout:{"text-field":["get","name"],"text-size":10,"text-offset":[0,1.4],"text-anchor":"top"},paint:{"text-color":"#f4f8ff","text-halo-color":"#08111c","text-halo-width":1.3}});
 
@@ -1549,6 +1602,9 @@ async function initLayers(){
   map.addLayer({id:"enemy-sam-ring-line",type:"line",source:"enemy-sam-rings",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.55,"line-dasharray":[3,2]}});
   map.addLayer({id:"enemy-routes-line",type:"line",source:"enemy-routes",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.35,"line-dasharray":[2,2]}});
   map.addLayer({id:"enemy-trails-line",type:"line",source:"enemy-trails",paint:{"line-color":["get","color"],"line-width":2,"line-opacity":.45}});
+  // Enemy threat rings (red — visual distinction from friendly blue)
+  map.addLayer({id:"enemy-rings",type:"circle",source:"enemy-sams",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,10,6,15,8,19],"circle-color":"transparent","circle-stroke-width":2,"circle-stroke-color":"rgba(255,50,70,.85)","circle-stroke-opacity":["interpolate",["linear"],["zoom"],3,.4,5,.75]}});
+  map.addLayer({id:"enemy-ac-rings",type:"circle",source:"enemy-ac",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,10,6,15,8,19],"circle-color":"transparent","circle-stroke-width":2,"circle-stroke-color":"rgba(255,80,30,.8)","circle-stroke-opacity":["interpolate",["linear"],["zoom"],3,.4,5,.75]}});
   map.addLayer({id:"enemy-sam-icons",type:"symbol",source:"enemy-sams",layout:{"icon-image":["concat","E_",["get","icon"]],"icon-size":["interpolate",["linear"],["zoom"],2.5,.58,4.5,.40,6.5,.28,8.8,.18],"icon-allow-overlap":true,"icon-ignore-placement":true}});
   map.addLayer({id:"enemy-sam-labels",type:"symbol",source:"enemy-sams",minzoom:4,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#ff6060","text-halo-color":"#08111c","text-halo-width":1.3}});
   map.addLayer({id:"enemy-ac-icons",type:"symbol",source:"enemy-ac",layout:{"icon-image":["concat","E_",["get","icon"]],"icon-size":["interpolate",["linear"],["zoom"],2.5,.60,4.5,.42,6.5,.29,8.8,.19],"icon-allow-overlap":true,"icon-ignore-placement":true}});
@@ -1603,6 +1659,17 @@ async function initLayers(){
     `).addTo(map);
   });
   map.on("mouseleave","enemy-sam-icons",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
+
+  // Threat entity click handlers
+  map.on("click","enemy-ac-icons",e=>{
+    _featureClickedThisTick=true;
+    selectThreat(e.features[0].properties.id);
+  });
+  map.on("click","enemy-sam-icons",e=>{
+    _featureClickedThisTick=true;
+    selectThreat(e.features[0].properties.id);
+  });
+
   // Single unified click handler for aircraft icons
   // Left click = add to compare (multi), first click selects single
   // Track whether a feature click just fired, to prevent the generic
@@ -1697,7 +1764,18 @@ function renderMetrics(){
 
 function renderAcList(){
   const el=document.getElementById("aircraftList");
-  el.innerHTML=filteredAC().map(a=>`
+  const filtered=filteredAC();
+  // Show/hide search feedback
+  const countEl=document.getElementById("acSearchCount");
+  const clearBtn=document.getElementById("clearAcSearch");
+  if(acSearchFilter){
+    if(countEl){ countEl.style.display=""; countEl.textContent=filtered.length+' result'+(filtered.length!==1?'s':'')+" for \""+acSearchFilter+"\""; }
+    if(clearBtn) clearBtn.style.display="";
+  } else {
+    if(countEl) countEl.style.display="none";
+    if(clearBtn) clearBtn.style.display="none";
+  }
+  el.innerHTML=filtered.map(a=>`
     <div class="mini-card" data-id="${a.id}" title="Tail: ${a.tail} | ${a.type} | ${a.mission}">
       <div class="mini-top">
         <div class="mini-name">${acCallsign(a)} <span style="font-family:monospace;color:#8fd1ff;font-size:10px;">${a.tail}</span></div>
@@ -1713,6 +1791,8 @@ function renderAcList(){
       </div>
     </div>`).join("")||`<div class="mini-meta">None visible.</div>`;
   el.querySelectorAll("[data-id]").forEach(n=>{
+    n.addEventListener("mouseenter",()=>{ hoveredAcId=n.dataset.id; refreshMap(); });
+    n.addEventListener("mouseleave",()=>{ hoveredAcId=null; refreshMap(); });
     n.addEventListener("click",e=>{
       const id=n.dataset.id;
       if(selMulti.length>0){
@@ -1721,6 +1801,9 @@ function renderAcList(){
         if(selMulti.length>1){ selAcId=null; renderMultiCompare(); refreshMap(); }
         else if(selMulti.length===1){ selMulti=[]; selectAC(id,true); }
         else deselectAll();
+      } else if(selAcId===id){
+        // Clicking the already-selected aircraft → deselect
+        deselectAll();
       } else {
         selectAC(id,true);
       }
@@ -1790,27 +1873,61 @@ function renderPkgList(){
     '</div>';
   }).join('')||'<div style="color:var(--muted);font-size:11px;padding:8px;">No packages visible.</div>';
 
-  el.querySelectorAll("[data-pid]").forEach(n=>n.addEventListener("click",()=>selectPkg(n.dataset.pid,true)));
+  el.querySelectorAll("[data-pid]").forEach(n=>{
+    n.addEventListener("mouseenter",()=>{ hoveredPkgId=n.dataset.pid; refreshMap(); renderTimeline(); });
+    n.addEventListener("mouseleave",()=>{ hoveredPkgId=null; refreshMap(); renderTimeline(); });
+    n.addEventListener("click",()=>{
+      if(selPkgId===n.dataset.pid){ deselectAll(); }
+      else { selectPkg(n.dataset.pid,true); }
+    });
+  });
 }
 
 function renderAlerts(){
   const el=document.getElementById("alertsList");
-  const live=alerts.filter(a=>!a.resolved).slice(0,20);
-  el.innerHTML=live.map(a=>{
+  const active=alerts.filter(a=>!a.resolved);
+  const unacked=active.filter(a=>!a.acked);
+  // Update badge — show unacked count
+  updatePanelBadges();
+  const badge=document.getElementById("alertsBadge");
+  if(badge){ const n=unacked.length||active.length; badge.textContent=n; badge.style.display=n?"":"none"; }
+  if(!active.length){ el.innerHTML='<div class="mini-meta">No active alerts.</div>'; return; }
+  // Sort: unacked HIGH first → MED → LOW, then acked last
+  const sevOrd={HIGH:0,MED:1,LOW:2};
+  const sorted=[...active].sort((a,b)=>{
+    if(!!a.acked!==!!b.acked) return a.acked?1:-1;
+    return (sevOrd[a.sev]||1)-(sevOrd[b.sev]||1);
+  });
+  el.innerHTML=sorted.slice(0,12).map(a=>{
     const ac=getAC(a.tid), pk=getPkg(a.tid), lbl=ac?`${ac.type} ${ac.tail}`:pk?pk.name:"System";
-    return `<div class="stack-card" data-aid="${a.id}">
-      <div class="mini-top"><div class="mini-name">${lbl}</div><div class="severity ${a.sev==="HIGH"?"sev-high":a.sev==="MED"?"sev-med":"sev-low"}">${a.sev}</div></div>
+    const col=a.sev==="HIGH"?"#ff8080":a.sev==="MED"?"#ffd580":"#80d4ff";
+    const ackStyle=a.acked?"opacity:.42;":"";
+    const ackBtn=a.acked
+      ? `<span style="font-size:9px;color:var(--muted);padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.05);">ACK'd</span>`
+      : `<button data-ack="${a.id}" style="font-size:9px;padding:1px 7px;border-radius:4px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--muted);cursor:pointer;flex-shrink:0;">ACK</button>`;
+    return `<div class="stack-card" data-aid="${a.id}" style="border-left:3px solid ${col};${ackStyle}cursor:pointer;">
+      <div class="mini-top" style="display:flex;align-items:center;justify-content:space-between;gap:5px;">
+        <div style="display:flex;align-items:center;gap:5px;min-width:0;">
+          <div class="mini-name" style="color:${col};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lbl}</div>
+          <div class="severity ${a.sev==="HIGH"?"sev-high":a.sev==="MED"?"sev-med":"sev-low"}" style="flex-shrink:0;">${a.sev}</div>
+        </div>
+        ${ackBtn}
+      </div>
       <div class="mini-meta">${a.msg}</div>
-      <div class="mini-meta" style="margin-top:4px;">→ ${a.action}</div>
+      <div class="mini-meta" style="margin-top:4px;">→ ${a.action||''}</div>
     </div>`;
-  }).join("")||`<div class="mini-meta">No active alerts.</div>`;
+  }).join("");
+  // Wire click handlers
   el.querySelectorAll("[data-aid]").forEach(n=>n.addEventListener("click",()=>{
-    const a=alerts.find(x=>x.id===n.dataset.aid);
-    if(!a) return;
+    const a=alerts.find(x=>x.id===n.dataset.aid); if(!a) return;
     if(getAC(a.tid)) selectAC(a.tid,true);
     else if(getPkg(a.tid)) selectPkg(a.tid,true);
+    else if(ENEMY_THREATS&&ENEMY_THREATS.find(e=>e.id===a.tid)) selectThreat(a.tid);
   }));
-  updatePanelBadges();
+  el.querySelectorAll("[data-ack]").forEach(btn=>btn.addEventListener("click",e=>{
+    e.stopPropagation();
+    ackAlert(btn.dataset.ack);
+  }));
 }
 
 function renderTasks(){
@@ -1870,50 +1987,93 @@ function renderTasks(){
 
 function renderTimeline(){
   const lanes=document.getElementById("timelineLanes");
-  const all=filteredAC(); // ALL aircraft, not just 8
+  if(!lanes) return;
+  const all=filteredAC();
+  const nowFrac=zuluHour();
+  const nowPct=(nowFrac/12)*100;
+
+  // Aircraft rows — label text inside the pill bar (V10 style)
   let html=all.map(a=>{
     const left=(a.tb.s/12)*100, width=Math.max(((a.tb.e-a.tb.s)/12)*100,3);
+    const isHov=(hoveredPkgId && a.pkg===hoveredPkgId)||(hoveredAcId===a.id);
+    const isSel=selAcId===a.id;
     const cls=a.status==="MAINT"?"maint":a.status==="ALERT"?"alert":a.fn==="ISR"?"isr":a.fn==="Tanker"?"tanker":a.fn==="AEW&C"?"aewc":a.fn==="SOF"?"sof":"ready";
-    return `<div class="timeline-row"><div class="timeline-bar ${cls}" data-id="${a.id}" style="left:${left}%;width:${width}%;" title="${a.type} ${a.tail} · ${a.tb.l}">${a.type} ${a.tail} · ${a.tb.l}</div></div>`;
+    const extra=(isHov||isSel)?`outline:2px solid ${isSel?"#fff":"rgba(94,234,212,.9)"};outline-offset:-1px;z-index:5;`:"";
+    const label=`${a.type} ${a.tail} · ${a.tb.l}`;
+    return `<div class="timeline-row"><div class="timeline-bar ${cls}" data-id="${a.id}" style="left:${left}%;width:${width}%;${extra}" title="${a.cs} — ${a.type} · ${a.mission}">${label}</div></div>`;
   }).join("");
-  // Enemy threat tracks in combat mode
+
+  // Enemy tracks (combat mode)
   if(combatMode){
     html+=ENEMY_THREATS.filter(e=>e.route).map(e=>{
       const left=(e.tb.s/12)*100, width=Math.max(((e.tb.e-e.tb.s)/12)*100,4);
-      return `<div class="timeline-row"><div class="timeline-bar" style="left:${left}%;width:${width}%;background:#ff2244;color:#fff;opacity:.9;" title="${e.name}">${e.name}</div></div>`;
+      return `<div class="timeline-row"><div class="timeline-bar" data-tid="${e.id}" style="left:${left}%;width:${width}%;background:#ff2244;color:#fff;opacity:.9;" title="${e.name}">${e.name}</div></div>`;
     }).join("");
   }
+
+  // Event rows (appended below aircraft)
+  html+=timelineEvents.slice(-12).map(ev=>{
+    const left=(ev.start/12)*100, width=Math.max(((ev.end-ev.start)/12)*100,1.5);
+    return `<div class="timeline-row"><div class="timeline-bar" style="left:${left}%;width:${width}%;background:${ev.color};color:#05111c;opacity:.88;" title="${ev.label}">${ev.label}</div></div>`;
+  }).join("");
+
+  // Now-line
+  html+=`<div style="position:absolute;top:22px;bottom:0;left:${nowPct}%;width:2px;background:rgba(255,220,80,.65);z-index:10;pointer-events:none;box-shadow:0 0 5px rgba(255,220,80,.45);"></div>`;
+
   lanes.innerHTML=html;
-  lanes.querySelectorAll("[data-id]").forEach(n=>n.addEventListener("click",()=>selectAC(n.dataset.id,true)));
-  // Adjust inner container height for vertical scroll
+  lanes.querySelectorAll("[data-id]").forEach(n=>n.addEventListener("click",()=>{
+    if(selAcId===n.dataset.id){ deselectAll(); } else { selectAC(n.dataset.id,true); }
+  }));
+  lanes.querySelectorAll("[data-tid]").forEach(n=>n.addEventListener("click",()=>{
+    if(selThreatId===n.dataset.tid){ deselectAll(); } else { selectThreat(n.dataset.tid); }
+  }));
+
   const inner=document.querySelector(".timeline-inner");
-  const rows=all.length+(combatMode?ENEMY_THREATS.filter(e=>e.route).length:0);
-  if(inner) inner.style.minHeight=(rows*(15+5)+30)+"px";
+  const rows=all.length+(combatMode?ENEMY_THREATS.filter(e=>e.route).length:0)+Math.min(timelineEvents.length,12);
+  if(inner) inner.style.minHeight=(rows*(13+2)+30)+"px";
 }
 
 /* ═══ DETAIL ═══════════════════════════════════════════════════════════════ */
 function selectAC(id,fly=false,open3D=false){
   const a=getAC(id); if(!a) return;
-  // Clear any multi-select when directly selecting a single aircraft
+  selThreatId=null;
+  // Save camera before flying so deselect can restore it
+  // Only save if we don't already have a saved position (chain-selecting keeps original)
+  if(fly && !_prevCamera){
+    _prevCamera={center:map.getCenter().toArray(),zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing()};
+  }
   selMulti=[];
+  const wasUnselected = !selAcId && !selPkgId && !selThreatId;
   selAcId=id; selMulti=[]; selPkgId=null;
   renderAcDetail(a);
   refreshMap();
+  // Only auto-jump to Details tab on first selection, not when user has switched tabs
+  if(wasUnselected) switchDetailTab('detail');
   if(fly) map.flyTo({center:acCoords(a),zoom:7.2,pitch:55,bearing:combatMode?35:15,speed:.85});
   if(open3D) openInspector(a);
 }
 
 function deselectAll(){
-  selAcId=null; selMulti=[]; selPkgId=null;
+  selAcId=null; selMulti=[]; selPkgId=null; selThreatId=null;
   clearDetail();
   refreshMap();
+  // Restore previous camera view if we saved one
+  if(_prevCamera){
+    map.flyTo({center:_prevCamera.center,zoom:_prevCamera.zoom,pitch:_prevCamera.pitch,bearing:_prevCamera.bearing,speed:.75});
+    _prevCamera=null;
+  }
 }
 
 function selectPkg(id,fly=false){
   const pkg=getPkg(id); if(!pkg) return;
+  if(fly && !_prevCamera){
+    _prevCamera={center:map.getCenter().toArray(),zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing()};
+  }
+  const wasPkgUnselected = !selAcId && !selPkgId && !selThreatId;
   selPkgId=id; selAcId=null;
   renderPkgDetail(pkg);
   refreshMap();
+  if(wasPkgUnselected) switchDetailTab('detail');
   if(fly){
     const ms=pkg.members.map(id=>getAC(id)).filter(Boolean).filter(a=>filteredAC().find(f=>f.id===a.id));
     if(ms.length){ const al=ms.reduce((s,a)=>s+acCoords(a)[0],0)/ms.length, lt=ms.reduce((s,a)=>s+acCoords(a)[1],0)/ms.length; map.flyTo({center:[al,lt],zoom:5.8,speed:.8}); }
@@ -1922,12 +2082,24 @@ function selectPkg(id,fly=false){
 
 
 /* ═══ DETAIL PANEL TUCK ════════════════════════════════════════════════════ */
-function setDetailContent(html){
+function setDetailTitle(title){
+  const el=document.getElementById('detailPanelTitle');
+  if(el) el.textContent=title;
+}
+
+function setDetailContent(html, title){
   const el=document.getElementById("detailContent");
   if(!el) return;
   el.innerHTML=html;
-  // Switch to details tab — but never un-minimize; user controls that
-  if(typeof switchDetailTab==='function') switchDetailTab('detail');
+  if(title) setDetailTitle(title);
+  // Only auto-switch to Details on the very first selection (when on sitrep default)
+  // If user has manually chosen SITREP or Intel, leave them there
+  if(typeof switchDetailTab==='function' && activeDetailTab==='detail'){
+    switchDetailTab('detail'); // re-render in case tab is already active
+  }
+  // Update title in header to reflect entity without forcing tab change
+  // (switchDetailTab already sets generic "Details" — override with entity title if given)
+  if(title) setDetailTitle(title);
 }
 
 function clearDetail(){
@@ -1935,6 +2107,7 @@ function clearDetail(){
   if(!el) return;
   el.className="detail-empty";
   el.innerHTML="Select an aircraft, base, or package to inspect.";
+  setDetailTitle('SITREP');
   // Return to SITREP when nothing is selected
   switchDetailTab('sitrep');
 }
@@ -1990,7 +2163,9 @@ function renderAcDetail(a){
     <div class="detail-block"><div class="section-title">Active Alerts</div>
       ${actAlerts.length?('<ul class="list">'+actAlerts.map(x=>'<li>'+x.sev+': '+x.msg+'</li>').join('')+'</ul>'):'<div class="mini-meta" style="color:var(--green);">None.</div>'}
     </div>`);
+  setDetailTitle(a.cs||a.type);
   document.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",()=>handleCmd(b.dataset.id,b.dataset.cmd)));
+  logEvent('INFO', a.id, 'Selected: '+(a.cs||a.type)+' ('+a.type+' '+a.tail+') — '+a.mission, 'INFO');
 }
 
 function renderPkgDetail(pkg){
@@ -2015,6 +2190,7 @@ function renderPkgDetail(pkg){
         <div class="action" data-pkg-cmd="Rebuild" data-id="${pkg.id}">Rebuild Package</div>
       </div>
     </div>`);
+  setDetailTitle(pkg.name);
   document.querySelectorAll("[data-pkg-cmd]").forEach(b=>b.addEventListener("click",()=>showNotice(`${b.dataset.pkgCmd} queued for ${pkg.name}`)));
 }
 
@@ -2037,9 +2213,13 @@ function setRTB(a){ const cur=acCoords(a),bc=getBase(a.base).coords; a.route=[cu
 function addAlert(type,tid,sev,msg,action){
   if(alerts.find(a=>!a.resolved&&a.type===type&&a.tid===tid)) return null;
   const a={id:"A"+(++alertCtr),tid,type,sev,msg,action,resolved:false};
-  alerts.unshift(a); if(alerts.length>40) alerts=alerts.slice(0,40); return a;
+  alerts.unshift(a); if(alerts.length>40) alerts=alerts.slice(0,40);
+  logEvent('ALERT', tid, '['+sev+'] '+msg, sev==='HIGH'?'ALERT':'WARN');
+  if(sev==='HIGH') addTimelineEvent('ALERT', type.replace(/_/g,' ')+' '+tid, .25, '#ff4455');
+  return a;
 }
 function resolveAlert(type,tid){ alerts.forEach(a=>{ if(a.type===type&&a.tid===tid&&!a.resolved) a.resolved=true; }); }
+function ackAlert(id){ const a=alerts.find(x=>x.id===id); if(a){ a.acked=true; renderAlerts(); } }
 function addTask(kind,tid,sev,label,action,auto=false){
   if(tasks.find(t=>!t.done&&t.kind===kind&&t.tid===tid)) return null;
   const t={id:"T"+(++taskCtr),kind,tid,sev,label,action,auto,done:false};
@@ -2054,7 +2234,65 @@ function execTask(tid2, silent=false){
   t.done=true;
   // Only show notice for manual operator actions, not automation
   if(!silent && !t.auto) showNotice(`${t.action} — ${a.type} ${a.tail}`);
+  logEvent('ACTION', t.tid, (t.auto?'[AUTO] ':'')+(t.action||'Task')+' — '+(a.cs||a.type+' '+a.tail), t.auto?'AUTO':'ACTION');
+  if(t.action==='Launch') addTimelineEvent('SORTIE', (a.cs||a.type)+' Launch', 2, '#7ee787', a.id);
+  if(t.action==='RTB')    addTimelineEvent('RTB',    (a.cs||a.type)+' RTB',    .5, '#adb5bd', a.id);
   refreshAll(); if(selAcId===a.id) renderAcDetail(a);
+}
+
+/* ═══ EVENT LOG ════════════════════════════════════════════════════════════ */
+function logEvent(type, tid, msg, sev='INFO'){
+  const now = new Date();
+  const hh=String(now.getUTCHours()).padStart(2,'0');
+  const mm=String(now.getUTCMinutes()).padStart(2,'0');
+  const ss=String(now.getUTCSeconds()).padStart(2,'0');
+  const ts = hh+':'+mm+':'+ss+'Z';
+  const entry = {ts, type, tid, msg, sev};
+  eventLog.unshift(entry);
+  if(eventLog.length>120) eventLog=eventLog.slice(0,120);
+  renderEventLog();
+}
+
+function renderEventLog(){
+  const el = document.getElementById('eventLogList');
+  if(!el) return;
+  const SEV_COL={INFO:'var(--teal)',WARN:'var(--amber)',ALERT:'#ff6b6b',ACTION:'#b388ff',AUTO:'#7cd7ff'};
+  // Update badge when log tab not active
+  const badge = document.getElementById('evLogBadge');
+  const evLogVisible = document.getElementById('tlEventLog')?.style?.display !== 'none';
+  if(badge && !evLogVisible && eventLog.length>0){
+    badge.style.display='';
+    badge.textContent=Math.min(eventLog.length,99);
+  }
+  el.innerHTML = eventLog.slice(0,40).map(e=>{
+    const col = SEV_COL[e.sev]||'var(--muted)';
+    return '<div style="display:grid;grid-template-columns:52px 1fr;gap:5px;padding:4px 8px;'+
+      'border-bottom:1px solid rgba(255,255,255,.03);align-items:baseline;">'+
+      '<span style="font-size:9px;font-family:monospace;color:var(--muted);white-space:nowrap;">'+e.ts+'</span>'+
+      '<span style="font-size:10px;color:'+col+';line-height:1.4;">'+
+        (e.sev!=='INFO'?'<strong style="color:'+col+';">['+e.sev+']</strong> ':'')+e.msg+
+      '</span>'+
+    '</div>';
+  }).join('')||'<div style="padding:8px;font-size:10px;color:var(--muted);">No events recorded.</div>';
+}
+
+/* ═══ TIMELINE EVENTS ═══════════════════════════════════════════════════════ */
+function addTimelineEvent(type, label, durationHrs=1, color=null, acId=null){
+  const now = zuluHour(); // fractional hour 0-12
+  const start = Math.max(0, Math.min(now, 11.9));
+  const end   = Math.min(start + durationHrs, 12);
+  const cols  = {SORTIE:'#7ee787',ALERT:'#ffd166',MAINT:'#ff8a65',
+                 THREAT:'#ff4455',SEAD:'#ff9944',COMBAT:'#ff2244',
+                 RTB:'#adb5bd',AAR:'#fcd34d',MODE:'#5eead4',AUTO:'#b388ff'};
+  const c = color || cols[type] || '#8fd1ff';
+  const ev = {id:'EV'+(++_tlEvtCtr), type, label, start, end, color:c, acId};
+  timelineEvents.push(ev);
+  if(timelineEvents.length>200) timelineEvents=timelineEvents.slice(-200);
+}
+
+function zuluHour(){
+  const d=new Date();
+  return (d.getUTCHours() + d.getUTCMinutes()/60) % 12;
 }
 
 /* ═══ SIMULATION ═══════════════════════════════════════════════════════════ */
@@ -2244,6 +2482,26 @@ function initDetailDragResize(){
     document.body.style.userSelect = '';
     stackPanels();
   });
+}
+
+function switchTlTab(tab){
+  const tlBody = document.getElementById('timelineScroll');
+  const evLog  = document.getElementById('tlEventLog');
+  const tlBtn  = document.getElementById('tlTabTimeline');
+  const evBtn  = document.getElementById('tlTabLog');
+  if(!tlBody||!evLog) return;
+  if(tab==='log'){
+    tlBody.style.display='none'; evLog.style.display='';
+    if(tlBtn){ tlBtn.style.background='transparent'; tlBtn.style.borderColor='rgba(255,255,255,.1)'; tlBtn.style.color='var(--muted)'; }
+    if(evBtn){ evBtn.style.background='rgba(179,136,255,.15)'; evBtn.style.borderColor='rgba(179,136,255,.4)'; evBtn.style.color='#b388ff'; }
+    renderEventLog();
+    // Clear badge
+    const badge=document.getElementById('evLogBadge'); if(badge) badge.style.display='none';
+  } else {
+    tlBody.style.display=''; evLog.style.display='none';
+    if(tlBtn){ tlBtn.style.background='rgba(99,183,255,.15)'; tlBtn.style.borderColor='rgba(99,183,255,.4)'; tlBtn.style.color='#8fd1ff'; }
+    if(evBtn){ evBtn.style.background='transparent'; evBtn.style.borderColor='rgba(255,255,255,.1)'; evBtn.style.color='var(--muted)'; }
+  }
 }
 
 function initCollapsePanels(){
@@ -3381,6 +3639,103 @@ document.querySelectorAll(".metric[data-filter]").forEach(c=>{
 
 
 
+/* ═══ THREAT DETAIL ══════════════════════════════════════════════════════════ */
+function selectThreat(id){
+  const t = ENEMY_THREATS.find(e=>e.id===id); if(!t) return;
+  _featureClickedThisTick = true;
+
+  // Update panel title
+  const titleEl = document.getElementById('detailPanelTitle');
+  if(titleEl) titleEl.textContent = '⚠ ' + t.name;
+
+  const threatCol  = t.threat==='HIGH' ? '#ff4455' : t.threat==='MED' ? '#ff9944' : '#ffdd55';
+  const threatBg   = t.threat==='HIGH' ? 'rgba(255,40,60,.08)' : t.threat==='MED' ? 'rgba(255,140,40,.08)' : 'rgba(255,220,40,.06)';
+  const statusCol  = t.status==='ACTIVE'||t.status==='AIRBORNE' ? '#ff5566' : t.status==='SUSPECT'?'#ffaa44':'var(--muted)';
+  const coords     = t.coords;
+
+  // SEAD candidates — fighters with HARM on board
+  const seadCands  = AIRCRAFT.filter(a=>a.status!=='MAINT' && a.loadout && a.loadout.some(l=>l.includes('HARM')||l.includes('JDAM')||l.includes('GBU')));
+  const seadRows   = seadCands.slice(0,4).map(a=>
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:3px;cursor:pointer;" onclick="selectAC(\''+a.id+'\',true)">' +
+      '<span style="font-size:10px;font-weight:900;color:'+(a.fn==='Fighter'?'#7cd7ff':'var(--muted)')+';">'+a.cs+'</span>' +
+      '<span style="font-size:9px;color:var(--muted);">'+a.type+' · '+a.loadout.filter(l=>l.includes('HARM')||l.includes('GBU')||l.includes('JDAM')).join(', ')+'</span>' +
+    '</div>'
+  ).join('');
+
+  // COA note based on type
+  const coaNote = t.type==='SAM'
+    ? 'SEAD/DEAD recommended prior to operations within engagement envelope. Coordinate with 603 AOC for suppression window.'
+    : t.type==='AC'
+    ? 'Coordinate with nearest CAP asset. Maintain EMCON discipline. Do not enter weapons envelope without ROE clearance.'
+    : 'EW degradation possible within radius. Switch HAVE QUICK. Validate GPS via INS backup.';
+
+  // Engagement ring data for SAMs
+  const engBlock = t.type==='SAM' ? (
+    '<div class="detail-block">'+
+      '<div class="section-title">Engagement Envelope</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:6px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Max Range</div>'+
+          '<div style="font-size:16px;font-weight:900;color:#ff5566;">'+t.radiusKm+'km</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:6px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Status</div>'+
+          '<div style="font-size:13px;font-weight:900;color:'+statusCol+';">'+t.status+'</div></div>'+
+      '</div>'+
+      '<div style="margin-top:8px;padding:6px 8px;border-radius:6px;background:rgba(255,40,60,.06);border:1px solid rgba(255,40,60,.15);font-size:10px;color:#ffaaaa;">'+
+        '⚠ Do not enter within '+Math.round(t.radiusKm*.8)+'km without active SEAD coverage'+
+      '</div>'+
+    '</div>'
+  ) : '';
+
+  const html =
+    '<div style="padding:4px 10px;font-size:9px;font-weight:900;text-align:center;letter-spacing:.1em;text-transform:uppercase;color:'+threatCol+';background:'+threatBg+';border-bottom:1px solid rgba(255,50,50,.15);">'+
+      (t.nation||'RU')+' · '+t.type+' THREAT · LEVEL: '+t.threat+
+    '</div>'+
+    '<div class="detail-block">'+
+      '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">'+
+        '<div class="detail-name" style="color:'+threatCol+';">'+t.name+'</div>'+
+      '</div>'+
+      '<div class="detail-type">'+
+        (t.type==='SAM'?'Surface-to-Air Missile System':t.type==='AC'?'Enemy Aircraft':'Electronic Warfare Node')+
+        ' · '+t.nation+' · TRACK '+t.id+
+      '</div>'+
+      '<div class="detail-grid" style="margin-top:10px;">'+
+        '<div class="detail-stat"><div class="detail-stat-label">Status</div><div class="detail-stat-value" style="color:'+statusCol+';">'+t.status+'</div></div>'+
+        '<div class="detail-stat"><div class="detail-stat-label">Threat</div><div class="detail-stat-value" style="color:'+threatCol+';">'+t.threat+'</div></div>'+
+        '<div class="detail-stat"><div class="detail-stat-label">Nation</div><div class="detail-stat-value">'+t.nation+'</div></div>'+
+        '<div class="detail-stat"><div class="detail-stat-label">Track ID</div><div class="detail-stat-value" style="font-family:monospace;">'+t.id+'</div></div>'+
+        '<div class="detail-stat" style="grid-column:1/-1;"><div class="detail-stat-label">Position</div><div class="detail-stat-value" style="font-family:monospace;">'+coords[0].toFixed(2)+'°E · '+coords[1].toFixed(2)+'°N</div></div>'+
+      '</div>'+
+    '</div>'+
+    engBlock+
+    '<div class="detail-block">'+
+      '<div class="section-title">Intelligence Assessment</div>'+
+      '<div style="font-size:11px;color:#ffcccc;line-height:1.55;padding:6px 8px;border-radius:6px;background:rgba(255,40,60,.05);border:1px solid rgba(255,40,60,.12);">'+t.detail+'</div>'+
+    '</div>'+
+    '<div class="detail-block">'+
+      '<div class="section-title">Recommended COA</div>'+
+      '<div style="font-size:11px;color:#ffd0a0;line-height:1.55;padding:6px 8px;border-radius:6px;background:rgba(255,140,40,.05);border:1px solid rgba(255,140,40,.12);">'+coaNote+'</div>'+
+    '</div>'+
+    (seadRows?'<div class="detail-block"><div class="section-title">Available SEAD / Strike Assets</div>'+seadRows+'</div>':'')+
+    '<div class="detail-block">'+
+      '<div class="section-title">Actions</div>'+
+      '<div class="actions">'+
+        '<div class="action" onclick="logEvent(\'THREAT_ACK\',\''+t.id+'\',\'Threat '+t.id+' ('+t.name+') acknowledged by operator\')">Acknowledge Track</div>'+
+        '<div class="action" onclick="addTask(\'SEAD\',\''+t.id+'\',\'HIGH\',\'SEAD against '+t.name+'\',\'Assign SEAD\',false);refreshAll();showNotice(\'SEAD task queued for '+t.name+'\')">Queue SEAD Task</div>'+
+        '<div class="action" onclick="map.flyTo({center:'+JSON.stringify(coords)+',zoom:7,speed:.9})">Fly To</div>'+
+      '</div>'+
+    '</div>';
+
+  setDetailContent(html);
+  if(titleEl) titleEl.textContent = '⚠ ' + t.name;
+  selThreatId=id;
+  if(!_prevCamera){
+    _prevCamera={center:map.getCenter().toArray(),zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing()};
+  }
+  map.flyTo({center: coords, zoom: 5.5, speed: .8});
+  logEvent('THREAT_SEL', t.id, 'Threat track '+t.name+' selected');
+}
+
 /* ═══ BASE POSTURE DETAIL ═══════════════════════════════════════════════════ */
 function selectBase(baseId){
   const base = BASES.find(b=>b.id===baseId); if(!base) return;
@@ -3449,7 +3804,9 @@ function selectBase(baseId){
       '</div>' : '') +
     '<div class="detail-block"><div class="section-title">Coordinates</div><div class="mini-meta" style="font-family:monospace;">'+base.coords[0].toFixed(4)+'°E, '+base.coords[1].toFixed(4)+'°N</div></div>';
 
+  setDetailTitle(base.name);
   setDetailContent(html);
+  logEvent('INFO', base.id, 'Base selected: '+base.name+' ('+base.wing+')', 'INFO');
   // Wire aircraft row clicks to selectAC
   setTimeout(()=>{
     document.querySelectorAll('[data-aid]').forEach(n=>{
@@ -3574,6 +3931,14 @@ map.on("load",async()=>{
   await initLayers();
   document.getElementById("timelineGrid").innerHTML=Array.from({length:12},(_,i)=>`<div><span>${String(i).padStart(2,"0")}:00</span></div>`).join("");
   seedInitialRecs();
+  logEvent('INFO','SYSTEM','603 AOC COP initialised — EUCOM Air Domain picture loaded','INFO');
+  logEvent('INFO','SYSTEM','60 friendly aircraft across 14 bases — SITREP generated','INFO');
+  // Seed initial timeline events to show the strip is live
+  addTimelineEvent('MODE','EUCOM DETERRENCE',12,'#5eead4');
+  addTimelineEvent('SORTIE','PKG-ALPHA Launch',2,'#7ee787');
+  addTimelineEvent('SORTIE','PKG-ECHO ISR Cycle',6,'#b388ff');
+  addTimelineEvent('AAR','North Sea AAR Window',3,'#fcd34d');
+  addTimelineEvent('SORTIE','PKG-BRAVO E-CAP',4,'#7cd7ff');
   renderAocStrip();
   renderIntelReport();
   initDetailDragResize();
@@ -3586,6 +3951,41 @@ map.on("load",async()=>{
   setTimeout(syncLayout,400);
   setTimeout(syncLayout,1200);
 
+  let _sitrepTickCount=0;
+
+  // ── Hover pulse: rAF loop — fast, smooth, very evident ──
+  (function startHoverPulseLoop(){
+    let _lastGeo=0;
+    function loop(){
+      requestAnimationFrame(loop);
+      if(!map.getSource('hover-pulse-src')) return;
+      const hovIds=new Set();
+      if(hoveredAcId) hovIds.add(hoveredAcId);
+      if(hoveredPkgId) filteredAC().filter(a=>a.pkg===hoveredPkgId).forEach(a=>hovIds.add(a.id));
+      if(hovIds.size===0){
+        if(map.getLayer('ac-hover-pulse')) map.setPaintProperty('ac-hover-pulse','circle-stroke-opacity',0);
+        return;
+      }
+      const now=performance.now();
+      if(now-_lastGeo>200){
+        _lastGeo=now;
+        const feats=filteredAC().filter(a=>hovIds.has(a.id)).map(a=>({
+          type:'Feature',geometry:{type:'Point',coordinates:acCoords(a)},properties:{id:a.id}
+        }));
+        map.getSource('hover-pulse-src').setData({type:'FeatureCollection',features:feats});
+      }
+      // 3 pulses/sec, radius 16→48px, opacity 0.95→0.1
+      const t=now/1000;
+      const beat=Math.abs(Math.sin(t*Math.PI*3.0));
+      if(map.getLayer('ac-hover-pulse')){
+        map.setPaintProperty('ac-hover-pulse','circle-radius', 16+32*beat);
+        map.setPaintProperty('ac-hover-pulse','circle-stroke-opacity', 0.95-0.85*beat);
+        map.setPaintProperty('ac-hover-pulse','circle-stroke-width', 5-3*beat);
+      }
+    }
+    loop();
+  })();
+
   setInterval(()=>{
     updateWeather();
     updateMovement();
@@ -3593,6 +3993,20 @@ map.on("load",async()=>{
     refreshAll();
     if(selAcId){ const a=getAC(selAcId); if(a) renderAcDetail(a); }
     if(insp.ac){ const a=getAC(insp.ac.id); if(a){ insp.ac=a; applyInspPose(a); } }
+    // Auto-refresh SITREP every ~30s (≈20 ticks at 1550ms) while tab visible
+    _sitrepTickCount++;
+    if(_sitrepTickCount>=20){
+      _sitrepTickCount=0;
+      if(activeDetailTab==='sitrep') generateSitrep(false);
+    }
+    // Pulse the fuel-critical ring
+    // Fuel-critical ring pulse (red, slow)
+    if(map.getLayer('ac-rings-crit')){
+      const t=Date.now()/1000;
+      const p=.35+.65*Math.abs(Math.sin(t*Math.PI*.85));
+      map.setPaintProperty('ac-rings-crit','circle-stroke-opacity',p);
+    }
+    // Hover pulse handled by dedicated rAF loop (see startHoverPulseLoop)
   },1550);
 });
 </script>
