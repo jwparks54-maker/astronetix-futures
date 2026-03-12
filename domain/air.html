@@ -1036,21 +1036,96 @@ const MODEL_LIBRARY={
 
 /* ═══ DATA ═══════════════════════════════════════════════════════════════ */
 const BASES=[
-  {id:"ramstein",    name:"Ramstein AB",    country:"Germany",        ccmd:"EUCOM", coords:[7.6003,49.4369], role:"Mobility / C2 Hub"},
-  {id:"spangdahlem", name:"Spangdahlem AB", country:"Germany",        ccmd:"EUCOM", coords:[6.6925,49.9727], role:"Fighter"},
-  {id:"lakenheath",  name:"RAF Lakenheath", country:"United Kingdom", ccmd:"EUCOM", coords:[0.561,52.409],   role:"Fighter"},
-  {id:"mildenhall",  name:"RAF Mildenhall", country:"United Kingdom", ccmd:"EUCOM", coords:[0.4864,52.3619], role:"Tanker"},
-  {id:"aviano",      name:"Aviano AB",      country:"Italy",          ccmd:"EUCOM", coords:[12.596,46.031],  role:"Fighter"},
-  {id:"sigonella",   name:"NAS Sigonella",  country:"Italy",          ccmd:"EUCOM", coords:[14.9224,37.4108],role:"ISR"},
-  {id:"souda",       name:"NSA Souda Bay",  country:"Greece",         ccmd:"EUCOM", coords:[24.1497,35.5317],role:"Support"},
-  {id:"incirlik",    name:"Incirlik AB",    country:"Turkey",         ccmd:"EUCOM", coords:[35.4259,37.0019],role:"Tanker / AEW"},
-  {id:"lask",        name:"32 BLT Łask",       country:"Poland",         ccmd:"EUCOM", coords:[18.80,51.55], role:"Forward Fighter"},
-  {id:"kogalniceanu",name:"86 AB Kogălniceanu", country:"Romania",        ccmd:"EUCOM", coords:[28.49,44.36], role:"Forward ISR/Tanker"},
-  {id:"keflavik",    name:"NAS Keflavik",       country:"Iceland",        ccmd:"EUCOM", coords:[-22.62,63.99],role:"ASW / Maritime"},
-  {id:"lajes",       name:"Lajes Field",         country:"Portugal(Azores)",ccmd:"EUCOM",coords:[-27.09,38.76],role:"Tanker / Relay"},
-  {id:"decimomannu", name:"Decimomannu AB",      country:"Italy",          ccmd:"EUCOM", coords:[8.97,39.35],  role:"Fighter / OCA"},
-  {id:"larissa",     name:"Larissa AB",           country:"Greece",         ccmd:"EUCOM", coords:[22.46,39.65], role:"Fighter / Support"},
-  {id:"aoc603",      name:"603 AOC / Ramstein",   country:"Germany",        ccmd:"EUCOM", coords:[7.6003,49.4369],role:"Air Operations Center"}
+  {id:"ramstein",     name:"Ramstein AB",         country:"Germany",          ccmd:"EUCOM", coords:[7.6003,49.4369],  role:"Mobility / C2 Hub",
+    wing:"86th Airlift Wing",      unit:"86 AW / USAFE-AFAFRICA HQ", commander:"Brig Gen T. Hollis",
+    runway:"09/27 · 3,658m",      personnel:9200, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Active SHORAD",
+    munitions:{aim120:48,aim9:32,gbu31:60,gbu38:120,agm88:0,agm158:12,aim120c7:24,chaff:200,flare:300,jdam:80},
+    fuel_jp8_kgal:2400, mxCapacity:"Heavy — 3x AMUs", notes:"Primary USAFE mob hub. C-17/C-130 ops. 603 AOC collocated."},
+  {id:"spangdahlem",  name:"Spangdahlem AB",        country:"Germany",          ccmd:"EUCOM", coords:[6.6925,49.9727],  role:"Fighter",
+    wing:"52nd Fighter Wing",      unit:"52 FW · 480 FS / 52 MXW",  commander:"Col D. Parsons",
+    runway:"06/24 · 3,048m",      personnel:5100, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Active SHORAD",
+    munitions:{aim120:64,aim9:48,gbu31:40,gbu38:80,agm88:36,agm158:0,aim120c7:32,chaff:180,flare:220,jdam:60},
+    fuel_jp8_kgal:1200, mxCapacity:"Standard — 2x AMUs", notes:"F-16CM SEAD/DEAD. HARM-certified crews. NATO QRA role."},
+  {id:"lakenheath",   name:"RAF Lakenheath",         country:"United Kingdom",   ccmd:"EUCOM", coords:[0.561,52.409],    role:"Fighter",
+    wing:"48th Fighter Wing",      unit:"48 FW · 492 FS / 495 FS",  commander:"Col R. Stovall",
+    runway:"06/24 · 2,743m",      personnel:5800, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Active SHORAD + PATRIOT det",
+    munitions:{aim120:80,aim9:64,gbu31:80,gbu38:160,agm88:0,agm158:24,aim120c7:48,chaff:240,flare:320,jdam:120},
+    fuel_jp8_kgal:1800, mxCapacity:"Heavy — 3x AMUs", notes:"F-35A / F-15E. Primary UK USAFE base. NATO Art. 5 QRA."},
+  {id:"mildenhall",   name:"RAF Mildenhall",         country:"United Kingdom",   ccmd:"EUCOM", coords:[0.4864,52.3619],  role:"Tanker",
+    wing:"100th Air Refueling Wing", unit:"100 ARW · 351 ARS / 352 SOG", commander:"Col S. Marcus",
+    runway:"11/29 · 2,819m",      personnel:3200, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Passive",
+    munitions:{aim120:0,aim9:0,gbu31:0,gbu38:0,agm88:0,agm158:0,aim120c7:0,chaff:80,flare:100,jdam:0},
+    fuel_jp8_kgal:3200, mxCapacity:"Standard — 2x AMUs", notes:"KC-135R tanker hub. MC-130J/SOF. Boom-only refueling config."},
+  {id:"aviano",       name:"Aviano AB",               country:"Italy",            ccmd:"EUCOM", coords:[12.596,46.031],   role:"Fighter",
+    wing:"31st Fighter Wing",      unit:"31 FW · 510 FS / 555 FS",  commander:"Col A. Ortega",
+    runway:"18/36 · 3,050m",      personnel:4600, pax_status:"FULL",
+    readiness:"AMBER", defensePosture:"Active SHORAD",
+    munitions:{aim120:52,aim9:40,gbu31:36,gbu38:72,agm88:20,agm158:0,aim120c7:28,chaff:160,flare:200,jdam:48},
+    fuel_jp8_kgal:900, mxCapacity:"Standard — 2x AMUs", notes:"F-16CM. Med theater fighter. 1x AC in hydraulic repair — reduced sorties."},
+  {id:"sigonella",    name:"NAS Sigonella",           country:"Italy",            ccmd:"EUCOM", coords:[14.9224,37.4108], role:"ISR",
+    wing:"Commander Fleet Activities", unit:"VP-4 det / 55 WG det",  commander:"Capt L. Torres USN",
+    runway:"10/28 · 2,730m",      personnel:2800, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Passive",
+    munitions:{aim120:0,aim9:16,gbu31:0,gbu38:24,agm88:0,agm158:0,aim120c7:0,chaff:60,flare:80,jdam:12},
+    fuel_jp8_kgal:600, mxCapacity:"Light — 1x AMU", notes:"MQ-9 / RQ-4 ISR hub. P-8A SIGINT. Med/Adriatic maritime domain."},
+  {id:"souda",        name:"NSA Souda Bay",           country:"Greece",           ccmd:"EUCOM", coords:[24.1497,35.5317], role:"Support",
+    wing:"Det — 39th Air Base Wing",  unit:"39 ABW det / NSA Souda",  commander:"Cdr P. Nikolaou USN",
+    runway:"09/27 · 2,413m",      personnel:1400, pax_status:"REDUCED",
+    readiness:"GREEN", defensePosture:"Passive + Host Nation",
+    munitions:{aim120:12,aim9:20,gbu31:12,gbu38:24,agm88:0,agm158:0,aim120c7:8,chaff:40,flare:60,jdam:16},
+    fuel_jp8_kgal:480, mxCapacity:"Austere — shared", notes:"C-17 austere staging. Helo det. Host-nation Greek Hellenic Air Force sharing."},
+  {id:"incirlik",     name:"Incirlik AB",             country:"Turkey",           ccmd:"EUCOM", coords:[35.4259,37.0019], role:"Tanker / AEW",
+    wing:"39th Air Base Wing",     unit:"39 ABW · 10 ARS det",      commander:"Col M. Chen",
+    runway:"05/23 · 3,049m",      personnel:2500, pax_status:"REDUCED",
+    readiness:"AMBER", defensePosture:"Active SHORAD — host-nation dependent",
+    munitions:{aim120:24,aim9:16,gbu31:0,gbu38:20,agm88:0,agm158:0,aim120c7:16,chaff:80,flare:100,jdam:0},
+    fuel_jp8_kgal:1100, mxCapacity:"Standard — 1x AMU", notes:"KC-135R / E-3G ops. Host-nation access subject to bilateral agreement. AMBER posture."},
+  {id:"lask",         name:"32 BLT Łask",             country:"Poland",           ccmd:"EUCOM", coords:[18.80,51.55],     role:"Forward Fighter",
+    wing:"32nd Air Base — PAF / USAF det",  unit:"Det — 52 FW / 3 WKL PAF",  commander:"Col K. Wiśniewski PAF",
+    runway:"08/26 · 2,500m",      personnel:1800, pax_status:"SURGE",
+    readiness:"GREEN", defensePosture:"Enhanced — NATO eFP",
+    munitions:{aim120:40,aim9:32,gbu31:20,gbu38:40,agm88:16,agm158:0,aim120c7:20,chaff:120,flare:160,jdam:30},
+    fuel_jp8_kgal:680, mxCapacity:"Forward — 1x AMU + host", notes:"NATO enhanced Forward Presence. US/PAF joint ops. Surge basing capacity."},
+  {id:"kogalniceanu", name:"86 AB Kogălniceanu",      country:"Romania",          ccmd:"EUCOM", coords:[28.49,44.36],     role:"Forward ISR/Tanker",
+    wing:"Det — 86 AW / Romanian AF",  unit:"Det MQ-9 · KC-135 / 86 Baza A",  commander:"Lt Col A. Popescu RoAF",
+    runway:"08/26 · 3,500m",      personnel:2100, pax_status:"SURGE",
+    readiness:"GREEN", defensePosture:"Active — NATO battlegroup",
+    munitions:{aim120:20,aim9:16,gbu31:8,gbu38:24,agm88:0,agm158:0,aim120c7:12,chaff:80,flare:100,jdam:16},
+    fuel_jp8_kgal:520, mxCapacity:"Forward — 1x AMU + host", notes:"Forward tanker/ISR staging. Black Sea domain coverage. NATO rapid reinforcement route."},
+  {id:"keflavik",     name:"NAS Keflavik",            country:"Iceland",          ccmd:"EUCOM", coords:[-22.62,63.99],    role:"ASW / Maritime",
+    wing:"Det — 2d Bomb Wing / JIATF-N", unit:"VP-47 / P-8A det / B-52 NATO ICE", commander:"Cdr F. Bjornsson USN",
+    runway:"02/20 · 3,054m",      personnel:1900, pax_status:"SURGE",
+    readiness:"GREEN", defensePosture:"Passive + Maritime patrol",
+    munitions:{aim120:16,aim9:12,gbu31:16,gbu38:20,agm88:0,agm158:8,aim120c7:8,chaff:60,flare:80,jdam:8},
+    fuel_jp8_kgal:900, mxCapacity:"Light — 1x AMU", notes:"GIUK gap patrol. B-52 surge basing. P-8 ASW/SIGINT. NATO Icelandic air policing."},
+  {id:"lajes",        name:"Lajes Field",             country:"Portugal (Azores)", ccmd:"EUCOM", coords:[-27.09,38.76],   role:"Tanker / Relay",
+    wing:"Det — 65th Air Base Group",  unit:"65 ABG / KC-135 det",   commander:"Maj D. Ferreira PAF",
+    runway:"15/33 · 2,865m",      personnel:1200, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Passive",
+    munitions:{aim120:0,aim9:8,gbu31:0,gbu38:8,agm88:0,agm158:0,aim120c7:0,chaff:40,flare:60,jdam:0},
+    fuel_jp8_kgal:1400, mxCapacity:"Austere — 1x AMU", notes:"Mid-Atlantic air bridge. KC-135 relay. Contingency recovery base for Atlantic crossings."},
+  {id:"decimomannu",  name:"Decimomannu AB",          country:"Italy",            ccmd:"EUCOM", coords:[8.97,39.35],      role:"Fighter / OCA",
+    wing:"Det — 31 FW / Italian AF",  unit:"Det 31 FW / 32° Stormo ItAF",  commander:"Lt Col M. Conti ItAF",
+    runway:"07/25 · 3,000m",      personnel:1600, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Active SHORAD — host-nation",
+    munitions:{aim120:32,aim9:28,gbu31:16,gbu38:36,agm88:8,agm158:0,aim120c7:16,chaff:100,flare:120,jdam:24},
+    fuel_jp8_kgal:520, mxCapacity:"Standard — 1x AMU", notes:"Sardinia OCA/DCA. Range support. A-10 USAF/ItAF training. Med west approach."},
+  {id:"larissa",      name:"Larissa AB",              country:"Greece",           ccmd:"EUCOM", coords:[22.46,39.65],     role:"Fighter / Support",
+    wing:"Det — Hellenic AF 110 Combat Wing",  unit:"Det USAF / 110 PΜ HAF",  commander:"Brig Gen N. Papadopoulos HAF",
+    runway:"04/22 · 2,450m",      personnel:2000, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Active — Greek national + NATO",
+    munitions:{aim120:28,aim9:24,gbu31:12,gbu38:28,agm88:0,agm158:0,aim120c7:16,chaff:80,flare:100,jdam:20},
+    fuel_jp8_kgal:480, mxCapacity:"Standard — 1x AMU", notes:"Aegean DCA. HAF joint ops. Coverage of eastern Med/Turkish straits approach. F-16 / FURY detachment."},
+  {id:"aoc603",       name:"603 AOC / Ramstein",      country:"Germany",          ccmd:"EUCOM", coords:[7.6003,49.4369],  role:"Air Operations Center",
+    wing:"603d Air Operations Center",  unit:"603 AOC / USAFE-AFAFRICA",  commander:"Brig Gen T. Hollis",
+    runway:"N/A",                 personnel:620, pax_status:"FULL",
+    readiness:"GREEN", defensePosture:"Hardened C2 facility",
+    munitions:{aim120:0,aim9:0,gbu31:0,gbu38:0,agm88:0,agm158:0,aim120c7:0,chaff:0,flare:0,jdam:0},
+    fuel_jp8_kgal:0, mxCapacity:"N/A", notes:"Theater-level C2 node. JICO watch 24/7. Collocated with 86 AW ops."}
 ];
 
 const AIRCRAFT=[
@@ -2466,62 +2541,260 @@ function renderIntelReport(){
 /* ═══ PATCH generateSitrep to write to sitrep tab ══════════════════════════ */
 const _origGenerateSitrep = typeof generateSitrep === 'function' ? generateSitrep : null;
 function generateSitrep(switchTab=true){
-  // Switch to sitrep tab (only when user clicks button)
   if(switchTab) switchDetailTab('sitrep');
-  // Run the original sitrep logic but target sitrepContent
-  const saved = document.getElementById('detailContent');
   const sitrepEl = document.getElementById('sitrepContent');
   if(!sitrepEl) return;
 
-  const ac=AIRCRAFT, f=filteredAC();
-  const ready=ac.filter(a=>a.status==='READY').length;
-  const alert=ac.filter(a=>a.status==='ALERT').length;
-  const maint=ac.filter(a=>a.status==='MAINT').length;
-  const avgFuel=Math.round(ac.reduce((s,a)=>s+a.fuel,0)/ac.length);
-  const critFuel=ac.filter(a=>a.fuel<20&&a.status!=='MAINT');
-  const lowFuel=ac.filter(a=>a.fuel>=20&&a.fuel<35&&a.status!=='MAINT');
-  const liveAlerts=alerts.filter(a=>!a.resolved);
-  const now=new Date();
-  const zuluStr=document.getElementById('zuluTime')?.textContent||'----Z';
+  const ac=AIRCRAFT;
+  const inflight    = ac.filter(a=>a.route&&a.status!=='MAINT');
+  const onGround    = ac.filter(a=>!a.route||a.status==='MAINT');
+  const readyAC     = ac.filter(a=>a.status==='READY');
+  const alertAC     = ac.filter(a=>a.status==='ALERT');
+  const maintAC     = ac.filter(a=>a.status==='MAINT');
+  const avgFuel     = Math.round(ac.reduce((s,a)=>s+a.fuel,0)/ac.length);
+  const critFuel    = ac.filter(a=>a.fuel<20&&a.status!=='MAINT');
+  const lowFuel     = ac.filter(a=>a.fuel>=20&&a.fuel<35&&a.status!=='MAINT');
+  const liveAlerts  = alerts.filter(a=>!a.resolved);
+  const zuluStr     = document.getElementById('zuluTime')?.textContent||'--Z';
+  const classStr    = combatMode ? 'SIM / SECRET—NOFORN' : 'SIM / UNCLASSIFIED';
+  const classCol    = combatMode ? '#ff6b6b' : 'var(--green)';
+  const modeLabel   = combatMode ? '⚠ COMBAT — OP IRONCLAD' : 'PEACETIME — OP DETERRENCE';
 
-  const threatSummary=combatMode?`
-    <div class="detail-stat" style="grid-column:1/-1;border-color:rgba(255,60,60,.3);background:rgba(255,20,40,.06);">
-      <div class="detail-stat-label" style="color:#ff6060;">Threat Picture</div>
-      <div class="detail-stat-value" style="font-size:12px;color:#ffc0c0;">
-        ${ENEMY_THREATS.filter(e=>e.type==='SAM').length} SAM · ${ENEMY_THREATS.filter(e=>e.type==='AC'&&e.status==='AIRBORNE').length} enemy AC · ${ENEMY_THREATS.filter(e=>e.type==='EW').length} EW nodes
-      </div>
-    </div>`:'';
+  // ── Munitions totals across all bases ──
+  const munKeys=[{k:'aim120',l:'AIM-120'},{k:'aim120c7',l:'AIM-120C7'},{k:'aim9',l:'AIM-9X'},
+    {k:'gbu31',l:'GBU-31'},{k:'gbu38',l:'GBU-38'},{k:'agm88',l:'AGM-88 HARM'},
+    {k:'agm158',l:'AGM-158'},{k:'jdam',l:'JDAM kit'},{k:'chaff',l:'Chaff'},{k:'flare',l:'Flare'}];
+  const munTotals={};
+  munKeys.forEach(({k})=>{ munTotals[k]=BASES.filter(b=>b.id!=='aoc603').reduce((s,b)=>s+(b.munitions?b.munitions[k]||0:0),0); });
+  const totalFuelKgal = BASES.reduce((s,b)=>s+(b.fuel_jp8_kgal||0),0);
 
-  sitrepEl.className = '';
-  sitrepEl.innerHTML=`
-    <div class="detail-block">
-      <div class="detail-name">SITUATION REPORT</div>
-      <div class="detail-type">${zuluStr} · ${combatMode?'⚠ COMBAT':'PEACETIME'}</div>
-      <div class="detail-grid">
-        <div class="detail-stat"><div class="detail-stat-label">Total AC</div><div class="detail-stat-value">${ac.length}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Ready</div><div class="detail-stat-value" style="color:var(--green)">${ready}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Alert</div><div class="detail-stat-value" style="color:var(--amber)">${alert}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Maint</div><div class="detail-stat-value" style="color:var(--red)">${maint}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Fleet Fuel</div><div class="detail-stat-value">${avgFuel}%</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Open Alerts</div><div class="detail-stat-value" style="color:${liveAlerts.length>3?'var(--red)':'var(--amber)'};">${liveAlerts.length}</div></div>
-        ${threatSummary}
-      </div>
-    </div>
-    <div class="detail-block">
-      <div class="section-title">Fuel Status</div>
-      ${critFuel.length?'<div style="color:var(--red);font-size:12px;margin-bottom:6px;">🔴 Critical (&lt;20%): '+critFuel.map(a=>a.type+' '+a.tail).join(', ')+'</div>':''}
-      ${lowFuel.length?'<div style="color:var(--amber);font-size:12px;">🟡 Low (&lt;35%): '+lowFuel.map(a=>a.type+' '+a.tail).join(', ')+'</div>':''}
-      ${!critFuel.length&&!lowFuel.length?'<div style="color:var(--green);font-size:12px;">✅ All aircraft fuel nominal</div>':''}
-    </div>
-    <div class="detail-block">
-      <div class="section-title">Active Alerts (${liveAlerts.length})</div>
-      ${liveAlerts.slice(0,6).map(a=>{
+  // ── Function breakdown ──
+  const fnCount={};
+  ac.forEach(a=>{ fnCount[a.fn]=(fnCount[a.fn]||0)+1; });
+  const FN_COLS={Fighter:"#7cd7ff",Bomber:"#ff8a65",ISR:"#b388ff",Tanker:"#ffd166",Cargo:"#7ee787","AEW&C":"#4dd0e1",SOF:"#ff9ecb"};
+
+  // ── Package status ──
+  const pkgRows = PACKAGES.map(p=>{
+    const ms=p.members.map(id=>getAC(id)).filter(Boolean);
+    const fl=ms.filter(a=>a.route&&a.status!=='MAINT').length;
+    const mx=ms.filter(a=>a.status==='MAINT').length;
+    const al=ms.filter(a=>a.status==='ALERT').length;
+    const avgF=ms.length?Math.round(ms.reduce((s,a)=>s+a.fuel,0)/ms.length):0;
+    const statusCol=mx>0?'var(--amber)':fl>0?'var(--teal)':'var(--muted)';
+    return '<div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;'+
+      'padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);margin-bottom:4px;">'+
+      '<div>'+
+        '<div style="font-size:11px;font-weight:900;color:#e8f4ff;">'+p.name+'</div>'+
+        '<div style="font-size:9px;color:var(--muted);">'+p.role+' · '+ms.length+' AC</div>'+
+      '</div>'+
+      '<span style="font-size:9px;color:var(--teal);font-family:monospace;">'+fl+' flt</span>'+
+      '<span style="font-size:9px;color:var(--amber);font-family:monospace;">'+al+' alrt</span>'+
+      '<span style="font-size:9px;color:var(--red);font-family:monospace;">'+mx+' mx</span>'+
+      '<span style="font-size:9px;font-family:monospace;color:'+(avgF<30?'var(--red)':avgF<50?'var(--amber)':'var(--muted)')+';">'+avgF+'%</span>'+
+    '</div>';
+  }).join('');
+
+  // ── Per-base status cards ──
+  const activeBases = BASES.filter(b=>b.id!=='aoc603');
+  const baseCards = activeBases.map(b=>{
+    const bAC   = ac.filter(a=>a.base===b.id);
+    if(!bAC.length) return '';
+    const bRdy  = bAC.filter(a=>a.status==='READY').length;
+    const bAlt  = bAC.filter(a=>a.status==='ALERT').length;
+    const bMx   = bAC.filter(a=>a.status==='MAINT').length;
+    const bFlt  = bAC.filter(a=>a.route&&a.status!=='MAINT').length;
+    const bFuel = bAC.length ? Math.round(bAC.reduce((s,a)=>s+a.fuel,0)/bAC.length) : 0;
+    const rdyCol= b.readiness==='GREEN'?'var(--green)':b.readiness==='AMBER'?'var(--amber)':'var(--red)';
+    const rdyBg = b.readiness==='GREEN'?'rgba(76,226,138,.06)':b.readiness==='AMBER'?'rgba(255,184,0,.08)':'rgba(255,90,90,.08)';
+    const paxBg = b.pax_status==='SURGE'?'rgba(255,184,0,.1)':b.pax_status==='REDUCED'?'rgba(255,90,90,.08)':'rgba(255,255,255,.03)';
+    const paxCol= b.pax_status==='SURGE'?'var(--amber)':b.pax_status==='REDUCED'?'var(--red)':'var(--muted)';
+
+    // Top munitions for this base
+    const topMun = b.munitions ? Object.entries(b.munitions)
+      .filter(([k,v])=>v>0&&!['chaff','flare'].includes(k))
+      .sort(([,a],[,b])=>b-a).slice(0,4)
+      .map(([k,v])=>'<span style="font-size:9px;background:rgba(255,255,255,.04);border-radius:4px;padding:1px 5px;border:1px solid rgba(255,255,255,.06);">'+
+        (munKeys.find(m=>m.k===k)?.l||k)+' ×'+v+'</span>').join('') : '';
+
+    // Function pills
+    const fnPills = Object.entries(
+      bAC.reduce((m,a)=>{ m[a.fn]=(m[a.fn]||0)+1; return m; },{})
+    ).map(([fn,n])=>'<span style="font-size:9px;color:'+(FN_COLS[fn]||'#aaa')+';">'+fn+' ×'+n+'</span>').join(' · ');
+
+    return '<div style="border:1px solid rgba(255,255,255,.06);border-left:3px solid '+rdyCol+';border-radius:10px;'+
+      'background:'+rdyBg+';padding:10px 12px;margin-bottom:8px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">'+
+        '<div>'+
+          '<div style="font-size:12px;font-weight:900;color:#e8f4ff;">'+b.name+'</div>'+
+          '<div style="font-size:9px;color:var(--teal);font-weight:700;">'+b.wing+'</div>'+
+          '<div style="font-size:9px;color:var(--muted);">'+b.unit+' · '+b.commander+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:10px;font-weight:900;color:'+rdyCol+';">'+b.readiness+'</div>'+
+          '<div style="font-size:9px;color:'+paxCol+';background:'+paxBg+';padding:1px 5px;border-radius:4px;margin-top:2px;">'+b.pax_status+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px;">'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:5px;padding:4px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Total</div>'+
+          '<div style="font-size:13px;font-weight:900;color:#e8f4ff;">'+bAC.length+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:5px;padding:4px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Inflight</div>'+
+          '<div style="font-size:13px;font-weight:900;color:var(--teal);">'+bFlt+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:5px;padding:4px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Alert</div>'+
+          '<div style="font-size:13px;font-weight:900;color:var(--amber);">'+bAlt+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:5px;padding:4px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Mx</div>'+
+          '<div style="font-size:13px;font-weight:900;color:var(--red);">'+bMx+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:5px;padding:4px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Fuel</div>'+
+          '<div style="font-size:13px;font-weight:900;color:'+(bFuel<40?'var(--red)':bFuel<60?'var(--amber)':'#e8f4ff')+';">'+bFuel+'%</div></div>'+
+      '</div>'+
+      '<div style="font-size:9px;color:var(--muted);margin-bottom:4px;">'+fnPills+'</div>'+
+      (topMun?'<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px;">'+topMun+'</div>':'')+
+      '<div style="font-size:9px;color:#aac8e0;padding:4px 7px;background:rgba(0,0,0,.15);border-radius:5px;">'+
+        b.notes+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  // ── Threat section (combat only) ──
+  const threatSection = combatMode ? (()=>{
+    const sams=ENEMY_THREATS.filter(e=>e.type==='SAM');
+    const acs=ENEMY_THREATS.filter(e=>e.type==='AC');
+    const ews=ENEMY_THREATS.filter(e=>e.type==='EW');
+    return '<div style="border:1px solid rgba(255,60,60,.25);border-radius:10px;padding:12px;background:rgba(255,20,40,.04);margin-bottom:8px;">'+
+      '<div style="font-size:11px;font-weight:900;color:#ff8080;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">⚠ Threat Order of Battle</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:7px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">SAM Sites</div>'+
+          '<div style="font-size:20px;font-weight:900;color:#ff6b6b;">'+sams.length+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:7px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Enemy AC</div>'+
+          '<div style="font-size:20px;font-weight:900;color:#ff9966;">'+acs.length+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:7px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">EW Nodes</div>'+
+          '<div style="font-size:20px;font-weight:900;color:#ffcc66;">'+ews.length+'</div></div>'+
+      '</div>'+
+      acs.slice(0,6).map(t=>'<div style="display:flex;justify-content:space-between;align-items:center;'+
+        'padding:4px 7px;border-radius:6px;background:rgba(255,60,60,.06);margin-bottom:3px;border:1px solid rgba(255,60,60,.12);">'+
+        '<span style="font-size:10px;font-weight:900;color:#ffb0b0;">'+t.name+'</span>'+
+        '<span style="font-size:9px;color:var(--muted);">'+t.nation+' · '+t.status+'</span>'+
+        '</div>').join('')+
+    '</div>';
+  })() : '';
+
+  // ── Munitions summary table ──
+  const munTable = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">'+
+    munKeys.filter(({k})=>munTotals[k]>0).map(({k,l})=>{
+      const total=munTotals[k];
+      const warn=k.includes('aim')||k.includes('agm')||k.includes('gbu')||k==='jdam';
+      const col=warn&&total<40?'var(--red)':warn&&total<80?'var(--amber)':'#e8f4ff';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;'+
+        'padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);">'+
+        '<span style="font-size:10px;color:var(--muted);">'+l+'</span>'+
+        '<span style="font-size:11px;font-weight:900;color:'+col+';">'+total+'</span></div>';
+    }).join('')+
+  '</div>';
+
+  sitrepEl.className='';
+  sitrepEl.innerHTML=
+    // ── Classification banner ──
+    '<div style="text-align:center;padding:5px 10px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.06);'+
+      'font-size:10px;font-weight:900;color:'+classCol+';letter-spacing:.12em;text-transform:uppercase;">'+classStr+'</div>'+
+
+    // ── Header ──
+    '<div class="detail-block">'+
+      '<div class="detail-name" style="font-size:20px;">SITUATION REPORT</div>'+
+      '<div class="detail-type" style="font-size:13px;margin-bottom:8px;">'+zuluStr+' · '+modeLabel+'</div>'+
+      '<div style="font-size:10px;color:var(--muted);margin-bottom:10px;">HQ USAFE-AFAFRICA · 603 AOC Ramstein · Air Domain EUCOM</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:7px;padding:8px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Total AC</div>'+
+          '<div style="font-size:22px;font-weight:900;color:#e8f4ff;">'+ac.length+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:7px;padding:8px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Inflight</div>'+
+          '<div style="font-size:22px;font-weight:900;color:var(--teal);">'+inflight.length+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:7px;padding:8px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">On Alert</div>'+
+          '<div style="font-size:22px;font-weight:900;color:var(--amber);">'+alertAC.length+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:7px;padding:8px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Maintenance</div>'+
+          '<div style="font-size:22px;font-weight:900;color:var(--red);">'+maintAC.length+'</div></div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;">'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:7px;padding:7px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Fleet Avg Fuel</div>'+
+          '<div style="font-size:16px;font-weight:900;color:'+(avgFuel<40?'var(--red)':avgFuel<60?'var(--amber)':'#e8f4ff')+';">'+avgFuel+'%</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:7px;padding:7px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">JP-8 Total (kgal)</div>'+
+          '<div style="font-size:16px;font-weight:900;color:#e8f4ff;">'+totalFuelKgal.toLocaleString()+'</div></div>'+
+        '<div style="background:rgba(0,0,0,.2);border-radius:7px;padding:7px;text-align:center;">'+
+          '<div style="font-size:9px;color:var(--muted);">Open Alerts</div>'+
+          '<div style="font-size:16px;font-weight:900;color:'+(liveAlerts.length>4?'var(--red)':'var(--amber)')+';">'+liveAlerts.length+'</div></div>'+
+      '</div>'+
+    '</div>'+
+
+    // ── Force composition ──
+    '<div class="detail-block">'+
+      '<div class="section-title">Force Composition</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">'+
+        Object.entries(fnCount).map(([fn,n])=>
+          '<div style="padding:5px 10px;border-radius:999px;font-size:10px;font-weight:900;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:'+(FN_COLS[fn]||'#aaa')+';">'+fn+' <strong>×'+n+'</strong></div>'
+        ).join('')+
+      '</div>'+
+    '</div>'+
+
+    // ── Mission packages ──
+    '<div class="detail-block">'+
+      '<div class="section-title">Mission Package Status</div>'+
+      pkgRows+
+    '</div>'+
+
+    // ── Threat section (combat only) ──
+    (threatSection?'<div class="detail-block">'+threatSection+'</div>':'')+
+
+    // ── Per-base status ──
+    '<div class="detail-block">'+
+      '<div class="section-title">Base-by-Base Status ('+activeBases.filter(b=>ac.some(a=>a.base===b.id)).length+' active bases)</div>'+
+      baseCards+
+    '</div>'+
+
+    // ── Munitions summary ──
+    '<div class="detail-block">'+
+      '<div class="section-title">Theater Munitions Summary</div>'+
+      munTable+
+      '<div style="font-size:9px;color:var(--muted);margin-top:6px;">* Totals across all EUCOM bases. Excludes consumables (chaff/flare). Combat loads vary by mission.</div>'+
+    '</div>'+
+
+    // ── Fuel/Aircraft issues ──
+    '<div class="detail-block">'+
+      '<div class="section-title">Aircraft Status Flags</div>'+
+      (critFuel.length?'<div style="color:var(--red);font-size:11px;margin-bottom:5px;padding:5px 8px;border-radius:6px;background:rgba(255,80,80,.07);border:1px solid rgba(255,80,80,.15);">🔴 CRITICAL FUEL (&lt;20%): '+critFuel.map(a=>a.cs||a.type+' '+a.tail).join(' · ')+'</div>':'')+
+      (lowFuel.length?'<div style="color:var(--amber);font-size:11px;margin-bottom:5px;padding:5px 8px;border-radius:6px;background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.15);">🟡 LOW FUEL (&lt;35%): '+lowFuel.map(a=>a.cs||a.type+' '+a.tail).join(' · ')+'</div>':'')+
+      (maintAC.length?'<div style="color:var(--muted);font-size:11px;margin-bottom:5px;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">🔧 MAINTENANCE: '+maintAC.map(a=>a.cs+' — '+a.mission).join(' · ')+'</div>':'')+
+      (!critFuel.length&&!lowFuel.length&&!maintAC.length?'<div style="color:var(--green);font-size:11px;">✅ All aircraft status nominal</div>':'')+
+    '</div>'+
+
+    // ── Active alerts ──
+    '<div class="detail-block">'+
+      '<div class="section-title">Active Alerts ('+liveAlerts.length+')</div>'+
+      (liveAlerts.length===0?'<div style="color:var(--green);font-size:11px;">✅ No active alerts</div>':'')+
+      liveAlerts.slice(0,10).map(a=>{
         const ac2=getAC(a.tid),pk=getPkg(a.tid);
-        const lbl=ac2?ac2.type+' '+ac2.tail:pk?pk.name:'System';
-        return '<div style="font-size:11px;margin-bottom:5px;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,.03);border-left:3px solid '+(a.sev==='HIGH'?'var(--red)':a.sev==='MED'?'var(--amber)':'var(--teal)')+'"><strong>'+lbl+'</strong> — '+a.msg+'</div>';
-      }).join('')}
-    </div>
-  `;
+        const lbl=ac2?(ac2.cs||ac2.type+' '+ac2.tail):pk?pk.name:'System';
+        const bc=a.sev==='HIGH'?'var(--red)':a.sev==='MED'?'var(--amber)':'var(--teal)';
+        return '<div style="font-size:11px;margin-bottom:5px;padding:6px 9px;border-radius:7px;background:rgba(255,255,255,.02);border-left:3px solid '+bc+';">'+
+          '<div style="font-weight:900;color:#e8f4ff;margin-bottom:2px;">'+lbl+' <span style="font-size:9px;color:'+bc+';">'+a.sev+'</span></div>'+
+          '<div style="color:var(--muted);">'+a.msg+'</div></div>';
+      }).join('')+
+    '</div>'+
+
+    // ── Footer ──
+    '<div style="padding:10px 14px;text-align:center;font-size:9px;color:var(--muted);border-top:1px solid rgba(255,255,255,.05);">'+
+      classStr+' · AUTO-GENERATED · '+zuluStr+' · 603 AOC RAMSTEIN'+
+    '</div>';
 }
 
 
