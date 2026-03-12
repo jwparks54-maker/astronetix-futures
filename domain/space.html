@@ -208,6 +208,97 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
   color:var(--muted);font-size:11px;width:20px;height:20px;border-radius:5px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;}
 #tip-close:hover{background:rgba(255,255,255,.14);}
+
+/* ═══ GROUND STATION CARD ═══ */
+#gnd-card{
+  position:absolute;bottom:52px;right:14px;z-index:200;
+  width:250px;
+  background:rgba(3,7,18,.96);border:1px solid rgba(0,232,255,.28);
+  border-radius:10px;padding:0;overflow:hidden;
+  backdrop-filter:blur(24px);box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px rgba(0,232,255,.08);
+  display:none;animation:gndCardIn .2s ease-out;pointer-events:auto;
+}
+#gnd-card.show{display:block;}
+@keyframes gndCardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ ENTITY CARD (USER / TASK) ═══ */
+#ent-card{
+  position:absolute;bottom:52px;left:14px;z-index:200;
+  width:240px;
+  background:rgba(3,7,18,.96);border:1px solid rgba(0,232,255,.28);
+  border-radius:10px;padding:0;overflow:hidden;
+  backdrop-filter:blur(24px);box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px rgba(0,232,255,.08);
+  display:none;animation:gndCardIn .18s ease-out;pointer-events:auto;
+}
+#ent-card.show{display:block;}
+.ent-hdr{display:flex;align-items:center;gap:8px;padding:9px 11px 8px;border-bottom:1px solid rgba(255,255,255,.07);}
+.ent-icon{font-size:15px;flex:none;}
+.ent-icon.pnt{color:#39ff9a;text-shadow:0 0 10px rgba(57,255,154,.5);}
+.ent-icon.comm{color:#f4c96b;text-shadow:0 0 10px rgba(244,201,107,.5);}
+.ent-icon.task-h{color:#ff5050;text-shadow:0 0 10px rgba(255,80,80,.5);}
+.ent-icon.task-m{color:#f4c96b;text-shadow:0 0 10px rgba(244,201,107,.5);}
+.ent-icon.task-l{color:#39ff9a;text-shadow:0 0 10px rgba(57,255,154,.5);}
+.ent-type{font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--muted);margin-top:1px;}
+.ent-name{font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.4px;color:#fff;line-height:1.1;}
+.ent-close{margin-left:auto;flex:none;background:rgba(255,255,255,.06);border:none;
+  color:var(--muted);font-size:10px;width:20px;height:20px;border-radius:5px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ent-close:hover{background:rgba(255,255,255,.14);color:#fff;}
+.ent-badges{display:flex;gap:5px;padding:7px 11px;flex-wrap:wrap;align-items:center;border-bottom:1px solid rgba(255,255,255,.05);}
+.ent-badge{font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.12em;
+  padding:2px 7px;border-radius:3px;}
+.ent-badge.cyan{background:rgba(0,232,255,.1);border:1px solid rgba(0,232,255,.35);color:#00e8ff;}
+.ent-badge.green{background:rgba(57,255,154,.1);border:1px solid rgba(57,255,154,.35);color:#39ff9a;}
+.ent-badge.amber{background:rgba(244,201,107,.1);border:1px solid rgba(244,201,107,.35);color:#f4c96b;}
+.ent-badge.red{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.35);color:#ff5050;}
+.ent-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:8px 11px;}
+.ent-cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:5px;padding:5px 7px;}
+.ent-ck{font-family:var(--mono);font-size:6px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.ent-cv{font-size:9px;font-weight:700;font-family:var(--mono);}
+.ent-cv.c{color:var(--cyan)}.ent-cv.g{color:#39ff9a}.ent-cv.a{color:#f4c96b}.ent-cv.r{color:#ff5050}.ent-cv.w{color:rgba(255,255,255,.85);}
+.ent-desc{font-family:var(--mono);font-size:7.5px;line-height:1.55;color:var(--muted);padding:0 11px 9px;border-top:1px solid rgba(255,255,255,.06);margin-top:0;padding-top:7px;}
+.ent-svrow{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);}
+.ent-svrow-id{font-family:var(--mono);font-size:7px;color:var(--muted);width:46px;flex:none;}
+.ent-svrow-name{font-family:var(--cond);font-size:10px;font-weight:600;flex:1;color:rgba(255,255,255,.85);}
+.ent-svlbl{font-family:var(--mono);font-size:7px;letter-spacing:.16em;color:var(--blue2);padding:6px 11px 3px;opacity:.8;}
+.ent-svlist{padding:0 9px 9px;display:flex;flex-direction:column;gap:3px;max-height:90px;overflow-y:auto;}
+.gnd-hdr{display:flex;align-items:center;gap:9px;padding:10px 12px 9px;
+  border-bottom:1px solid rgba(255,255,255,.07);}
+.gnd-icon{font-size:13px;color:var(--cyan2);flex:none;text-shadow:0 0 10px rgba(0,232,255,.5);}
+.gnd-icon.amber{color:var(--amber2);}
+.gnd-icon.red{color:var(--red2);}
+.gnd-name{font-family:var(--cond);font-size:14px;font-weight:700;letter-spacing:.4px;color:#fff;line-height:1.1;}
+.gnd-loc{font-family:var(--mono);font-size:7px;letter-spacing:.14em;color:var(--muted);margin-top:1px;}
+.gnd-close{margin-left:auto;flex:none;background:rgba(255,255,255,.06);border:none;
+  color:var(--muted);font-size:10px;width:20px;height:20px;border-radius:5px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.gnd-close:hover{background:rgba(255,255,255,.14);color:#fff;}
+.gnd-status-row{display:flex;gap:5px;padding:8px 12px;align-items:center;}
+.gnd-badge{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.14em;
+  padding:3px 8px;border-radius:3px;}
+.gnd-badge.g{background:rgba(57,255,154,.12);border:1px solid rgba(57,255,154,.4);color:var(--green2);}
+.gnd-badge.a{background:rgba(244,201,107,.12);border:1px solid rgba(244,201,107,.4);color:var(--amber2);}
+.gnd-badge.r{background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.4);color:var(--red2);animation:blink 1s ease-in-out infinite;}
+.gnd-typebadge{font-family:var(--mono);font-size:7px;letter-spacing:.1em;
+  padding:3px 7px;border-radius:3px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.7);}
+.gnd-band{font-family:var(--mono);font-size:7px;letter-spacing:.08em;
+  padding:3px 7px;border-radius:3px;margin-left:auto;
+  background:rgba(26,108,255,.1);border:1px solid rgba(26,108,255,.3);color:var(--blue2);}
+.gnd-ops{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--muted);
+  padding:0 12px 8px;border-bottom:1px solid rgba(255,255,255,.06);}
+.gnd-section-lbl{font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--blue2);
+  padding:7px 12px 4px;opacity:.7;}
+.gnd-sats{padding:0 10px 10px;display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto;}
+.gnd-sat-row{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:4px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);}
+.gnd-sat-id{font-family:var(--mono);font-size:7px;letter-spacing:.1em;color:var(--muted);width:52px;flex:none;}
+.gnd-sat-name{font-family:var(--cond);font-size:10px;font-weight:600;flex:1;color:rgba(255,255,255,.85);}
+.gnd-sat-regime{font-family:var(--mono);font-size:6px;padding:1px 4px;border-radius:2px;}
+.gnd-sat-regime.LEO{background:rgba(0,232,255,.12);color:var(--cyan2);}
+.gnd-sat-regime.MEO{background:rgba(57,255,154,.12);color:var(--green2);}
+.gnd-sat-regime.GEO{background:rgba(244,201,107,.12);color:var(--amber2);}
+.gnd-none{font-family:var(--mono);font-size:7px;color:var(--muted);padding:4px 6px;font-style:italic;}
 .te{font-family:var(--mono);font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue2);margin-bottom:3px;}
 .tn{font-family:var(--cond);font-size:16px;font-weight:700;letter-spacing:.5px;margin-bottom:8px;}
 .tg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;}
@@ -687,6 +778,7 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
     <div id="vtog">
       <button class="vbtn on" id="b3d">3D Globe</button>
       <button class="vbtn" id="b2d">2D Map</button>
+      <button class="vbtn" id="b2dreset" style="display:none;font-size:9px;padding:2px 8px;letter-spacing:.05em;opacity:.85" title="Reset zoom/pan">⌖ RESET</button>
     </div>
     <div id="sidepanel">
       <div class="sp-title">Orbital Regimes</div>
@@ -767,12 +859,45 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
       <div class="td" id="t-desc"></div>
     </div>
     <div id="hlabel"></div>
+    <!-- Ground station info card — anchored bottom-right of globe/map window -->
+    <div id="gnd-card">
+      <div class="gnd-hdr">
+        <div class="gnd-icon">▲</div>
+        <div>
+          <div class="gnd-name" id="gc-name">—</div>
+          <div class="gnd-loc" id="gc-loc">—</div>
+        </div>
+        <button class="gnd-close" onclick="closeGndCard()">✕</button>
+      </div>
+      <div class="gnd-status-row">
+        <div class="gnd-badge" id="gc-status">—</div>
+        <div class="gnd-typebadge" id="gc-type">—</div>
+        <div class="gnd-band" id="gc-band">—</div>
+      </div>
+      <div class="gnd-ops" id="gc-ops">—</div>
+      <div class="gnd-section-lbl">ACTIVE CONTACTS</div>
+      <div id="gc-sats" class="gnd-sats"></div>
+    </div>
+
+    <div id="ent-card">
+      <div class="ent-hdr">
+        <div class="ent-icon" id="ec-icon">◆</div>
+        <div>
+          <div class="ent-type" id="ec-type">—</div>
+          <div class="ent-name" id="ec-name">—</div>
+        </div>
+        <button class="ent-close" onclick="closeEntCard()">✕</button>
+      </div>
+      <div class="ent-badges" id="ec-badges"></div>
+      <div class="ent-grid" id="ec-grid"></div>
+      <div class="ent-svlbl" id="ec-svlbl" style="display:none">SERVING SVs</div>
+      <div class="ent-svlist" id="ec-svlist" style="display:none"></div>
+      <div class="ent-desc" id="ec-desc" style="display:none"></div>
+    </div>
   </div>
 </div>
 
 </div><!-- end mapzone -->
-
-<!-- ═══ RIGHT: ALERTS (expanded) ═══ -->
 <div id="rightcol">
   <div id="alp">
     <div class="shdr">
@@ -1358,7 +1483,230 @@ window.selSVFn=selSVFn;window.selCCFn=selCCFn;window.triggerRemediate=triggerRem
 window.setF=setF;window.setS=setS;window.alClick=alClick;
 window.chP=chP;window.resetP=resetP;
 window.closeTelem=function(){selSV=null;_remediating=null;_remDone=null;renderAll();if(typeof window.focusSV==='function')window.focusSV(null);};
-console.log('[ASTRONETIX] Initial render complete. Unified command band active.');
+window.closeEntCard=closeEntCard;
+
+// ── Ground Station Card ──────────────────────────────────────
+let _selGnd=null;
+function showGndCard(gs){
+  _selGnd=gs;
+  const card=document.getElementById('gnd-card');
+  if(!card)return;
+  // Name + location
+  document.getElementById('gc-name').textContent=gs.name;
+  document.getElementById('gc-loc').textContent=(Math.abs(gs.lat).toFixed(2)+'°'+(gs.lat>=0?'N':'S'))+' / '+(Math.abs(gs.lon).toFixed(2)+'°'+(gs.lon>=0?'E':'W'));
+  // Status badge
+  const sBadge=document.getElementById('gc-status');
+  const sLabel=gs.status==='g'?'OPERATIONAL':gs.status==='a'?'DEGRADED':'OFFLINE';
+  sBadge.textContent=sLabel;sBadge.className='gnd-badge '+gs.status;
+  // Type
+  const tBadge=document.getElementById('gc-type');
+  tBadge.textContent=gs.type==='gov'?'GOV / MILITARY':'CONTRACTED';
+  // Band
+  document.getElementById('gc-band').textContent=gs.band||'—';
+  // Ops note
+  document.getElementById('gc-ops').textContent=gs.ops||'—';
+  // Icon colour
+  const icon=card.querySelector('.gnd-icon');
+  icon.className='gnd-icon'+(gs.status==='a'?' amber':gs.status==='r'?' red':'');
+  // Connected sats — find all LEO sats within uplink footprint
+  const R=6371;
+  const connectedSats=typeof SATS!=='undefined'?SATS.filter(s=>{
+    if(s.regime!=='LEO')return false;
+    const dLat=(s.lat-gs.lat)*Math.PI/180,dLon=(s.lon-gs.lon)*Math.PI/180;
+    const ha=Math.sin(dLat/2)**2+Math.cos(gs.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+    const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;
+    const rho=R/(R+s.altKm),maxGc=Math.acos(rho)*180/Math.PI;
+    return gc<maxGc*0.88;
+  }):[];
+  const satDiv=document.getElementById('gc-sats');
+  if(connectedSats.length===0){
+    satDiv.innerHTML='<div class="gnd-none">No satellites in contact</div>';
+  } else {
+    satDiv.innerHTML=connectedSats.map(s=>{
+      const svData=typeof SV!=='undefined'?SV.find(x=>x.id===s.id):null;
+      const name=svData?svData.n:s.id;
+      return `<div class="gnd-sat-row">
+        <span class="gnd-sat-id">${s.id}</span>
+        <span class="gnd-sat-name">${name}</span>
+        <span class="gnd-sat-regime ${s.regime}">${s.regime}</span>
+      </div>`;
+    }).join('');
+  }
+  card.classList.add('show');
+}
+function closeGndCard(){
+  _selGnd=null;
+  const card=document.getElementById('gnd-card');
+  if(card)card.classList.remove('show');
+}
+window.closeGndCard=closeGndCard;
+window.showGndCard=showGndCard;
+
+// ── Entity Card (USER PNT / USER COMM / TASK) ─────────────────
+let _selEnt=null;
+function closeEntCard(){
+  _selEnt=null;
+  const c=document.getElementById('ent-card');
+  if(c)c.classList.remove('show');
+}
+window.closeEntCard=closeEntCard;
+
+function showEntCard(ent, kind){ // kind = 'pnt' | 'comm' | 'task'
+  _selEnt=ent;
+  const c=document.getElementById('ent-card');
+  if(!c)return;
+
+  const iconEl=document.getElementById('ec-icon');
+  const typeEl=document.getElementById('ec-type');
+  const nameEl=document.getElementById('ec-name');
+  const badgesEl=document.getElementById('ec-badges');
+  const gridEl=document.getElementById('ec-grid');
+  const svlbl=document.getElementById('ec-svlbl');
+  const svlist=document.getElementById('ec-svlist');
+  const descEl=document.getElementById('ec-desc');
+
+  const fmtLL=(lat,lon)=>(Math.abs(lat).toFixed(2)+'°'+(lat>=0?'N':'S'))+' '+(Math.abs(lon).toFixed(2)+'°'+(lon>=0?'E':'W'));
+
+  if(kind==='pnt'){
+    iconEl.className='ent-icon pnt'; iconEl.textContent='◆';
+    typeEl.textContent='GPS/PNT RECEIVER';
+    nameEl.textContent=ent.name;
+
+    // Badges
+    badgesEl.innerHTML=`
+      <span class="ent-badge green">PNT USER</span>
+      <span class="ent-badge cyan">MEO/GPS</span>`;
+
+    // Find serving MEO SVs (closest in view)
+    const servSVs=[];
+    if(typeof SATS!=='undefined'){
+      SATS.filter(s=>s.regime==='MEO').forEach(s=>{
+        const dLat=(s.lat-ent.lat)*Math.PI/180,dLon=(s.lon-ent.lon)*Math.PI/180;
+        const ha=Math.sin(dLat/2)**2+Math.cos(ent.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+        const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;
+        if(gc<55) servSVs.push({s,gc});
+      });
+      servSVs.sort((a,b)=>a.gc-b.gc);
+    }
+    const pdop=(4-servSVs.length*0.3).toFixed(1);
+    const acc=servSVs.length>=4?'<1.5m':servSVs.length>=3?'~5m':servSVs.length>=2?'~15m':'UNAVAIL';
+
+    gridEl.innerHTML=`
+      <div class="ent-cell"><div class="ent-ck">POSITION</div><div class="ent-cv w">${fmtLL(ent.lat,ent.lon)}</div></div>
+      <div class="ent-cell"><div class="ent-ck">ACCURACY</div><div class="ent-cv ${servSVs.length>=4?'g':servSVs.length>=2?'a':'r'}">${acc}</div></div>
+      <div class="ent-cell"><div class="ent-ck">SVs IN VIEW</div><div class="ent-cv c">${servSVs.length}</div></div>
+      <div class="ent-cell"><div class="ent-ck">PDOP</div><div class="ent-cv ${parseFloat(pdop)<3?'g':parseFloat(pdop)<6?'a':'r'}">${servSVs.length?pdop:'—'}</div></div>`;
+
+    if(servSVs.length){
+      svlbl.style.display=''; svlist.style.display='';
+      svlist.innerHTML=servSVs.slice(0,5).map(({s,gc})=>`
+        <div class="ent-svrow">
+          <span class="ent-svrow-id">${s.id}</span>
+          <span class="ent-svrow-name">${s.n}</span>
+          <span class="ent-badge cyan" style="font-size:6px;padding:1px 5px">${gc.toFixed(0)}°</span>
+        </div>`).join('');
+    } else {
+      svlbl.style.display='none'; svlist.style.display='none';
+    }
+    descEl.style.display='none';
+
+  } else if(kind==='comm'){
+    iconEl.className='ent-icon comm'; iconEl.textContent='■';
+    typeEl.textContent='SATCOM TERMINAL';
+    nameEl.textContent=ent.name;
+
+    badgesEl.innerHTML=`
+      <span class="ent-badge amber">COMM USER</span>
+      <span class="ent-badge cyan">GEO/SATCOM</span>`;
+
+    // Find serving GEO SVs
+    const servSVs=[];
+    if(typeof SATS!=='undefined'){
+      SATS.filter(s=>s.regime==='GEO').forEach(s=>{
+        const dLon=Math.abs(s.lon-ent.lon);
+        const el=90-dLon; // rough elevation angle for GEO
+        if(el>5) servSVs.push({s,el});
+      });
+      servSVs.sort((a,b)=>b.el-a.el);
+    }
+    const dataRate=servSVs.length>=2?'256 Mbps':servSVs.length===1?'64 Mbps':'NO LINK';
+    const latMs=servSVs.length?'535 ms':'—';
+
+    gridEl.innerHTML=`
+      <div class="ent-cell"><div class="ent-ck">POSITION</div><div class="ent-cv w">${fmtLL(ent.lat,ent.lon)}</div></div>
+      <div class="ent-cell"><div class="ent-ck">DATA RATE</div><div class="ent-cv ${servSVs.length>=2?'g':servSVs.length===1?'a':'r'}">${dataRate}</div></div>
+      <div class="ent-cell"><div class="ent-ck">GEO SVs</div><div class="ent-cv c">${servSVs.length}</div></div>
+      <div class="ent-cell"><div class="ent-ck">LATENCY</div><div class="ent-cv a">${latMs}</div></div>`;
+
+    if(servSVs.length){
+      svlbl.style.display=''; svlist.style.display='';
+      svlist.innerHTML=servSVs.slice(0,4).map(({s,el})=>`
+        <div class="ent-svrow">
+          <span class="ent-svrow-id">${s.id}</span>
+          <span class="ent-svrow-name">${s.n}</span>
+          <span class="ent-badge amber" style="font-size:6px;padding:1px 5px">${Math.max(5,el).toFixed(0)}° el</span>
+        </div>`).join('');
+    } else {
+      svlbl.style.display='none'; svlist.style.display='none';
+    }
+    descEl.style.display='none';
+
+  } else { // task
+    const pCls=ent.p==='h'?'task-h':ent.p==='m'?'task-m':'task-l';
+    const pLabel=ent.p==='h'?'HIGH':ent.p==='m'?'MED':'LOW';
+    const pColor=ent.p==='h'?'red':ent.p==='m'?'amber':'green';
+    iconEl.className=`ent-icon ${pCls}`; iconEl.textContent='▣';
+    typeEl.textContent='ISR COLLECTION TASK';
+    nameEl.textContent=ent.name;
+
+    const ccmd=combatantCommands.find(c=>c.id===ent.cc);
+    badgesEl.innerHTML=`
+      <span class="ent-badge ${pColor}">P1-${pLabel}</span>
+      ${ccmd?`<span class="ent-badge cyan">${ccmd.name}</span>`:''}
+      <span class="ent-badge amber">ACTIVE</span>`;
+
+    // Find serving LEO SVs (ISR)
+    const servSVs=[];
+    if(typeof SATS!=='undefined'){
+      SATS.filter(s=>s.regime==='LEO').forEach(s=>{
+        const dLat=(s.lat-ent.lat)*Math.PI/180,dLon=(s.lon-ent.lon)*Math.PI/180;
+        const ha=Math.sin(dLat/2)**2+Math.cos(ent.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+        const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;
+        if(gc<22) servSVs.push({s,gc});
+      });
+      servSVs.sort((a,b)=>a.gc-b.gc);
+    }
+    const coverage=servSVs.length>=2?'FULL':servSVs.length===1?'PARTIAL':'GAP';
+    const covCls=servSVs.length>=2?'g':servSVs.length===1?'a':'r';
+    const revisit=servSVs.length>=2?'<8 min':servSVs.length===1?'~22 min':'>60 min';
+
+    gridEl.innerHTML=`
+      <div class="ent-cell"><div class="ent-ck">LOCATION</div><div class="ent-cv w">${fmtLL(ent.lat,ent.lon)}</div></div>
+      <div class="ent-cell"><div class="ent-ck">COVERAGE</div><div class="ent-cv ${covCls}">${coverage}</div></div>
+      <div class="ent-cell"><div class="ent-ck">LEO SVs</div><div class="ent-cv c">${servSVs.length}</div></div>
+      <div class="ent-cell"><div class="ent-ck">REVISIT</div><div class="ent-cv ${covCls}">${revisit}</div></div>`;
+
+    if(servSVs.length){
+      svlbl.style.display=''; svlist.style.display='';
+      svlist.innerHTML=servSVs.slice(0,4).map(({s,gc})=>`
+        <div class="ent-svrow">
+          <span class="ent-svrow-id">${s.id}</span>
+          <span class="ent-svrow-name">${s.n}</span>
+          <span class="ent-badge ${pColor}" style="font-size:6px;padding:1px 5px">${gc.toFixed(0)}° off</span>
+        </div>`).join('');
+    } else {
+      svlbl.style.display='none'; svlist.style.display='none';
+    }
+
+    // Sensor type guess from name
+    const sensor=ent.name.includes('SIGINT')?'SIGINT / ELINT':ent.name.includes('FMV')?'Full-Motion Video':ent.name.includes('WMD')||ent.name.includes('Nuclear')?'WMD/CBRN Detection':ent.name.includes('SAR')||ent.name.includes('Sub')||ent.name.includes('Naval')?'SAR / GMTI':ent.name.includes('Launch')?'Launch Detection / SBIRS':'Electro-Optical / IR';
+    descEl.style.display='';
+    descEl.textContent=`Sensor: ${sensor}`;
+  }
+
+  c.classList.add('show');
+}
+window.showEntCard=showEntCard;
 
 // ════════════════════════════════════════════════════════
 //  GLOBE ENGINE
@@ -1406,26 +1754,26 @@ const SATS=RAW.map(r=>{
 });
 // Ground stations — TT&C uplink for all regimes (20 sites, 3D markers)
 const GND=[
-  {lat:38.80,lon:-104.52,name:'Schriever SFB',    status:'g'},
-  {lat:34.73,lon:-86.59, name:'Redstone Arsenal',  status:'g'},
-  {lat:51.50,lon:-0.12,  name:'RAF Fylingdales',   status:'a'},
-  {lat:35.68,lon:139.69, name:'Yokota AB',          status:'g'},
-  {lat:1.35, lon:103.82, name:'Sembawang',          status:'g'},
-  {lat:21.31,lon:-157.86,name:'Pearl Harbor',       status:'g'},
-  {lat:48.85,lon:2.35,   name:'Paris Relay',        status:'g'},
-  {lat:-33.9,lon:151.2,  name:'Pine Gap',           status:'g'},
-  {lat:64.84,lon:-147.72,name:'Eielson AFB',        status:'a'},
-  {lat:28.61,lon:77.21,  name:'New Delhi TT&C',     status:'g'},
-  {lat:50.11,lon:8.68,   name:'Frankfurt',          status:'r'},
-  {lat:-34.6,lon:-58.4,  name:'Buenos Aires',       status:'g'},
-  {lat:19.43,lon:-99.13, name:'Mexico City',        status:'g'},
-  {lat:78.23,lon:15.47,  name:'Svalbard SvalSat',   status:'g'},
-  {lat:-90.0,lon:0.0,    name:'McMurdo Antarctica', status:'g'},
-  {lat:14.99,lon:145.66, name:'Guam TT&C',          status:'g'},
-  {lat:25.2, lon:55.3,   name:'Dubai TT&C',         status:'g'},
-  {lat:37.42,lon:-122.08,name:'Sunnyvale GAOC',     status:'g'},
-  {lat:69.65,lon:18.96,  name:'Tromsø Arctic',      status:'g'},
-  {lat:40.36,lon:49.83,  name:'Baku Relay',         status:'g'},
+  {lat:38.80,lon:-104.52,name:'Schriever SFB',    status:'g',type:'gov',      band:'S/X/Ka', ops:'24/7 TT&C — primary AFSPC mission control'},
+  {lat:34.73,lon:-86.59, name:'Redstone Arsenal',  status:'g',type:'gov',      band:'S/X',    ops:'SMDC missile defense ground support'},
+  {lat:51.50,lon:-0.12,  name:'RAF Fylingdales',   status:'a',type:'gov',      band:'S/X',    ops:'UK-US BMD radar — degraded uplink'},
+  {lat:35.68,lon:139.69, name:'Yokota AB',          status:'g',type:'gov',      band:'UHF/SHF',ops:'USFJ relay — Pacific theater tasking'},
+  {lat:1.35, lon:103.82, name:'Sembawang',          status:'g',type:'contracted',band:'X/Ka',  ops:'Commercial SHF relay — Indo-Pacific coverage'},
+  {lat:21.31,lon:-157.86,name:'Pearl Harbor',       status:'g',type:'gov',      band:'UHF/SHF',ops:'USINDOPACOM — Pacific SATCOM hub'},
+  {lat:48.85,lon:2.35,   name:'Paris Relay',        status:'g',type:'contracted',band:'Ka',    ops:'NATO commercial Ka relay — EUCOM overflow'},
+  {lat:-33.9,lon:151.2,  name:'Pine Gap',           status:'g',type:'gov',      band:'S/X',    ops:'Joint US-AUS intelligence facility — ISR tasking'},
+  {lat:64.84,lon:-147.72,name:'Eielson AFB',        status:'a',type:'gov',      band:'UHF/SHF',ops:'Arctic TT&C — polar orbit support degraded'},
+  {lat:28.61,lon:77.21,  name:'New Delhi TT&C',     status:'g',type:'contracted',band:'S/X',   ops:'Commercial ground node — CENTCOM eastern reach'},
+  {lat:50.11,lon:8.68,   name:'Frankfurt',          status:'r',type:'contracted',band:'Ka/SHF', ops:'⚠ COMM FAILURE — uplink lost, no contact'},
+  {lat:-34.6,lon:-58.4,  name:'Buenos Aires',       status:'g',type:'contracted',band:'X',      ops:'SOUTHCOM relay — South Atlantic coverage'},
+  {lat:19.43,lon:-99.13, name:'Mexico City',        status:'g',type:'contracted',band:'Ka',     ops:'Commercial Ka relay — SOUTHCOM/NORTHCOM'},
+  {lat:78.23,lon:15.47,  name:'Svalbard SvalSat',   status:'g',type:'contracted',band:'S/X/Ka', ops:'Commercial polar ground station — LEO passes'},
+  {lat:-90.0,lon:0.0,    name:'McMurdo Antarctica', status:'g',type:'gov',      band:'S/X',    ops:'NSF/DoD polar — high-latitude orbit coverage'},
+  {lat:14.99,lon:145.66, name:'Guam TT&C',          status:'g',type:'gov',      band:'UHF/SHF',ops:'USINDOPACOM — Western Pacific forward station'},
+  {lat:25.2, lon:55.3,   name:'Dubai TT&C',         status:'g',type:'contracted',band:'Ka/X',  ops:'Commercial relay — CENTCOM Persian Gulf'},
+  {lat:37.42,lon:-122.08,name:'Sunnyvale GAOC',     status:'g',type:'gov',      band:'S/X/Ka', ops:'GPS Operations Center — MEO constellation control'},
+  {lat:69.65,lon:18.96,  name:'Tromsø Arctic',      status:'g',type:'contracted',band:'S/X',   ops:'Commercial Arctic TT&C — polar LEO passes'},
+  {lat:40.36,lon:49.83,  name:'Baku Relay',         status:'g',type:'contracted',band:'X',     ops:'Commercial relay — CENTCOM Caucasus reach'},
 ];
 // PNT users — MEO GPS/PNT receivers (12 sites, 3D markers, green diamonds)
 const USERS_PNT=[
@@ -1729,42 +2077,102 @@ SATS.forEach(s=>{
   ring.visible=false;s._glowRing=ring;gGlow.add(ring);
 });
 
-GND.forEach(gs=>{
-  // Color and scale by status
+// Draw a satellite dish icon onto a canvas and return it as a THREE.Texture
+function makeGndTexture(colStr){
+  // 128×128 canvas — draw the satellite dish icon matching the reference:
+  // chunky person/base at bottom-right, large filled dish angled upper-left, 3 signal arcs upper-left
+  const S=128;
+  const oc=document.createElement('canvas'); oc.width=S; oc.height=S;
+  const ox=oc.getContext('2d');
+  ox.clearRect(0,0,S,S);
+  ox.fillStyle=colStr; ox.strokeStyle=colStr;
+  ox.lineCap='round'; ox.lineJoin='round';
+
+  // ── Body/pedestal: chunky rounded shape at bottom-right (like a person silhouette base) ──
+  // Consists of: wide rounded base + narrower torso + small head nub
+  ox.beginPath();
+  // Wide base (feet)
+  ox.moveTo(S*0.44, S*0.98);
+  ox.lineTo(S*0.88, S*0.98);
+  ox.quadraticCurveTo(S*0.92, S*0.98, S*0.92, S*0.90);
+  // Right side up
+  ox.lineTo(S*0.92, S*0.78);
+  ox.quadraticCurveTo(S*0.92, S*0.70, S*0.82, S*0.68);
+  // Shoulder / neck
+  ox.lineTo(S*0.72, S*0.65);
+  // Head nub (small bump upper-right of body)
+  ox.quadraticCurveTo(S*0.68, S*0.58, S*0.62, S*0.56);
+  ox.quadraticCurveTo(S*0.56, S*0.54, S*0.54, S*0.60);
+  ox.lineTo(S*0.50, S*0.68);
+  ox.quadraticCurveTo(S*0.44, S*0.72, S*0.44, S*0.80);
+  ox.closePath();
+  ox.fill();
+
+  // ── Dish: large filled wedge facing upper-left, pivoting from neck area ──
+  // Pivot = where dish arm meets body (left shoulder)
+  const pX=S*0.50, pY=S*0.60;
+  const dR=S*0.46; // dish radius
+  // Arc from ~200° to ~320° (open face pointing upper-left ~260°)
+  const a0=Math.PI*1.11, a1=Math.PI*1.78;
+  ox.beginPath();
+  ox.moveTo(pX, pY);
+  ox.arc(pX, pY, dR, a0, a1);
+  ox.closePath();
+  ox.fill();
+
+  // ── Signal arcs: 3 concentric arcs from upper-left corner ──
+  // Origin is top-left, arcs sweep ~70° in the upper-left direction
+  const aX=S*0.07, aY=S*0.12; // arc origin (top-left)
+  const arcStart=-Math.PI*0.05, arcEnd=Math.PI*0.62; // sweep from ~-9° to ~112°
+  ox.lineWidth=S*0.058;
+  ox.globalAlpha=1.0;
+  [S*0.20, S*0.32, S*0.44].forEach((r,i)=>{
+    ox.globalAlpha=1.0-i*0.18;
+    ox.beginPath();
+    ox.arc(aX, aY, r, arcStart, arcEnd);
+    ox.stroke();
+  });
+
+  ox.globalAlpha=1.0;
+  return new THREE.CanvasTexture(oc);
+}
+
+GND.forEach((gs,gndIdx)=>{
   const colHex=gs.status==='g'?0x6fe8ff:gs.status==='a'?0xf4c96b:0xff5050;
-  const colEmit=gs.status==='g'?0x0a2030:gs.status==='a'?0x2a1800:0x2a0000;
-  const scl=gs.status==='r'?1.25:1.0; // degraded stations slightly larger/more visible
-  const pos=ll2v3(gs.lat,gs.lon,R_EARTH*1.008);
+  const colStr=gs.status==='g'?'#6fe8ff':gs.status==='a'?'#f4c96b':'#ff5050';
+  const pos=ll2v3(gs.lat,gs.lon,R_EARTH*1.012);
 
-  // Main marker — triangle for nominal/amber, octahedron-like diamond for degraded
-  let body;
+  // ── Sprite: canvas-texture billboard, always faces camera ──
+  const tex=makeGndTexture(colStr);
+  const spMat=new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0.92,depthTest:false,depthWrite:false});
+  const sp=new THREE.Sprite(spMat);
+  sp.position.copy(pos);
+  const sprScale=gs.status==='r'?0.22:0.18;
+  sp.scale.set(sprScale,sprScale,1);
+  sp.userData={gndIdx};
+  gs._sprite=sp;
+  gs._spMat=spMat;
+  gs._col=colHex;
+  gGnd.add(sp);
+
+  // Flat pulse rings on the globe surface for status glow
+  const arc1=new THREE.Mesh(new THREE.RingGeometry(0.055,0.062,32,1,0,Math.PI*2),
+    new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.40,side:THREE.DoubleSide,depthWrite:false}));
+  arc1.position.copy(pos.clone().normalize().multiplyScalar(R_EARTH*1.001));arc1.lookAt(0,0,0);arc1.userData={gndIdx};
+
+  const arc2=new THREE.Mesh(new THREE.RingGeometry(0.074,0.080,32,1,0,Math.PI*2),
+    new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.20,side:THREE.DoubleSide,depthWrite:false}));
+  arc2.position.copy(pos.clone().normalize().multiplyScalar(R_EARTH*1.001));arc2.lookAt(0,0,0);arc2.userData={gndIdx};
+
   if(gs.status==='r'){
-    // Degraded: double-triangle (Star of David / alarm shape) = two overlapping cones
-    const g1=new THREE.Group();
-    const c1=new THREE.Mesh(new THREE.ConeGeometry(0.042,0.072,3),new THREE.MeshPhongMaterial({color:colHex,emissive:new THREE.Color(colEmit),transparent:true,opacity:0.92,shininess:60}));
-    const c2=new THREE.Mesh(new THREE.ConeGeometry(0.042,0.072,3),new THREE.MeshPhongMaterial({color:colHex,emissive:new THREE.Color(colEmit),transparent:true,opacity:0.55,shininess:60}));
-    c2.rotation.z=Math.PI; // inverted cone
-    g1.add(c1,c2);body=g1;
-  } else {
-    body=new THREE.Mesh(new THREE.ConeGeometry(0.035,0.07,3),new THREE.MeshPhongMaterial({color:colHex,emissive:new THREE.Color(colEmit),transparent:true,opacity:0.82,shininess:80}));
-  }
-  body.position.copy(pos);body.lookAt(0,0,0);body.rotateX(-Math.PI/2);body.scale.setScalar(scl);
-
-  // Arc rings
-  const arc1=new THREE.Mesh(new THREE.RingGeometry(0.055,0.065,32,1,0,Math.PI*1.3),new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.55,side:THREE.DoubleSide}));
-  arc1.position.copy(pos).multiplyScalar(1.012);arc1.lookAt(0,0,0);
-  const arc2=new THREE.Mesh(new THREE.RingGeometry(0.075,0.082,32,1,0,Math.PI*1.1),new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.32,side:THREE.DoubleSide}));
-  arc2.position.copy(pos).multiplyScalar(1.016);arc2.lookAt(0,0,0);
-
-  // Degraded: add an outer alarm ring that pulses independently
-  if(gs.status==='r'){
-    const alarmRing=new THREE.Mesh(new THREE.RingGeometry(0.10,0.115,48,1),new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.7,side:THREE.DoubleSide}));
-    alarmRing.position.copy(pos).multiplyScalar(1.02);alarmRing.lookAt(0,0,0);
-    gs._alarm=alarmRing;gGnd.add(alarmRing);
+    const alarmRing=new THREE.Mesh(new THREE.RingGeometry(0.095,0.110,48,1),
+      new THREE.MeshBasicMaterial({color:colHex,transparent:true,opacity:.65,side:THREE.DoubleSide,depthWrite:false}));
+    alarmRing.position.copy(pos.clone().normalize().multiplyScalar(R_EARTH*1.001));alarmRing.lookAt(0,0,0);alarmRing.userData={gndIdx};
+    gs._alarm=alarmRing; gGnd.add(alarmRing);
   }
 
-  gs._arcs=[arc1,arc2];gs._col=colHex;gs._body=body;
-  gGnd.add(body,arc1,arc2);
+  gs._arcs=[arc1,arc2];
+  gGnd.add(arc1,arc2);
 });
 // PNT users — green diamond octahedra (MEO link targets)
 USERS_PNT.forEach(ut=>{
@@ -1843,6 +2251,22 @@ function showTip(sat,cx,cy){
   tip.classList.add('show');
 }
 function hideTip(){const t=document.getElementById('tip');t.classList.remove('show');setTimeout(()=>{if(!t.classList.contains('show'))t.style.display='none';},200);}
+
+// Lightweight name tooltip for users/tasks on 2D map
+let _nameTipEl=null;
+function _showNameTip(name,sub,cx,cy){
+  if(!_nameTipEl){
+    _nameTipEl=document.createElement('div');
+    _nameTipEl.id='nametip';
+    _nameTipEl.style.cssText='position:fixed;z-index:9999;pointer-events:none;background:rgba(3,7,18,.93);border:1px solid rgba(0,232,255,.3);border-radius:5px;padding:4px 9px;font-family:"Share Tech Mono",monospace;white-space:nowrap;display:none;';
+    document.body.appendChild(_nameTipEl);
+  }
+  _nameTipEl.innerHTML=`<div style="font-size:7px;letter-spacing:.16em;color:#00e8ff;margin-bottom:2px">${sub}</div><div style="font-size:10px;font-weight:700;color:#fff;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px">${name}</div>`;
+  _nameTipEl.style.display='block';
+  _nameTipEl.style.left=(cx+14)+'px';
+  _nameTipEl.style.top=(cy-10)+'px';
+}
+function _hideNameTip(){if(_nameTipEl)_nameTipEl.style.display='none';}
 document.getElementById('tip-close').addEventListener('click',hideTip);
 
 let _hoverTipSat=null;
@@ -1863,19 +2287,38 @@ function handleClick3D(cx,cy){
   const rect=renderer.domElement.getBoundingClientRect();
   const m2=new THREE.Vector2(((cx-rect.left)/rect.width)*2-1,-((cy-rect.top)/rect.height)*2+1);
   raycaster.setFromCamera(m2,camera);
+  // Check sats first
   const hits=raycaster.intersectObjects(clickMeshes(),false);
   if(hits.length){
     const s=SATS.find(x=>x.id===hits[0].object.userData.satId);
-    if(s){
-      // Toggle: click selected SV again to deselect
-      if(typeof selSVFn==='function')selSVFn(s.id);
-      hideTip();
-    }
-  } else {
-    hideTip();
-    // Click empty space on globe — deselect SV if one is selected
-    if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
+    if(s){if(typeof selSVFn==='function')selSVFn(s.id);hideTip();return;}
   }
+  // Check GND markers (expand raycaster threshold for small markers)
+  if(show.ground&&gGnd.visible){
+    const gndMeshes=[];gGnd.children.forEach(c=>{if(c.userData&&c.userData.gndIdx!==undefined)gndMeshes.push(c);});
+    const gndHits=raycaster.intersectObjects(gndMeshes,false);
+    if(gndHits.length){
+      const gs=GND[gndHits[0].object.userData.gndIdx];
+      if(gs){if(typeof showGndCard==='function')showGndCard(gs);hideTip();return;}
+    }
+    // Distance-based fallback for small markers
+    let bestGnd=null,bestD=0.28;
+    GND.forEach((gs,i)=>{
+      const pos=ll2v3(gs.lat,gs.lon,R_EARTH);
+      const dir=raycaster.ray.direction.clone().normalize();
+      const org=raycaster.ray.origin.clone();
+      const toPos=pos.clone().sub(org);
+      const proj=toPos.dot(dir);
+      if(proj<0)return;
+      const closest=org.clone().addScaledVector(dir,proj);
+      const dist=closest.distanceTo(pos);
+      if(dist<bestD){bestD=dist;bestGnd=gs;}
+    });
+    if(bestGnd){if(typeof showGndCard==='function')showGndCard(bestGnd);hideTip();return;}
+  }
+  hideTip();
+  closeGndCard();
+  if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
 }
 renderer.domElement.addEventListener('mousemove',e=>{if(e.pointerType==='touch')return;handleHover3D(e.clientX,e.clientY);});
 renderer.domElement.addEventListener('mouseleave',()=>{_hoverTipSat=null;hideTip();});
@@ -1897,46 +2340,167 @@ let mapSrcIdx=0;
 function tryLoadMap(){worldImg.crossOrigin='anonymous';worldImg.onload=()=>{mapLoaded=true;console.log('[ASTRONETIX] Map texture loaded:',MAP_SRCS[mapSrcIdx]);};worldImg.onerror=(e)=>{console.error('[ASTRONETIX] Map load failed src#'+mapSrcIdx+':',MAP_SRCS[mapSrcIdx]);mapSrcIdx++;if(mapSrcIdx<MAP_SRCS.length)tryLoadMap();else console.warn('[ASTRONETIX] All map sources failed - using canvas fallback');};worldImg.src=MAP_SRCS[mapSrcIdx];}tryLoadMap();
 const nightImg=new Image();let nightLoaded=false;nightImg.crossOrigin='anonymous';nightImg.onload=()=>{nightLoaded=true;};nightImg.onerror=(e)=>console.error('[ASTRONETIX] Night lights image failed:',e);nightImg.src='https://eoimages.gsfc.nasa.gov/images/imagerecords/55000/55167/earth_lights_lrg.jpg';
 
+// 2D viewport state — scale and pan offsets in canvas pixels
+const vp2d={s:1,x:0,y:0};
+let _vpDrag=null,_vpDragMoved=false;
+
+function _vpClamp(W,H){
+  // Don't let map pan outside the canvas
+  vp2d.x=Math.min(0,Math.max(W-W*vp2d.s, vp2d.x));
+  vp2d.y=Math.min(0,Math.max(H-H*vp2d.s, vp2d.y));
+}
+function _vpToMap(cx,cy){
+  // Canvas pixel → map pixel (inverse of viewport transform)
+  return{x:(cx-vp2d.x)/vp2d.s, y:(cy-vp2d.y)/vp2d.s};
+}
+function resetVP(){
+  vp2d.s=1;vp2d.x=0;vp2d.y=0;
+  const rb=document.getElementById('b2dreset');if(rb)rb.classList.remove('on');
+}
+window.resetVP=resetVP;
+
+// Wheel zoom — zoom toward cursor
+c2d.addEventListener('wheel',e=>{
+  if(!is2D)return;
+  e.preventDefault();
+  const rect=c2d.getBoundingClientRect();
+  const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+  const W=c2d.width, H=c2d.height;
+  const factor=e.deltaY<0?1.25:0.8;
+  const ns=Math.max(1,Math.min(16, vp2d.s*factor));
+  // Zoom toward cursor: adjust offset so map-point under cursor stays fixed
+  vp2d.x=cx-(cx-vp2d.x)*(ns/vp2d.s);
+  vp2d.y=cy-(cy-vp2d.y)*(ns/vp2d.s);
+  vp2d.s=ns;
+  _vpClamp(W,H);
+  const rb=document.getElementById('b2dreset');if(rb)rb.classList.toggle('on',vp2d.s>1.01||Math.abs(vp2d.x)>2||Math.abs(vp2d.y)>2);
+},{passive:false});
+
+// Mouse drag pan
+c2d.addEventListener('mousedown',e=>{
+  if(!is2D||e.button!==0)return;
+  _vpDrag={ox:e.clientX,oy:e.clientY,vx:vp2d.x,vy:vp2d.y};
+  _vpDragMoved=false;
+});
+window.addEventListener('mousemove',e=>{
+  if(!_vpDrag)return;
+  const dx=e.clientX-_vpDrag.ox, dy=e.clientY-_vpDrag.oy;
+  if(Math.abs(dx)>4||Math.abs(dy)>4)_vpDragMoved=true;
+  if(!_vpDragMoved)return;
+  const W=c2d.width,H=c2d.height;
+  vp2d.x=_vpDrag.vx+dx; vp2d.y=_vpDrag.vy+dy;
+  _vpClamp(W,H);
+  c2d.style.cursor='grabbing';
+});
+window.addEventListener('mouseup',()=>{
+  if(_vpDrag){_vpDrag=null; c2d.style.cursor=vp2d.s>1.01?'grab':'';}
+});
+
+document.getElementById('b2dreset').addEventListener('click',()=>{
+  resetVP();
+});
+
 function ll2px(lat,lon,W,H){return{x:((lon+180)/360)*W,y:((90-lat)/180)*H};}
 let hoverSat=null,hoveredCCMD2D=null;
 
-c2d.addEventListener('mouseleave',()=>{hoverSat=null;document.getElementById('hlabel').style.display='none';hideCCMDTip();hideTip();});
+c2d.addEventListener('mouseleave',()=>{hoverSat=null;document.getElementById('hlabel').style.display='none';hideCCMDTip();hideTip();_hideNameTip();});
 function ptInRing(px,py,ring,W,H){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const pi=ll2px(ring[i][1],ring[i][0],W,H),pj=ll2px(ring[j][1],ring[j][0],W,H);if(((pi.y>py)!==(pj.y>py))&&(px<(pj.x-pi.x)*(py-pi.y)/(pj.y-pi.y)+pi.x))inside=!inside;}return inside;}
 function ptInFeature(px,py,geom,W,H){const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];return polys.some(poly=>ptInRing(px,py,poly[0],W,H));}
 function getHovCCMD2D(mx,my,W,H){for(const pid of PRIORITY_ORDER){const feats=ccmdFeatures[pid];if(!feats)continue;if(feats.some(geom=>ptInFeature(mx,my,geom,W,H)))return pid;}return null;}
 
 c2d.addEventListener('mousemove',e=>{
-  const rect=c2d.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top,W=c2d.width,H=c2d.height;
-  hoveredCCMD2D=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
-  // Also fallback to maritime AOR if geo not loaded
+  if(_vpDragMoved&&_vpDrag)return;
+  const rect=c2d.getBoundingClientRect(),W=c2d.width,H=c2d.height;
+  const raw={x:e.clientX-rect.left,y:e.clientY-rect.top};
+  const m=_vpToMap(raw.x,raw.y);
+
+  // Always update CCMD hover for region highlight (no tooltip)
+  hoveredCCMD2D=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(m.x,m.y,W,H):null;
   if(!hoveredCCMD2D&&show.gcc){
     for(const pid of PRIORITY_ORDER){
       const cmd=combatantCommands.find(c=>c.id===pid);
       if(cmd&&cmd.maritime&&cmd.maritime.length){
-        if(ptInRing(mx,my,cmd.maritime.map(([lo,la])=>[lo,la]),W,H)){hoveredCCMD2D=pid;break;}
+        if(ptInRing(m.x,m.y,cmd.maritime.map(([lo,la])=>[lo,la]),W,H)){hoveredCCMD2D=pid;break;}
       }
     }
   }
-  let best=null,bd=18;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
-  const prevHover=hoverSat;hoverSat=best;
+  hideCCMDTip(); // never show CCMD tooltip on 2D map
+
   const hl=document.getElementById('hlabel');
-  if(best){
-    hl.style.display='none';
-    hideCCMDTip();
-    if(best!==prevHover)showTip(best,e.clientX,e.clientY);
+  hl.style.display='none';
+
+  // SVs — keep existing sat tooltip
+  const hitR=18/vp2d.s;
+  let best=null,bd=hitR;
+  SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bd){bd=d;best=s;}});
+  const prevHover=hoverSat;hoverSat=best;
+  if(best){if(best!==prevHover){_hideNameTip();showTip(best,e.clientX,e.clientY);}return;}
+
+  // Users / Tasks — show a lightweight name tooltip
+  if(show.users){
+    const hr=12/vp2d.s;
+    let bestU=null,bdU=hr;
+    USERS_PNT.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdU){bdU=d;bestU=ut;}});
+    if(bestU){hideTip();_hideNameTip();_showNameTip(bestU.name,'PNT RECEIVER',e.clientX,e.clientY);return;}
+
+    let bestC=null,bdC=hr;
+    USERS_COMM.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdC){bdC=d;bestC=ut;}});
+    if(bestC){hideTip();_hideNameTip();_showNameTip(bestC.name,'SATCOM TERM',e.clientX,e.clientY);return;}
   }
-  else if(hoveredCCMD2D){hl.style.display='none';hideTip();showCCMDTip(e,hoveredCCMD2D);}
-  else{hl.style.display='none';hideTip();hideCCMDTip();}
+  const hr2=14/vp2d.s;
+  let bestTk=null,bdTk=hr2;
+  TASKS.forEach(tk=>{const p=ll2px(tk.lat,tk.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdTk){bdTk=d;bestTk=tk;}});
+  if(bestTk){
+    hideTip();
+    const pLabel=bestTk.p==='h'?'P1-HIGH':bestTk.p==='m'?'P1-MED':'P1-LOW';
+    _showNameTip(bestTk.name,pLabel,e.clientX,e.clientY);
+    return;
+  }
+
+  hideTip();_hideNameTip();
 });
 c2d.addEventListener('click',e=>{
-  const rect=c2d.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top,W=c2d.width,H=c2d.height;
-  const hitCmd=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(mx,my,W,H):null;
-  // Check sat proximity first
-  let best=null,bd=20;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(mx-p.x,my-p.y);if(d<bd){bd=d;best=s;}});
-  if(best){if(typeof selSVFn==='function')selSVFn(best.id);hideTip();return;}
+  if(_vpDragMoved){_vpDragMoved=false;return;}
+  const rect=c2d.getBoundingClientRect(),W=c2d.width,H=c2d.height;
+  const m=_vpToMap(e.clientX-rect.left,e.clientY-rect.top);
+  const hitR=10/vp2d.s;
+
+  // GND stations (highest priority, 3D markers)
+  if(show.ground){
+    let bestGnd=null,bdGnd=hitR;
+    GND.forEach(gs=>{const p=ll2px(gs.lat,gs.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdGnd){bdGnd=d;bestGnd=gs;}});
+    if(bestGnd){closeEntCard();showGndCard(bestGnd);return;}
+  }
+
+  // SVs
+  const hitR2=14/vp2d.s;
+  let bestSV=null,bdSV=hitR2;SATS.forEach(s=>{if(!show[s.regime])return;const p=ll2px(s.lat,s.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdSV){bdSV=d;bestSV=s;}});
+  if(bestSV){closeEntCard();closeGndCard();selSVFn(bestSV.id);hideTip();return;}
+
+  // USERS_PNT (green diamond, ~4px half-size)
+  if(show.users){
+    let bestU=null,bdU=hitR;
+    USERS_PNT.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdU){bdU=d;bestU=ut;}});
+    if(bestU){closeGndCard();showEntCard(bestU,'pnt');return;}
+
+    let bestC=null,bdC=hitR;
+    USERS_COMM.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdC){bdC=d;bestC=ut;}});
+    if(bestC){closeGndCard();showEntCard(bestC,'comm');return;}
+  }
+
+  // TASKS (box center hit)
+  const hitRT=12/vp2d.s;
+  let bestTk=null,bdTk=hitRT;
+  TASKS.forEach(tk=>{const p=ll2px(tk.lat,tk.lon,W,H);const d=Math.hypot(m.x-p.x,m.y-p.y);if(d<bdTk){bdTk=d;bestTk=tk;}});
+  if(bestTk){closeGndCard();showEntCard(bestTk,'task');return;}
+
+  // CCMD region click
+  const hitCmd=show.gcc&&ccmdGeoLoaded?getHovCCMD2D(m.x,m.y,W,H):null;
   if(hitCmd){selCCFn(hitCmd);return;}
-  // Click empty space — deselect SV
-  if(typeof selSV!=='undefined'&&selSV&&typeof selSVFn==='function'){selSVFn(selSV);}
+
+  // Empty space — close all cards, deselect SV
+  closeGndCard();closeEntCard();
+  if(selSV)selSVFn(selSV);
   hideTip();
 });
 
@@ -1991,9 +2555,12 @@ function drawCCMD2D(W,H){
 
 function drawMap(W,H,t){
   ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#08192e';ctx.fillRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(vp2d.x,vp2d.y);
+  ctx.scale(vp2d.s,vp2d.s);
   const now=new Date(),utcH=now.getUTCHours()+now.getUTCMinutes()/60+now.getUTCSeconds()/3600;
   const sunLon=((utcH/24)*360-180+360)%360-180,antiLon=((sunLon+180)+360)%360-180,antiX=((antiLon+180)/360)*W;
-  ctx.fillStyle='#08192e';ctx.fillRect(0,0,W,H);
   if(mapLoaded){ctx.save();ctx.globalAlpha=0.92;ctx.filter='saturate(0.75) brightness(0.78)';ctx.drawImage(worldImg,0,0,W,H);ctx.filter='none';ctx.restore();}
   else{CONTINENTS.forEach(poly=>{ctx.beginPath();poly.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();ctx.fillStyle='#1a3a22';ctx.fill();ctx.strokeStyle='rgba(80,160,100,0.5)';ctx.lineWidth=0.7;ctx.stroke();});}
   const ng2=ctx.createRadialGradient(antiX,H*0.5,0,antiX,H*0.5,W*0.52);ng2.addColorStop(0,'rgba(0,3,12,0.88)');ng2.addColorStop(0.5,'rgba(0,3,12,0.65)');ng2.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=ng2;ctx.fillRect(0,0,W,H);
@@ -2063,7 +2630,62 @@ function drawMap(W,H,t){
     });
   }
   document.getElementById('bLinks').textContent=linkCount;
-  if(show.ground){GND.forEach(gs=>{const p=ll2px(gs.lat,gs.lon,W,H),cyan='#6fe8ff',pulse=Math.sin(t*2.2+gs.lon*.05)*.5+.5,sz=7;ctx.save();ctx.shadowColor=cyan;ctx.shadowBlur=8+pulse*5;ctx.fillStyle='rgba(26,92,255,0.18)';ctx.strokeStyle=cyan;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(p.x,p.y-sz);ctx.lineTo(p.x+sz*0.9,p.y+sz*0.7);ctx.lineTo(p.x-sz*0.9,p.y+sz*0.7);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();});}
+  if(show.ground){GND.forEach(gs=>{
+    const p=ll2px(gs.lat,gs.lon,W,H);
+    const col=gs.status==='g'?'#6fe8ff':gs.status==='a'?'#f4c96b':'#ff5050';
+    const pulse=Math.sin(t*2.2+gs.lon*.05)*.5+.5;
+    const sc=5.0; // scale factor — icon fits in ~2sc radius
+    ctx.save();
+    ctx.shadowColor=col; ctx.shadowBlur=3+pulse*5;
+    ctx.fillStyle=col; ctx.strokeStyle=col;
+    ctx.lineCap='round'; ctx.lineJoin='round';
+
+    // Translate so icon is centred on the point
+    // Icon: body bottom-right, dish upper-left, arcs far upper-left
+    // We offset slightly so the "base" sits on the map point
+    const ox=p.x-sc*0.3, oy=p.y-sc*0.5; // origin offset
+
+    // ── Body/pedestal: chunky rounded base (bottom-right of icon) ──
+    ctx.beginPath();
+    ctx.moveTo(ox+sc*-0.1, oy+sc*1.4);
+    ctx.lineTo(ox+sc*0.88, oy+sc*1.4);
+    ctx.quadraticCurveTo(ox+sc*1.0, oy+sc*1.4, ox+sc*1.0, oy+sc*1.2);
+    ctx.lineTo(ox+sc*1.0, oy+sc*0.8);
+    ctx.quadraticCurveTo(ox+sc*1.0, oy+sc*0.6, ox+sc*0.8, oy+sc*0.55);
+    ctx.lineTo(ox+sc*0.55, oy+sc*0.50);
+    ctx.quadraticCurveTo(ox+sc*0.45, oy+sc*0.44, ox+sc*0.42, oy+sc*0.55);
+    ctx.lineTo(ox+sc*0.32, oy+sc*0.75);
+    ctx.quadraticCurveTo(ox+sc*0.15, oy+sc*0.82, ox+sc*-0.1, oy+sc*0.95);
+    ctx.closePath();
+    ctx.fill();
+
+    // ── Dish: filled wedge from shoulder pivot, facing upper-left ──
+    const pivX=ox+sc*0.32, pivY=oy+sc*0.48;
+    const dr=sc*1.1;
+    ctx.beginPath();
+    ctx.moveTo(pivX, pivY);
+    ctx.arc(pivX, pivY, dr, Math.PI*1.10, Math.PI*1.80);
+    ctx.closePath();
+    ctx.fill();
+
+    // ── Signal arcs: 3 strokes from far upper-left ──
+    const aX=ox-sc*0.72, aY=oy-sc*0.55;
+    ctx.lineWidth=sc*0.18;
+    [sc*0.45, sc*0.72, sc*0.99].forEach((r,i)=>{
+      ctx.globalAlpha=1.0-i*0.20;
+      ctx.beginPath();
+      ctx.arc(aX, aY, r, -Math.PI*0.05, Math.PI*0.62);
+      ctx.stroke();
+    });
+
+    // Status ring for degraded/offline
+    if(gs.status!=='g'){
+      ctx.globalAlpha=0.16+pulse*0.22;
+      ctx.lineWidth=0.7;
+      ctx.beginPath(); ctx.arc(p.x, p.y, sc*2.1, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+  });}
   if(show.users){
     // PNT receivers — green diamonds
     USERS_PNT.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H),col='#39ff9a',s2=4;ctx.save();ctx.fillStyle=col;ctx.strokeStyle='rgba(57,255,154,0.45)';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(p.x,p.y-s2);ctx.lineTo(p.x+s2,p.y);ctx.lineTo(p.x,p.y+s2);ctx.lineTo(p.x-s2,p.y);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();});
@@ -2093,12 +2715,15 @@ function drawMap(W,H,t){
   // Sun position
   {const sp=ll2px(0,sunLon,W,H);ctx.save();ctx.shadowColor='#ffee88';ctx.shadowBlur=18;ctx.fillStyle='#ffe066';ctx.globalAlpha=0.9;ctx.beginPath();ctx.arc(sp.x,sp.y,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffe066';ctx.lineWidth=1;ctx.globalAlpha=0.5;for(let a=0;a<8;a++){const ang=a*Math.PI/4;ctx.beginPath();ctx.moveTo(sp.x+Math.cos(ang)*7,sp.y+Math.sin(ang)*7);ctx.lineTo(sp.x+Math.cos(ang)*11,sp.y+Math.sin(ang)*11);ctx.stroke();}ctx.restore();}
   const vg=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.75);vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(1,6,16,.7)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  ctx.restore(); // end viewport transform
   ctx.save();ctx.fillStyle='rgba(84,142,255,.3)';ctx.font=`8px 'Share Tech Mono',monospace`;ctx.fillText('✛ LEO·550km   ◻ MEO·20,200km   ◆ GEO·35,786km   ☀ Sub-solar   WGS-84',12,H-8);ctx.restore();
 }
 
 function setView(to2D){
   is2D=to2D;g3dEl.style.display=to2D?'none':'block';g2dEl.style.display=to2D?'block':'none';
   document.getElementById('b3d').classList.toggle('on',!to2D);document.getElementById('b2d').classList.toggle('on',to2D);
+  const rb=document.getElementById('b2dreset');if(rb)rb.style.display=to2D?'':'none';
+  if(!to2D){resetVP();closeEntCard();}
   hideTip();if(to2D)SATS.forEach(s=>{s.trail=[];s.lastLon=null;});
   // Cones: hide in 2D (redundant with footprint ellipses), restore in 3D
   if(typeof coneObjects!=='undefined'){
@@ -2213,7 +2838,7 @@ function updateSats(simTime){
     if(show.ground&&show[s.regime]&&linkCount3D<MAX_LINKS&&(!svSelected||s.id===selSV)){
       if(s.regime==='LEO'){
         let bestGs=null,bestElev=-999;GND.forEach(gs=>{const gpos=ll2v3(gs.lat,gs.lon,R_EARTH);const surfN=gpos.clone().normalize();const toSat=p3.clone().sub(gpos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.08&&elev>bestElev){bestElev=elev;bestGs=gs;}});
-        if(bestGs){const gpos=ll2v3(bestGs.lat,bestGs.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,gpos.x,gpos.y,gpos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.6+s.ta0)%(Math.PI*2);ll.mat.color.set(0x6fe8ff);ll.mat.opacity=0.15+Math.abs(Math.sin(ph))*0.40;ll.line.visible=true;linkCount3D++;}
+        if(bestGs){const gpos=ll2v3(bestGs.lat,bestGs.lon,R_EARTH*1.008);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,gpos.x,gpos.y,gpos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.6+s.ta0)%(Math.PI*2);ll.mat.color.set(0x6fe8ff);ll.mat.opacity=0.15+Math.abs(Math.sin(ph))*0.40;ll.line.visible=true;linkCount3D++;}
       } else if(s.regime==='MEO'&&show.users){
         let bestU=null,bestElev=-999;USERS_PNT.forEach(ut=>{const upos=ll2v3(ut.lat,ut.lon,R_EARTH);const surfN=upos.clone().normalize();const toSat=p3.clone().sub(upos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.05&&elev>bestElev){bestElev=elev;bestU=ut;}});
         if(bestU&&linkCount3D<MAX_LINKS){const upos=ll2v3(bestU.lat,bestU.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,upos.x,upos.y,upos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.2+s.ta0)%(Math.PI*2);ll.mat.color.set(0x39ff9a);ll.mat.opacity=0.12+Math.abs(Math.sin(ph))*0.30;ll.line.visible=true;linkCount3D++;}
@@ -2266,29 +2891,42 @@ function animate(){
   camera.position.set(ctrl.dist*Math.sin(phi)*Math.cos(th),ctrl.dist*Math.cos(phi),ctrl.dist*Math.sin(phi)*Math.sin(th));
   camera.lookAt(0,0,0);
   const pulse=(Math.sin(t*2.2)*.5+.5)*.4+.1,pulse2=(Math.sin(t*2.2)*.5+.5);
+  const camDir=camera.position.clone().normalize();
   GND.forEach(gs=>{
+    // Hemisphere cull: hide sprite+rings when station is on far side of globe
+    const stationNormal=gs._sprite?gs._sprite.position.clone().normalize():null;
+    const visible=stationNormal?stationNormal.dot(camDir)>0.05:true;
+    if(gs._sprite) gs._sprite.visible=visible;
+    if(gs._arcs){gs._arcs[0].visible=visible;gs._arcs[1].visible=visible;}
+    if(gs._alarm) gs._alarm.visible=visible;
+    if(!visible) return;
+    // Animate sprite opacity
+    if(gs._spMat){
+      if(gs.status==='r'){
+        gs._spMat.opacity=0.70+Math.sin(t*6.0)*0.28;
+      } else if(gs.status==='a'){
+        gs._spMat.opacity=0.75+Math.sin(t*2.5)*0.20;
+      } else {
+        gs._spMat.opacity=0.85+Math.sin(t*1.0)*0.10;
+      }
+    }
     if(gs._arcs){
       if(gs.status==='r'){
-        // Degraded: fast strobe on arcs + alarm ring
         const strobe=(Math.sin(t*6.5)*.5+.5);
-        gs._arcs[0].material.opacity=0.5+strobe*0.45;
-        gs._arcs[1].material.opacity=0.25+strobe*0.35;
+        gs._arcs[0].material.opacity=0.45+strobe*0.45;
+        gs._arcs[1].material.opacity=0.20+strobe*0.35;
         if(gs._alarm){
-          // Alarm ring: expand and fade outward
           const alarmPhase=(t*3.2)%1;
           gs._alarm.material.opacity=Math.max(0,(1-alarmPhase)*0.75);
-          const alarmScale=1+alarmPhase*0.9;
-          gs._alarm.scale.setScalar(alarmScale);
+          gs._alarm.scale.setScalar(1+alarmPhase*0.9);
         }
       } else if(gs.status==='a'){
-        // Amber/degraded: medium pulse
         const ambPulse=(Math.sin(t*3.0)*.5+.5);
-        gs._arcs[0].material.opacity=0.35+ambPulse*0.40;
-        gs._arcs[1].material.opacity=0.18+ambPulse*0.28;
+        gs._arcs[0].material.opacity=0.30+ambPulse*0.35;
+        gs._arcs[1].material.opacity=0.14+ambPulse*0.22;
       } else {
-        // Nominal: gentle pulse
-        gs._arcs[0].material.opacity=0.4+pulse2*0.35;
-        gs._arcs[1].material.opacity=0.2+pulse2*0.25;
+        gs._arcs[0].material.opacity=0.32+pulse2*0.28;
+        gs._arcs[1].material.opacity=0.14+pulse2*0.18;
       }
     }
   });
