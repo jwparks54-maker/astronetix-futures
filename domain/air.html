@@ -247,7 +247,7 @@
     }
 
     /* ── PANELS (top anchored to --th) ── */
-    :root{ --tlh:106px; --detail-w:348px; }
+    :root{ --tlh:176px; --detail-w:348px; }
     .sidebar{
       position:absolute; z-index:30;
       top:calc(var(--th) + 44px); left:12px; bottom:var(--tlh);
@@ -423,7 +423,7 @@
 
     /* ── TIMELINE ── */
     /* ── TIMELINE: resizable + minimizable ── */
-    :root{ --tl-h:90px; }
+    :root{ --tl-h:160px; }
     .timeline{
       position:absolute; z-index:30;
       left:12px; right:calc(var(--detail-w) + 24px); bottom:8px;
@@ -1568,10 +1568,10 @@ async function initLayers(){
     _featureClickedThisTick=false;
     deselectAll();
   });
-  map.on("click","pkg-bubbles",e=>selectPkg(e.features[0].properties.id,true));
+  map.on("click","pkg-bubbles",e=>{ _featureClickedThisTick=true; selectPkg(e.features[0].properties.id,true); });
   // Base click → show base posture detail
   map.on("click","bases",e=>{
-    e.stopPropagation();
+    _featureClickedThisTick=true;
     selectBase(e.features[0].properties.id);
   });
   map.on("mouseenter","bases",()=>{ map.getCanvas().style.cursor="pointer"; });
@@ -1891,7 +1891,17 @@ function renderAcDetail(a){
       </div>
     </div>
     <div class="detail-block"><div class="section-title">Loadout</div><ul class="list">${a.loadout.map(x=>'<li>'+x+'</li>').join('')}</ul></div>
-    <div class="detail-block"><div class="section-title">Actions</div>
+    <div class="detail-block">
+      <button id="compareBtn" onclick="addToCompare('${a.id}')" style="
+        width:100%;padding:9px 14px;border-radius:9px;border:1px solid rgba(94,234,212,.35);
+        background:rgba(94,234,212,.1);color:var(--teal);font-size:12px;font-weight:900;
+        cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+        transition:background .15s;letter-spacing:.04em;margin-bottom:10px;"
+        onmouseover="this.style.background='rgba(94,234,212,.2)'"
+        onmouseout="this.style.background='rgba(94,234,212,.1)'">
+        <span style="font-size:15px;">⇄</span> Add to Compare
+      </button>
+      <div class="section-title">Actions</div>
       <div class="actions">
         <div class="action" data-cmd="ToggleAuto" data-id="${a.id}">Toggle Automation</div>
         <div class="action" data-cmd="Launch" data-id="${a.id}">Launch</div>
@@ -2712,7 +2722,7 @@ document.addEventListener("keydown", e=>{
 
 /* ═══ TIMELINE MINIMIZE ════════════════════════════════════════════════════ */
 let timelineMinimized = false;
-const TL_H_FULL = 106;   // px (90 + 8 + 8)
+const TL_H_FULL = 176;   // px (160 + 8 + 8)
 const TL_H_MIN  = 46;    // px minimized
 
 function setTimelineHeight(minimized){
@@ -3212,6 +3222,14 @@ function showSpinsDetail(){
 }
 
 /* ═══ MULTI-SELECT COMPARE ═════════════════════════════════════════════════ */
+function addToCompare(id){
+  if(!selMulti.includes(id)) selMulti.push(id);
+  if(selAcId && selAcId!==id && !selMulti.includes(selAcId)) selMulti.push(selAcId);
+  selAcId=null;
+  renderMultiCompare();
+  refreshMap();
+}
+
 function renderMultiCompare(){
   if(!selMulti.length) return;
   const acs = selMulti.map(id=>getAC(id)).filter(Boolean);
@@ -3302,5 +3320,28 @@ map.on("load",async()=>{
   },1550);
 });
 </script>
+
+<script>
+(function(){
+  const BUILD = "1773275828";
+  const STORED = localStorage.getItem("cop-build-version");
+  if(STORED && STORED !== BUILD){
+    const banner = document.createElement("div");
+    banner.id = "update-banner";
+    banner.innerHTML = [
+      '<span style="font-size:13px;">&#x27F3;&nbsp; A new version of this COP has been deployed.</span>',
+      '<button onclick="location.reload()" style="margin-left:14px;padding:5px 14px;border-radius:7px;background:var(--teal);color:#08111c;font-weight:900;font-size:12px;border:none;cursor:pointer;">Reload Now</button>',
+      '<button onclick="document.getElementById('update-banner').remove()" style="margin-left:6px;padding:5px 10px;border-radius:7px;background:rgba(255,255,255,.08);color:var(--muted);font-size:11px;border:1px solid rgba(255,255,255,.1);cursor:pointer;">Dismiss</button>'
+    ].join("");
+    banner.style.cssText = "position:fixed;z-index:9999;top:0;left:0;right:0;padding:10px 20px;background:linear-gradient(90deg,rgba(8,17,28,.97),rgba(10,25,40,.97));border-bottom:2px solid var(--teal);display:flex;align-items:center;justify-content:center;gap:4px;color:#eaf4ff;font-family:inherit;box-shadow:0 2px 24px rgba(94,234,212,.18);animation:slideBannerDown .3s ease;";
+    document.body.appendChild(banner);
+  }
+  localStorage.setItem("cop-build-version", BUILD);
+})();
+</script>
+<style>
+@keyframes slideBannerDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+
 </body>
 </html>
