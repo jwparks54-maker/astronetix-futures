@@ -54,10 +54,12 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .rr{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
 .rutc{
-  font-family:var(--mono);font-size:18px;font-weight:700;color:var(--cyan2);
-  letter-spacing:.12em;position:absolute;left:50%;transform:translateX(-50%);
-  text-shadow:0 0 14px rgba(0,232,255,.4);pointer-events:none;
+  position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;align-items:baseline;gap:10px;pointer-events:none;
+  text-shadow:0 0 14px rgba(0,232,255,.35);
 }
+.rutc-jday{font-family:var(--mono);font-size:18px;font-weight:700;color:rgba(0,232,255,.55);letter-spacing:.08em;}
+.rutc-time{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--cyan2);letter-spacing:.12em;}
 .pmbadge{font-family:var(--mono);font-size:8px;padding:5px 11px;border-radius:3px;
   background:rgba(26,108,255,.15);border:1px solid rgba(26,108,255,.5);color:var(--blue2);letter-spacing:.1em;}
 #rBtn{font-family:var(--mono);font-size:8px;padding:5px 11px;border-radius:3px;
@@ -100,19 +102,30 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 .svc:hover{background:var(--bg3);}
 .svc.sel{background:var(--bg4);border-color:var(--cyan2);}
 .svc.crit .svnm::after{content:" ●";color:var(--red2);animation:blink 1s ease-in-out infinite;font-size:6px;}
+.svc.remediating{border-color:var(--cyan2)!important;animation:svRemPulse 1s ease-in-out infinite;}
+.svc.remediating .svsb::after{content:" ⟳";font-size:6px;opacity:.8;}
+@keyframes svRemPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,232,255,.0)}50%{box-shadow:0 0 0 3px rgba(0,232,255,.25)}}
+.svc.rem-done{border-color:var(--green2)!important;animation:svDoneFlash .6s ease-out;}
+@keyframes svDoneFlash{0%{background:rgba(57,255,154,.18)}100%{background:var(--bg2)}}
 .sv-r1{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
 .svnm{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.3px;}
 .svsb{font-family:var(--mono);font-size:5px;letter-spacing:.1em;padding:1px 3px;border-radius:2px;border:1px solid;}
 .sv-r2{display:flex;align-items:center;gap:4px;margin-bottom:1px;}
 .svic{font-size:10px;}
-.svtp{font-family:var(--mono);font-size:8px;color:#8fbcd4;}
+.svtp{font-family:var(--mono);font-size:8px;color:rgba(255,255,255,.75);}
 .svct{font-family:var(--mono);font-size:7px;padding:1px 3px;border-radius:2px;}
+.sv-regime{font-family:var(--mono);font-size:6px;letter-spacing:.08em;padding:1px 4px;border-radius:2px;
+  border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);margin-left:auto;}
+.sv-regime.LEO{border-color:rgba(0,232,255,.3);color:rgba(0,232,255,.7);}
+.sv-regime.MEO{border-color:rgba(255,184,48,.3);color:rgba(255,184,48,.7);}
+.sv-regime.GEO{border-color:rgba(138,100,255,.4);color:rgba(180,140,255,.8);}
 .svms{font-size:10px;color:#8fbcd4;line-height:1.2;margin-bottom:2px;font-weight:500;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sv-r3{display:flex;align-items:center;gap:4px;}
-.svhb{flex:1;height:2px;background:var(--bg0);border-radius:2px;}
+.svhb{flex:1;height:4px;background:var(--bg0);border-radius:2px;}
 .svhf{height:100%;border-radius:2px;transition:width .5s;}
-.svmt{font-family:var(--mono);font-size:7px;color:#5a7a99;}
+.svmt{font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.45);}
+.svmt.stale{color:var(--amber2);}
 
 /* ═══ CENTER GLOBE AREA ═══ */
 #mapzone{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative;}
@@ -231,8 +244,18 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 .al-svtag{font-family:var(--head);font-size:8px;font-weight:700;color:var(--cyan2);letter-spacing:.06em;margin-left:5px;opacity:.9;}
 .als{font-family:var(--mono);font-size:6px;letter-spacing:.14em;margin-bottom:2px;}
 .als.high{color:var(--red2)}.als.medium{color:var(--amber2)}.als.low{color:var(--green2)}
-.alt{font-family:var(--cond);font-size:11px;font-weight:600;line-height:1.3;margin-bottom:2px;}
-.altm{font-family:var(--mono);font-size:6px;color:var(--dim);}
+.alt{font-family:var(--cond);font-size:11px;font-weight:600;line-height:1.3;margin-bottom:2px;color:rgba(255,255,255,.9);}
+.altm{font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.45);}
+.al-age{font-family:var(--mono);font-size:6px;color:rgba(255,255,255,.3);float:right;margin-top:1px;}
+.al-new{animation:alNew .6s ease-out;}
+@keyframes alNew{0%{background:rgba(0,232,255,.18);transform:translateX(-4px)}100%{transform:translateX(0)}}
+#al-badge{display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(255,50,50,.2);border:1px solid rgba(255,50,50,.4);color:var(--red2);
+  font-family:var(--mono);font-size:7px;font-weight:700;border-radius:10px;
+  padding:0 5px;min-width:16px;height:14px;margin-left:5px;
+  transition:all .3s;}
+#al-badge.pulse{animation:badgePulse .5s ease-out;}
+@keyframes badgePulse{0%{transform:scale(1.4);background:rgba(255,50,50,.4)}100%{transform:scale(1)}}
 #stressc{border-top:1px solid var(--border);padding:6px 7px;flex:none;}
 .sc2{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px 8px;margin-bottom:4px;}
 .scl{font-family:var(--mono);font-size:5px;letter-spacing:.16em;color:var(--muted);margin-bottom:2px;}
@@ -457,7 +480,13 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
   border-color:rgba(0,232,255,.5);background:rgba(0,232,255,.08);color:var(--cyan2);
   animation:remPulse 1.1s ease-in-out infinite;cursor:default;pointer-events:none;
 }
+#tl-remediate.rem-done-btn{
+  border-color:rgba(57,255,154,.7);background:rgba(57,255,154,.12);color:var(--green2);
+  cursor:default;pointer-events:none;
+  animation:remDoneGlow .8s ease-out;
+}
 @keyframes remPulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes remDoneGlow{0%{box-shadow:0 0 20px rgba(57,255,154,.5);background:rgba(57,255,154,.25)}100%{background:rgba(57,255,154,.12)}}
 
 /* ═══ SV HOVER TOOLTIP ═══ */
 #sv-tooltip{
@@ -547,7 +576,10 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
     <button id="fsBtn" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶ FULLSCREEN</button>
     <button id="snapBtn" title="Export Snapshot (P)" aria-label="Export PNG snapshot">📷 SNAPSHOT</button>
   </div>
-  <div class="rutc" id="rutc">--:--:-- UTC</div>
+  <div class="rutc" id="rutc">
+    <span class="rutc-jday" id="rutc-jday">---</span>
+    <span class="rutc-time" id="rutc-time">--:--:-- UTC</span>
+  </div>
 </div>
 
 <!-- ═══ MAIN OPS ROW ═══ -->
@@ -584,7 +616,7 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
       <div>
         <div class="tl-name" id="tl-name">—</div>
       </div>
-      <button class="tl-close" onclick="selSVFn(selSV)">✕ CLOSE</button>
+      <button class="tl-close" onclick="closeTelem()">✕ CLOSE</button>
     </div>
     <div class="tl-eye" id="tl-eye"></div>
     <div class="tl-status-bar">
@@ -692,7 +724,7 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
         <div class="lr-left"><div class="lr-ico">👤</div><div><div class="lr-label">Users</div><div class="lr-sub">6 terminals</div></div></div>
         <div class="sdot g"></div>
       </div>
-      <div class="layer-row" id="lr-cones" data-lkey="cones">
+      <div class="layer-row off" id="lr-cones" data-lkey="cones">
         <div class="lr-left"><div class="lr-ico">📶</div><div><div class="lr-label">Cov. Cones</div><div class="lr-sub">MEO + GEO</div></div></div>
         <div class="sdot g"></div>
       </div>
@@ -744,8 +776,8 @@ body::before{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
 <div id="rightcol">
   <div id="alp">
     <div class="shdr">
-      <div class="stitle">⚡ ALERTS</div>
-      <div class="ssub" id="alclbl">0</div>
+      <div class="stitle">⚡ ALERTS<span id="al-badge">0</span></div>
+      <div class="ssub" id="alclbl">0 active</div>
     </div>
     <div id="alf"></div>
   </div>
@@ -839,22 +871,24 @@ const SV=[
   {id:"sv-020",n:"ECLIPSE-4", t:"EW",             s:"Critical",   m:"OFFLINE — payload failure, recovery TBD",            cc:"stratcom", h:8, l:0,u:"18m"},
 ];
 
+const _now=Date.now();
 const AL=[
-  {sv:"high",  ti:"CENTCOM fill rate below 80% — 6 unfilled tasks",   cc:"centcom",  t:"2m",  svId:null},
-  {sv:"high",  ti:"NEXUS-2 in safing mode — EUCOM ISR gap opened",    cc:"eucom",    t:"12m", svId:"sv-009"},
-  {sv:"high",  ti:"ECLIPSE-4 payload failure — STRATCOM EW gap",      cc:"stratcom", t:"18m", svId:"sv-020"},
-  {sv:"medium",ti:"AFRICOM fill rate at 67% — lowest across all AORs",cc:"africom",  t:"5m",  svId:null},
-  {sv:"medium",ti:"ARES-3 uplink degraded — ISR capacity reduced",    cc:"centcom",  t:"3m",  svId:"sv-002"},
-  {sv:"medium",ti:"KESTREL-8 solar array degraded — 42% health",      cc:"africom",  t:"9m",  svId:"sv-014"},
-  {sv:"medium",ti:"ATLAS-11 latency exceedances — INDOPACOM relay",   cc:"indopacom",t:"7m",  svId:"sv-007"},
-  {sv:"low",   ti:"NORTHCOM fill rate 100% — all tasks satisfied",    cc:"northcom", t:"1m",  svId:null},
-  {sv:"low",   ti:"SOUTHCOM fill rate 88% — within threshold",        cc:"southcom", t:"4m",  svId:null},
+  {sv:"high",  ti:"CENTCOM fill rate below 80% — 6 unfilled tasks",   cc:"centcom",  t:"2m",  svId:null,    ts:_now-2*60e3},
+  {sv:"high",  ti:"NEXUS-2 in safing mode — EUCOM ISR gap opened",    cc:"eucom",    t:"12m", svId:"sv-009",ts:_now-12*60e3},
+  {sv:"high",  ti:"ECLIPSE-4 payload failure — STRATCOM EW gap",      cc:"stratcom", t:"18m", svId:"sv-020",ts:_now-18*60e3},
+  {sv:"medium",ti:"AFRICOM fill rate at 67% — lowest across all AORs",cc:"africom",  t:"5m",  svId:null,    ts:_now-5*60e3},
+  {sv:"medium",ti:"ARES-3 uplink degraded — ISR capacity reduced",    cc:"centcom",  t:"3m",  svId:"sv-002",ts:_now-3*60e3},
+  {sv:"medium",ti:"KESTREL-8 solar array degraded — 42% health",      cc:"africom",  t:"9m",  svId:"sv-014",ts:_now-9*60e3},
+  {sv:"medium",ti:"ATLAS-11 latency exceedances — INDOPACOM relay",   cc:"indopacom",t:"7m",  svId:"sv-007",ts:_now-7*60e3},
+  {sv:"low",   ti:"NORTHCOM fill rate 100% — all tasks satisfied",    cc:"northcom", t:"1m",  svId:null,    ts:_now-1*60e3},
+  {sv:"low",   ti:"SOUTHCOM fill rate 88% — within threshold",        cc:"southcom", t:"4m",  svId:null,    ts:_now-4*60e3},
 ];
 
 const IC={"ISR":"🛰","Missile Warning":"🚨","SATCOM":"📡","PNT":"📍","Comms Relay":"📻","EW":"⊕","Cyber":"⚡"};
 
 let selSV=null,selCC=null,fSt='all',fSo='priority',fSr='';
 let _remediating=null; // svId currently being remediated
+let _remDone=null;     // svId showing completion flash
 
 const byP=()=>[...CC].sort((a,b)=>a.p-b.p);
 const sc=s=>s==='Operational'?'var(--green2)':s==='Degraded'?'var(--amber2)':s==='Critical'?'var(--red2)':'var(--blue2)';
@@ -1009,7 +1043,13 @@ function rSV(){
           <span style="font-family:var(--mono);font-size:6px;color:${scl};margin-left:auto">▼ DETAIL OPEN</span></div>
       </div>`;
     }
-    return `<div class="svc${sv.s==='Critical'?' crit':''}"
+    const globeSat=typeof SATS!=='undefined'?SATS.find(s=>s.id===sv.id):null;
+    const regime=globeSat?globeSat.regime:'';
+    const staleMin=parseInt(sv.u)||0;
+    const isStale=staleMin>=10;
+    const isRemediating=_remediating===sv.id;
+    const isRemDone=_remDone===sv.id;
+    return `<div class="svc${sv.s==='Critical'?' crit':''}${isRemediating?' remediating':''}${isRemDone?' rem-done':''}"
       data-svid="${sv.id}"
       style="border-left-color:${scl}"
       onclick="selSVFn('${sv.id}')"
@@ -1018,16 +1058,17 @@ function rSV(){
       tabindex="0" role="button" aria-label="${sv.n}, ${sv.s}, ${sv.t}">
       <div class="sv-r1">
         <div class="svnm" style="color:${scl}">${sv.n}</div>
-        <div class="svsb" style="color:${scl};border-color:${scl}55">${sv.s.substring(0,4).toUpperCase()}</div>
+        <div class="svsb" style="color:${scl};border-color:${scl}55">${isRemediating?'REM…':isRemDone?'✓ OK':sv.s.substring(0,4).toUpperCase()}</div>
       </div>
       <div class="sv-r2">
         <span class="svic">${IC[sv.t]||'●'}</span>
         <span class="svtp">${sv.t}</span>
         <span class="svct" style="color:${m?m.color:'#888'};background:${m?m.color+'12':'transparent'};border:1px solid ${m?m.color+'30':'transparent'}">${m?m.name:sv.cc}</span>
+        ${regime?`<span class="sv-regime ${regime}">${regime}</span>`:''}
       </div>
       <div class="sv-r3">
         <div class="svhb"><div class="svhf" style="width:${sv.h}%;background:${hc(sv.h)}"></div></div>
-        <span class="svmt">${sv.h}% · L:${sv.l} · ${sv.u}</span>
+        <span class="svmt${isStale?' stale':''}">${sv.h}% · L:${sv.l} · ${isStale?'⚠ ':''} ${sv.u}</span>
       </div>
     </div>`;
   }).join('');
@@ -1097,18 +1138,42 @@ let _alertSoundEnabled=true;
 // Fire tones for existing high alerts on load (once)
 setTimeout(()=>{if(_alertSoundEnabled)_playAlertTone('high');},1200);
 
+function _fmtAge(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return s+'s';
+  if(s<3600)return Math.floor(s/60)+'m';
+  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
+}
+
+let _prevAlCount=0;
 function rAL(){
+  // Auto-dismiss low alerts older than 60s
+  const cutoff=Date.now()-60e3;
+  for(let i=AL.length-1;i>=0;i--){
+    if(AL[i].sv==='low'&&AL[i].ts&&AL[i].ts<cutoff)AL.splice(i,1);
+  }
   const al=selCC?AL.filter(a=>a.cc===selCC):AL;
+  const highCount=AL.filter(a=>a.sv==='high').length;
+  // Update badge
+  const badge=document.getElementById('al-badge');
+  if(badge){
+    badge.textContent=AL.length;
+    badge.style.background=highCount>0?'rgba(255,50,50,.2)':'rgba(244,201,107,.15)';
+    badge.style.borderColor=highCount>0?'rgba(255,50,50,.4)':'rgba(244,201,107,.35)';
+    badge.style.color=highCount>0?'var(--red2)':'var(--amber2)';
+    if(AL.length>_prevAlCount){badge.classList.remove('pulse');void badge.offsetWidth;badge.classList.add('pulse');}
+  }
+  _prevAlCount=AL.length;
   document.getElementById('alclbl').textContent=al.length+' active';
   document.getElementById('alf').innerHTML=al.map(a=>{
     const rawIdx=AL.indexOf(a);
     const hasSV=!!a.svId;
     const svObj=hasSV?SV.find(x=>x.id===a.svId):null;
     const svName=svObj?svObj.n:'';
+    const age=a.ts?_fmtAge(a.ts):(a.t||'?');
     return `<div class="al ${a.sv} ${hasSV?'al-sv-link':''}" onclick="alClick(${rawIdx})" title="${hasSV?'Click to focus '+svName:'Click to filter '+a.cc.toUpperCase()}">
-      <div class="als ${a.sv}">◈ ${a.sv.toUpperCase()}${hasSV?` <span class="al-svtag">${svName}</span>`:''}</div>
+      <div class="als ${a.sv}">◈ ${a.sv.toUpperCase()}${hasSV?` <span class="al-svtag">${svName}</span>`:''}<span class="al-age">${age} ago</span></div>
       <div class="alt">${a.ti}</div>
-      <div class="altm">${a.t} ago</div>
     </div>`;
   }).join('');
 }
@@ -1210,10 +1275,19 @@ function renderTelemPanel(){
 
   document.getElementById('tl-mission').textContent=sv.m;
 
-  // Remediation button — show for Critical/Degraded only
+  // Remediation button
   const remBtn=document.getElementById('tl-remediate');
-  if(sv.s==='Critical'||sv.s==='Degraded'){
+  if(_remDone===sv.id){
+    // Just completed — show green COMPLETE for 3s
     remBtn.style.display='block';
+    remBtn.classList.remove('resolving','deg');
+    remBtn.classList.add('rem-done-btn');
+    remBtn.textContent='✓ REMEDIATION COMPLETE';
+    remBtn.disabled=true;
+  } else if(sv.s==='Critical'||sv.s==='Degraded'){
+    remBtn.style.display='block';
+    remBtn.disabled=false;
+    remBtn.classList.remove('rem-done-btn');
     remBtn.classList.toggle('deg', sv.s==='Degraded');
     if(_remediating===sv.id){
       remBtn.classList.add('resolving');
@@ -1224,7 +1298,8 @@ function renderTelemPanel(){
     }
   } else {
     remBtn.style.display='none';
-    remBtn.classList.remove('resolving','deg');
+    remBtn.disabled=false;
+    remBtn.classList.remove('resolving','deg','rem-done-btn');
   }
 
   panel.classList.add('open');
@@ -1234,34 +1309,62 @@ function triggerRemediate(){
   const btn=document.getElementById('tl-remediate');
   if(!selSV||_remediating===selSV)return;
   const sv=SV.find(x=>x.id===selSV);
+  if(!sv)return;
   _remediating=sv.id;
-  btn.classList.add('resolving');
-  btn.textContent='⟳ REMEDIATION IN PROGRESS…';
+  _remDone=null;
+  renderAll(); // immediately update card + button to IN PROGRESS
   setTimeout(()=>{
-    if(selSV!==sv.id){_remediating=null;return;}
+    if(!SV.find(x=>x.id===sv.id)){_remediating=null;return;}
     sv.s='Operational'; sv.h=Math.min(100,sv.h+38); sv.u='0m';
     sv.m='Systems nominal — auto-remediation completed successfully.';
+    const remId=sv.id;
     _remediating=null;
-    AL.unshift({id:'al-rem-'+Date.now(),sev:'low',t:'AUTO-REMEDIATION',
-      msg:sv.n+' restored to OPERATIONAL status by autonomous remediation system.',svId:sv.id});
-    renderAll(); // re-renders telem panel with updated sv.s = Operational
+    _remDone=remId;
+    AL.unshift({sv:'low',ti:sv.n+' restored to OPERATIONAL by auto-remediation.',cc:sv.cc,ts:Date.now(),svId:sv.id});
+    renderAll(); // card flashes green, button shows COMPLETE
+    // Clear done state after 3s
+    setTimeout(()=>{if(_remDone===remId){_remDone=null;renderAll();}},3000);
   },3500);
 }
 
+const _MET_START=Date.now();
+function _dayOfYear(d){
+  const start=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((d-start)/864e5)+1;
+}
 (function tick(){
   const n=new Date(),p=x=>String(x).padStart(2,'0');
-  document.getElementById('rutc').textContent=`${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
+  const timeEl=document.getElementById('rutc-time');
+  const jdEl=document.getElementById('rutc-jday');
+  if(timeEl)timeEl.textContent=`${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
+  if(jdEl)jdEl.textContent=String(_dayOfYear(n)).padStart(3,'0');
+  // Refresh alert ages every tick
+  document.querySelectorAll('.al-age').forEach((el,i)=>{
+    const al=document.getElementById('alf');
+    if(!al)return;
+    const cards=[...al.children];
+    if(cards[i]){
+      const idx=parseInt(cards[i].getAttribute('onclick')?.match(/\d+/)?.[0])||0;
+      if(AL[idx]?.ts)el.textContent=_fmtAge(AL[idx].ts)+' ago';
+    }
+  });
   setTimeout(tick,1000);
 })();
 
 function renderAll(){rRib();rCMD();rSV();rAL();renderTelemPanel();}
 renderAll();
+// Expose outer-scope functions to global (inline onclick handlers)
+window.selSVFn=selSVFn;window.selCCFn=selCCFn;window.triggerRemediate=triggerRemediate;
+window.setF=setF;window.setS=setS;window.alClick=alClick;
+window.chP=chP;window.resetP=resetP;
+window.closeTelem=function(){selSV=null;_remediating=null;_remDone=null;renderAll();if(typeof window.focusSV==='function')window.focusSV(null);};
 console.log('[ASTRONETIX] Initial render complete. Unified command band active.');
 
 // ════════════════════════════════════════════════════════
 //  GLOBE ENGINE
 // ════════════════════════════════════════════════════════
 (function(){
+try{
 const GM=3.986004418e14,RE=6371,SCALE=1/2000,R_EARTH=RE*SCALE;
 function orbP(sma){return 2*Math.PI*Math.sqrt(Math.pow(sma*1e3,3)/GM);}
 const REGIMES={
@@ -1301,19 +1404,99 @@ const SATS=RAW.map(r=>{
     signal:vs==='Nominal'?'Strong':vs==='Degraded'?'Moderate':'Weak',
     desc:MDESC[MISSIONS[r.R]],mesh:null,pos3:new THREE.Vector3(),lat:0,lon:0,trail:[]};
 });
+// Ground stations — TT&C uplink for all regimes (20 sites, 3D markers)
 const GND=[
-  {lat:38.89,lon:-77.03,name:'Schriever',status:'g'},{lat:34.73,lon:-86.59,name:'Redstone',status:'g'},
-  {lat:51.50,lon:-0.12, name:'RAF Fylingdales',status:'a'},{lat:35.68,lon:139.69,name:'Yokota',status:'g'},
-  {lat:1.35, lon:103.82,name:'Sembawang',status:'g'},{lat:21.31,lon:-157.86,name:'Pearl Harbor',status:'g'},
-  {lat:48.85,lon:2.35,  name:'Paris',status:'g'},{lat:-33.9,lon:151.2,name:'Pine Gap',status:'g'},
-  {lat:64.84,lon:-147.72,name:'Eielson',status:'a'},{lat:28.61,lon:77.21,name:'New Delhi',status:'g'},
-  {lat:50.11,lon:8.68,  name:'Frankfurt',status:'r'},{lat:-34.6,lon:-58.4,name:'Buenos Aires',status:'g'},
-  {lat:19.43,lon:-99.13,name:'Mexico City',status:'g'},
+  {lat:38.80,lon:-104.52,name:'Schriever SFB',    status:'g'},
+  {lat:34.73,lon:-86.59, name:'Redstone Arsenal',  status:'g'},
+  {lat:51.50,lon:-0.12,  name:'RAF Fylingdales',   status:'a'},
+  {lat:35.68,lon:139.69, name:'Yokota AB',          status:'g'},
+  {lat:1.35, lon:103.82, name:'Sembawang',          status:'g'},
+  {lat:21.31,lon:-157.86,name:'Pearl Harbor',       status:'g'},
+  {lat:48.85,lon:2.35,   name:'Paris Relay',        status:'g'},
+  {lat:-33.9,lon:151.2,  name:'Pine Gap',           status:'g'},
+  {lat:64.84,lon:-147.72,name:'Eielson AFB',        status:'a'},
+  {lat:28.61,lon:77.21,  name:'New Delhi TT&C',     status:'g'},
+  {lat:50.11,lon:8.68,   name:'Frankfurt',          status:'r'},
+  {lat:-34.6,lon:-58.4,  name:'Buenos Aires',       status:'g'},
+  {lat:19.43,lon:-99.13, name:'Mexico City',        status:'g'},
+  {lat:78.23,lon:15.47,  name:'Svalbard SvalSat',   status:'g'},
+  {lat:-90.0,lon:0.0,    name:'McMurdo Antarctica', status:'g'},
+  {lat:14.99,lon:145.66, name:'Guam TT&C',          status:'g'},
+  {lat:25.2, lon:55.3,   name:'Dubai TT&C',         status:'g'},
+  {lat:37.42,lon:-122.08,name:'Sunnyvale GAOC',     status:'g'},
+  {lat:69.65,lon:18.96,  name:'Tromsø Arctic',      status:'g'},
+  {lat:40.36,lon:49.83,  name:'Baku Relay',         status:'g'},
 ];
-const USERS=[
-  {lat:36.2,lon:-115.0,name:'Las Vegas',status:'g'},{lat:40.7,lon:-74.0,name:'New York',status:'g'},
-  {lat:52.5,lon:13.4,name:'Berlin',status:'g'},{lat:31.2,lon:121.5,name:'Shanghai',status:'a'},
-  {lat:-23.5,lon:-46.6,name:'São Paulo',status:'g'},{lat:25.2,lon:55.3,name:'Dubai',status:'g'},
+// PNT users — MEO GPS/PNT receivers (12 sites, 3D markers, green diamonds)
+const USERS_PNT=[
+  {lat:36.2, lon:-115.0, name:'Nellis AFB PNT'},
+  {lat:38.7, lon:-77.05, name:'Pentagon NMCC'},
+  {lat:13.4, lon:144.6,  name:'Andersen AB Guam'},
+  {lat:26.3, lon:127.8,  name:'Kadena AB'},
+  {lat:35.5, lon:129.4,  name:'Camp Humphreys'},
+  {lat:51.2, lon:-1.8,   name:'RAF Boscombe'},
+  {lat:34.0, lon:132.4,  name:'7th Fleet Yokosuka'},
+  {lat:25.3, lon:51.5,   name:'Qatar CAOC'},
+  {lat:48.9, lon:2.3,    name:'Paris Air Traffic'},
+  {lat:31.2, lon:121.5,  name:'Shanghai Port PNT'},
+  {lat:-23.5,lon:-46.6,  name:'São Paulo ATC'},
+  {lat:55.75,lon:37.6,   name:'Moscow Civil ATC'},
+];
+// COMM users — GEO SATCOM terminals (12 sites, 3D markers, amber squares)
+const USERS_COMM=[
+  {lat:28.5, lon:-80.6,  name:'Cape Canaveral MCT'},
+  {lat:38.8, lon:-104.5, name:'Peterson SHF Term'},
+  {lat:21.3, lon:-157.9, name:'Hawaii SATCOM Hub'},
+  {lat:26.3, lon:127.8,  name:'Okinawa JTF SATCOM'},
+  {lat:51.2, lon:-1.8,   name:'UK DSCS Term'},
+  {lat:50.1, lon:8.7,    name:'Germany SATCOM'},
+  {lat:25.3, lon:51.5,   name:'Qatar CAOC SATCOM'},
+  {lat:26.2, lon:50.6,   name:'Bahrain 5th Fleet'},
+  {lat:11.6, lon:43.1,   name:'Djibouti SATCOM'},
+  {lat:7.1,  lon:171.4,  name:'Kwajalein Atoll'},
+  {lat:40.7, lon:-74.0,  name:'New York Broadcast'},
+  {lat:28.6, lon:77.2,   name:'New Delhi Uplink'},
+];
+// ISR Collection Tasks — canvas-only (no 3D objects), drawn on 2D map & as footprints on globe canvas
+const TASKS=[
+  // CENTCOM
+  {lat:33.3, lon:44.4,  name:'Baghdad SIGINT',      p:'h', cc:'centcom'},
+  {lat:33.5, lon:36.3,  name:'Damascus FMV',        p:'h', cc:'centcom'},
+  {lat:35.7, lon:51.4,  name:'Tehran WMD',          p:'h', cc:'centcom'},
+  {lat:15.4, lon:44.2,  name:'Sana\'a Targeting',  p:'m', cc:'centcom'},
+  {lat:34.5, lon:69.2,  name:'Kabul ISR',           p:'m', cc:'centcom'},
+  {lat:31.7, lon:35.2,  name:'West Bank Track',     p:'m', cc:'centcom'},
+  // INDOPACOM
+  {lat:39.0, lon:125.8, name:'Pyongyang WMD',       p:'h', cc:'indopacom'},
+  {lat:22.5, lon:113.9, name:'PLA Guangzhou Port',  p:'h', cc:'indopacom'},
+  {lat:32.1, lon:121.4, name:'Shanghai Naval Base', p:'h', cc:'indopacom'},
+  {lat:20.0, lon:110.3, name:'Hainan Island Sub',   p:'h', cc:'indopacom'},
+  {lat:15.2, lon:112.3, name:'Spratly Islands',     p:'h', cc:'indopacom'},
+  {lat:25.1, lon:121.7, name:'Taiwan Strait Watch', p:'h', cc:'indopacom'},
+  {lat:10.7, lon:122.6, name:'Philippines Watch',   p:'m', cc:'indopacom'},
+  {lat:30.7, lon:104.1, name:'Chengdu AF Base',     p:'m', cc:'indopacom'},
+  // EUCOM
+  {lat:55.8, lon:37.6,  name:'Moscow ISR',          p:'h', cc:'eucom'},
+  {lat:48.0, lon:37.8,  name:'Donbas Frontline',    p:'h', cc:'eucom'},
+  {lat:50.5, lon:30.5,  name:'Kyiv SAM Coverage',   p:'h', cc:'eucom'},
+  {lat:54.7, lon:20.5,  name:'Kaliningrad',         p:'h', cc:'eucom'},
+  {lat:69.1, lon:33.1,  name:'Murmansk Sub Base',   p:'h', cc:'eucom'},
+  {lat:64.5, lon:40.5,  name:'Arkhangelsk Naval',   p:'m', cc:'eucom'},
+  {lat:52.4, lon:31.0,  name:'Belarus Rail Hub',    p:'m', cc:'eucom'},
+  // AFRICOM
+  {lat:12.4, lon:1.5,   name:'Sahel Convoy ISR',    p:'h', cc:'africom'},
+  {lat:2.0,  lon:45.3,  name:'Mogadishu ISR',       p:'h', cc:'africom'},
+  {lat:32.9, lon:13.2,  name:'Tripoli Coast',       p:'m', cc:'africom'},
+  {lat:11.6, lon:43.1,  name:'Djibouti Straits',    p:'m', cc:'africom'},
+  // NORTHCOM / SOUTHCOM
+  {lat:64.8, lon:-147.7,name:'Alaska ICBM Track',   p:'h', cc:'northcom'},
+  {lat:4.7,  lon:-74.1, name:'Bogotá ISR',          p:'h', cc:'southcom'},
+  {lat:10.5, lon:-66.9, name:'Caracas Watch',       p:'m', cc:'southcom'},
+  // SPACECOM / STRATCOM
+  {lat:50.9, lon:61.6,  name:'Baikonur Launch',     p:'h', cc:'spacecom'},
+  {lat:28.6, lon:102.0, name:'Xichang Launch',      p:'h', cc:'spacecom'},
+  {lat:69.1, lon:33.1,  name:'Murmansk SSBN',       p:'h', cc:'stratcom'},
+  {lat:52.4, lon:31.0,  name:'Mozyr ICBM Field',    p:'h', cc:'stratcom'},
 ];
 
 // CCMD geo state
@@ -1414,7 +1597,7 @@ function processTopo(topo){
   ccmdGeoLoaded=true;buildCCMD3D();
 }
 
-const show={LEO:true,MEO:true,GEO:true,tracks:true,ground:true,users:true,cones:true,terminator:true,gcc:true};
+const show={LEO:true,MEO:true,GEO:true,tracks:true,ground:true,users:true,cones:false,terminator:true,gcc:true};
 
 const ax=document.getElementById('ax');
 const g3dEl=document.getElementById('g3d');
@@ -1583,12 +1766,25 @@ GND.forEach(gs=>{
   gs._arcs=[arc1,arc2];gs._col=colHex;gs._body=body;
   gGnd.add(body,arc1,arc2);
 });
-USERS.forEach(ut=>{
-  const amber=0xf4c96b,pos=ll2v3(ut.lat,ut.lon,R_EARTH*1.008);
-  const sph=new THREE.Mesh(new THREE.SphereGeometry(0.022,8,8),new THREE.MeshPhongMaterial({color:amber,emissive:new THREE.Color(0x3a2800),shininess:40}));sph.position.copy(pos);
-  const ring=new THREE.Mesh(new THREE.RingGeometry(0.028,0.035,16),new THREE.MeshBasicMaterial({color:amber,transparent:true,opacity:.35,side:THREE.DoubleSide}));ring.position.copy(pos).multiplyScalar(1.004);ring.lookAt(0,0,0);ut._ring=ring;
-  gUsr.add(sph,ring);
+// PNT users — green diamond octahedra (MEO link targets)
+USERS_PNT.forEach(ut=>{
+  const col=0x39ff9a,pos=ll2v3(ut.lat,ut.lon,R_EARTH*1.007);
+  const oct=new THREE.Mesh(new THREE.OctahedronGeometry(0.018,0),new THREE.MeshPhongMaterial({color:col,emissive:new THREE.Color(0x003a20),shininess:60,transparent:true,opacity:0.85}));
+  oct.position.copy(pos);oct.lookAt(0,0,0);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(0.022,0.028,12),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.22,side:THREE.DoubleSide}));
+  ring.position.copy(pos).multiplyScalar(1.003);ring.lookAt(0,0,0);ut._ring=ring;
+  gUsr.add(oct,ring);
 });
+// COMM users — amber box markers (GEO link targets)
+USERS_COMM.forEach(ut=>{
+  const col=0xf4c96b,pos=ll2v3(ut.lat,ut.lon,R_EARTH*1.007);
+  const box=new THREE.Mesh(new THREE.BoxGeometry(0.022,0.022,0.006),new THREE.MeshPhongMaterial({color:col,emissive:new THREE.Color(0x3a2800),shininess:40,transparent:true,opacity:0.82}));
+  box.position.copy(pos);box.lookAt(0,0,0);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(0.024,0.030,12),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.20,side:THREE.DoubleSide}));
+  ring.position.copy(pos).multiplyScalar(1.003);ring.lookAt(0,0,0);ut._ring=ring;
+  gUsr.add(box,ring);
+});
+// TASKS — canvas-drawn only (no 3D objects), see drawMap()
 
 const coneObjects={};
 SATS.filter(s=>s.regime==='MEO'||s.regime==='GEO').forEach(s=>{
@@ -1845,17 +2041,37 @@ function drawMap(W,H,t){
   }
   let linkCount=0;
   if(show.ground||show.users){
-    const allSt=[...(show.ground?GND:[]),...(show.users?USERS:[])];
     const activeSats=SATS.filter(s=>show[s.regime]&&(selSV?s.id===selSV:true));
     activeSats.forEach(s=>{
-      const rho=RE/(RE+s.altKm),maxGc=Math.acos(rho)*180/Math.PI;let bestSt=null,bestGc=9999;
-      allSt.forEach(st=>{const dLat=(s.lat-st.lat)*Math.PI/180,dLon=(s.lon-st.lon)*Math.PI/180;const ha=Math.sin(dLat/2)**2+Math.cos(st.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;if(gc<maxGc*0.92&&gc<bestGc){bestGc=gc;bestSt=st;}});
-      if(bestSt){const gp=ll2px(bestSt.lat,bestSt.lon,W,H),sp=ll2px(s.lat,s.lon,W,H);const col=bestSt.status==='g'?'#39ff9a':bestSt.status==='a'?'#f4c96b':'#ff5050';const phase=(t*1.4+s.ta0)%(Math.PI*2),alpha=0.15+Math.abs(Math.sin(phase))*0.52;ctx.save();ctx.strokeStyle=col;ctx.lineWidth=0.8;ctx.globalAlpha=alpha;ctx.setLineDash([3,8]);ctx.beginPath();ctx.moveTo(gp.x,gp.y);ctx.lineTo(sp.x,sp.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();linkCount++;}
+      const rho=RE/(RE+s.altKm),maxGc=Math.acos(rho)*180/Math.PI;
+      const targets=s.regime==='LEO'&&show.ground?GND:s.regime==='MEO'&&show.users?USERS_PNT:s.regime==='GEO'&&show.users?USERS_COMM:[];
+      if(!targets.length)return;
+      let bestSt=null,bestGc=9999;
+      targets.forEach(st=>{const dLat=(s.lat-st.lat)*Math.PI/180,dLon=(s.lon-st.lon)*Math.PI/180;const ha=Math.sin(dLat/2)**2+Math.cos(st.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;if(gc<maxGc*0.92&&gc<bestGc){bestGc=gc;bestSt=st;}});
+      if(bestSt){
+        const gp=ll2px(bestSt.lat,bestSt.lon,W,H),sp=ll2px(s.lat,s.lon,W,H);
+        const col=s.regime==='LEO'?'#6fe8ff':s.regime==='MEO'?'#39ff9a':'#f4c96b';
+        const phase=(t*1.4+s.ta0)%(Math.PI*2),alpha=0.14+Math.abs(Math.sin(phase))*0.44;
+        ctx.save();ctx.strokeStyle=col;ctx.lineWidth=0.8;ctx.globalAlpha=alpha;ctx.setLineDash([3,8]);ctx.beginPath();ctx.moveTo(gp.x,gp.y);ctx.lineTo(sp.x,sp.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();linkCount++;
+        // LEO: also draw downlink dashes to nearest task in footprint
+        if(s.regime==='LEO'&&show.users){
+          let bestTk=null,bestTkGc=9999;
+          TASKS.forEach(tk=>{const dLat=(s.lat-tk.lat)*Math.PI/180,dLon=(s.lon-tk.lon)*Math.PI/180;const ha=Math.sin(dLat/2)**2+Math.cos(tk.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLon/2)**2;const gc=2*Math.atan2(Math.sqrt(ha),Math.sqrt(1-ha))*180/Math.PI;if(gc<maxGc*0.65&&gc<bestTkGc){bestTkGc=gc;bestTk=tk;}});
+          if(bestTk){const tp=ll2px(bestTk.lat,bestTk.lon,W,H),tkCol=bestTk.p==='h'?'#ff5050':bestTk.p==='m'?'#f4c96b':'#39ff9a';ctx.save();ctx.strokeStyle=tkCol;ctx.lineWidth=0.6;ctx.globalAlpha=0.25+Math.abs(Math.sin(phase+1))*0.30;ctx.setLineDash([2,5]);ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(tp.x,tp.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();linkCount++;}
+        }
+      }
     });
   }
   document.getElementById('bLinks').textContent=linkCount;
   if(show.ground){GND.forEach(gs=>{const p=ll2px(gs.lat,gs.lon,W,H),cyan='#6fe8ff',pulse=Math.sin(t*2.2+gs.lon*.05)*.5+.5,sz=7;ctx.save();ctx.shadowColor=cyan;ctx.shadowBlur=8+pulse*5;ctx.fillStyle='rgba(26,92,255,0.18)';ctx.strokeStyle=cyan;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(p.x,p.y-sz);ctx.lineTo(p.x+sz*0.9,p.y+sz*0.7);ctx.lineTo(p.x-sz*0.9,p.y+sz*0.7);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();});}
-  if(show.users){USERS.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H),amber='#f4c96b',pulse=Math.sin(t*1.6+ut.lon*.04)*.5+.5;ctx.save();ctx.fillStyle=amber;ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();});}
+  if(show.users){
+    // PNT receivers — green diamonds
+    USERS_PNT.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H),col='#39ff9a',s2=4;ctx.save();ctx.fillStyle=col;ctx.strokeStyle='rgba(57,255,154,0.45)';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(p.x,p.y-s2);ctx.lineTo(p.x+s2,p.y);ctx.lineTo(p.x,p.y+s2);ctx.lineTo(p.x-s2,p.y);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();});
+    // COMM terminals — amber squares
+    USERS_COMM.forEach(ut=>{const p=ll2px(ut.lat,ut.lon,W,H),col='#f4c96b',s2=3;ctx.save();ctx.fillStyle=col+'bb';ctx.strokeStyle=col;ctx.lineWidth=0.8;ctx.fillRect(p.x-s2,p.y-s2,s2*2,s2*2);ctx.strokeRect(p.x-s2,p.y-s2,s2*2,s2*2);ctx.restore();});
+    // ISR collection tasks — priority-colored target boxes
+    TASKS.forEach(tk=>{const p=ll2px(tk.lat,tk.lon,W,H);const col=tk.p==='h'?'#ff5050':tk.p==='m'?'#f4c96b':'#39ff9a';const phase=t*1.8+tk.lat*0.12+tk.lon*0.08,alpha=0.22+Math.abs(Math.sin(phase))*0.28;ctx.save();ctx.strokeStyle=col;ctx.lineWidth=0.9;ctx.globalAlpha=alpha;ctx.strokeRect(p.x-7,p.y-5,14,10);ctx.globalAlpha=alpha*0.2;ctx.fillStyle=col;ctx.fillRect(p.x-7,p.y-5,14,10);ctx.restore();});
+  }
   SATS.forEach(s=>{
     if(!show[s.regime])return;
     // When SV selected, dim all others — only draw selected at full brightness
@@ -1884,6 +2100,13 @@ function setView(to2D){
   is2D=to2D;g3dEl.style.display=to2D?'none':'block';g2dEl.style.display=to2D?'block':'none';
   document.getElementById('b3d').classList.toggle('on',!to2D);document.getElementById('b2d').classList.toggle('on',to2D);
   hideTip();if(to2D)SATS.forEach(s=>{s.trail=[];s.lastLon=null;});
+  // Cones: hide in 2D (redundant with footprint ellipses), restore in 3D
+  if(typeof coneObjects!=='undefined'){
+    const v=!to2D&&show.cones;
+    Object.entries(coneObjects).forEach(([id,m])=>{const s=SATS.find(x=>x.id===id);m.visible=v&&show[s.regime];});
+  }
+  const conesBtn=document.getElementById('lr-cones');
+  if(conesBtn){conesBtn.classList.toggle('off',to2D);}
 }
 document.getElementById('b3d').addEventListener('click',()=>setView(false));
 document.getElementById('b2d').addEventListener('click',()=>setView(true));
@@ -1953,7 +2176,7 @@ function updateSats(simTime){
       cone.position.copy(p3);
       cone.lookAt(0,0,0);
       cone.rotateX(-Math.PI/2);
-      cone.visible=show.cones&&(svSelected?s.id===selSV:show[s.regime]);
+      cone.visible=!is2D&&show.cones&&(svSelected?s.id===selSV:show[s.regime]);
     }
     const r=p3.length();s.lat=Math.asin(p3.y/r)*180/Math.PI;
     const rawLon=Math.atan2(p3.z,-p3.x)*180/Math.PI-180;s.lon=((rawLon+540)%360)-180;
@@ -1986,10 +2209,18 @@ function updateSats(simTime){
         s._glowRing.material.opacity=0;
       }
     }
-    // Ground links: only draw for the selected SV (or all if none selected)
+    // Ground links: routed by regime — LEO→GND, MEO→USERS_PNT, GEO→USERS_COMM
     if(show.ground&&show[s.regime]&&linkCount3D<MAX_LINKS&&(!svSelected||s.id===selSV)){
-      let bestGs=null,bestElev=-999;GND.forEach(gs=>{const gpos=ll2v3(gs.lat,gs.lon,R_EARTH);const surfN=gpos.clone().normalize();const toSat=p3.clone().sub(gpos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.08&&elev>bestElev){bestElev=elev;bestGs=gs;}});
-      if(bestGs){const gpos=ll2v3(bestGs.lat,bestGs.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,gpos.x,gpos.y,gpos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.6+s.ta0)%(Math.PI*2);ll.mat.opacity=0.18+Math.abs(Math.sin(ph))*0.48;ll.line.visible=true;linkCount3D++;}
+      if(s.regime==='LEO'){
+        let bestGs=null,bestElev=-999;GND.forEach(gs=>{const gpos=ll2v3(gs.lat,gs.lon,R_EARTH);const surfN=gpos.clone().normalize();const toSat=p3.clone().sub(gpos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.08&&elev>bestElev){bestElev=elev;bestGs=gs;}});
+        if(bestGs){const gpos=ll2v3(bestGs.lat,bestGs.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,gpos.x,gpos.y,gpos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.6+s.ta0)%(Math.PI*2);ll.mat.color.set(0x6fe8ff);ll.mat.opacity=0.15+Math.abs(Math.sin(ph))*0.40;ll.line.visible=true;linkCount3D++;}
+      } else if(s.regime==='MEO'&&show.users){
+        let bestU=null,bestElev=-999;USERS_PNT.forEach(ut=>{const upos=ll2v3(ut.lat,ut.lon,R_EARTH);const surfN=upos.clone().normalize();const toSat=p3.clone().sub(upos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.05&&elev>bestElev){bestElev=elev;bestU=ut;}});
+        if(bestU&&linkCount3D<MAX_LINKS){const upos=ll2v3(bestU.lat,bestU.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,upos.x,upos.y,upos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*1.2+s.ta0)%(Math.PI*2);ll.mat.color.set(0x39ff9a);ll.mat.opacity=0.12+Math.abs(Math.sin(ph))*0.30;ll.line.visible=true;linkCount3D++;}
+      } else if(s.regime==='GEO'&&show.users){
+        let bestU=null,bestElev=-999;USERS_COMM.forEach(ut=>{const upos=ll2v3(ut.lat,ut.lon,R_EARTH);const surfN=upos.clone().normalize();const toSat=p3.clone().sub(upos);const elev=toSat.dot(surfN)/toSat.length();if(elev>0.02&&elev>bestElev){bestElev=elev;bestU=ut;}});
+        if(bestU&&linkCount3D<MAX_LINKS){const upos=ll2v3(bestU.lat,bestU.lon,R_EARTH);const ll=linkLines[linkCount3D];const pos=ll.geo.attributes.position;pos.setXYZ(0,upos.x,upos.y,upos.z);pos.setXYZ(1,p3.x,p3.y,p3.z);pos.needsUpdate=true;const ph=(simTime*0.8+s.ta0)%(Math.PI*2);ll.mat.color.set(0xf4c96b);ll.mat.opacity=0.10+Math.abs(Math.sin(ph))*0.22;ll.line.visible=true;linkCount3D++;}
+      }
     }
   });
   if(!is2D)document.getElementById('bLinks').textContent=linkCount3D;
@@ -2006,6 +2237,7 @@ window.addEventListener('resize',onResize);
 
 function animate(){
   requestAnimationFrame(animate);
+  try{
   const dt=clock.getDelta(),t=clock.getElapsedTime();
   updateHUD(t);updateSats(t);clouds.rotation.y+=dt*0.016;
   if(ctrl.autoRotate&&!ctrl.rotating)ctrl.targetLon+=dt*3.5;
@@ -2060,7 +2292,8 @@ function animate(){
       }
     }
   });
-  USERS.forEach(ut=>{if(ut._ring&&ut._ring.material)ut._ring.material.opacity=pulse*.75;});
+  USERS_PNT.forEach(ut=>{if(ut._ring&&ut._ring.material)ut._ring.material.opacity=0.12+pulse*0.32;});
+  USERS_COMM.forEach(ut=>{if(ut._ring&&ut._ring.material)ut._ring.material.opacity=0.10+pulse2*0.28;});
   if(!is2D)renderer.render(scene,camera);else drawMap(c2d.width,c2d.height,t);
   // Live-update selected SV position in telemetry panel
   if(typeof selSV!=='undefined'&&selSV){
@@ -2072,6 +2305,7 @@ function animate(){
       if(posEl)posEl.textContent=`${Math.abs(gs.lat).toFixed(2)}°${gs.lat>=0?'N':'S'} / ${Math.abs(gs.lon).toFixed(2)}°${gs.lon>=0?'E':'W'} · ${gs.altKm.toLocaleString()} km`;
     }
   }
+  }catch(e){console.warn('[ASTRONETIX] animate error:',e);}
 }
 requestAnimationFrame(()=>requestAnimationFrame(()=>{onResize();console.log('[ASTRONETIX] Animation loop started. Canvas: '+c2d.width+'x'+c2d.height);animate();}));
 
@@ -2284,6 +2518,7 @@ function renderCompare(){
 }
 // Compare button shown in SV cards when a primary SV is selected
 function clearCompare(){selSV2=null;window.selSV2=null;renderCompare();}
+window.clearCompare=clearCompare;
 window.selectForCompare=function(id){
   if(id===selSV)return; // can't compare to self
   selSV2=id;window.selSV2=id;
@@ -2349,6 +2584,7 @@ renderAll=function(){_renderAll_orig();applyA11y();renderCompare();};
   });
   // Hotkey legend is persistent — see #hotkey-legend in DOM
 })();
+}catch(e){console.error('[ASTRONETIX] Globe init error:',e);const ax=document.getElementById('ax');if(ax){ax.style.display='flex';ax.style.alignItems='center';ax.style.justifyContent='center';ax.innerHTML='<div style="font-family:monospace;font-size:11px;color:#ff5050;text-align:center;padding:20px">⚠ GLOBE ENGINE ERROR<br><span style="color:#888;font-size:9px">'+e.message+'</span></div>';}}
 })();
 </script>
 <div id="hotkey-legend" aria-label="Keyboard shortcuts reference">
@@ -2384,6 +2620,7 @@ renderAll=function(){_renderAll_orig();applyA11y();renderCompare();};
 </div>
 <script>
 function toggleHKLegend(){
+window.toggleHKLegend=toggleHKLegend;
   const body=document.getElementById('hk-body');
   const chev=document.getElementById('hk-chevron');
   const hdr=document.getElementById('hk-header');
