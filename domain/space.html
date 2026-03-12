@@ -2540,10 +2540,16 @@ function drawCCMD2D(W,H){
       const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];
       polys.forEach(poly=>poly.forEach((ring,ri)=>{
         ctx.beginPath();ring.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();
-        if(ri===0){ctx.fillStyle=col;ctx.globalAlpha=hilite?0.22:activeCCMD_globe?0.04:0.10;ctx.fill();ctx.globalAlpha=hilite?0.90:activeCCMD_globe?0.25:0.45;ctx.strokeStyle=col;ctx.lineWidth=hilite?1.4:0.7;ctx.stroke();}
+        if(ri===0){
+          ctx.fillStyle=col;
+          ctx.globalAlpha=hilite?0.22:activeCCMD_globe?0.04:0.08;
+          ctx.fill();
+          if(hilite){ctx.globalAlpha=0.90;ctx.strokeStyle=col;ctx.lineWidth=1.4;ctx.stroke();}
+          else if(activeCCMD_globe){ctx.globalAlpha=0.18;ctx.strokeStyle=col;ctx.lineWidth=0.5;ctx.stroke();}
+        }
       }));
     });
-    if(cmd.maritime&&cmd.maritime.length){ctx.globalAlpha=hilite?0.30:0.10;ctx.strokeStyle=col;ctx.lineWidth=hilite?1.2:0.5;ctx.setLineDash([5,5]);ctx.beginPath();cmd.maritime.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();ctx.stroke();ctx.setLineDash([]);}
+    if(hilite&&cmd.maritime&&cmd.maritime.length){ctx.globalAlpha=0.35;ctx.strokeStyle=col;ctx.lineWidth=1.2;ctx.setLineDash([5,5]);ctx.beginPath();cmd.maritime.forEach(([lo,la],i)=>{const p=ll2px(la,lo,W,H);i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.closePath();ctx.stroke();ctx.setLineDash([]);}
     if(hilite&&feats[0]){
       const f0=feats[0],ring0=(f0.type==='Polygon'?f0.coordinates[0]:f0.coordinates[0]&&f0.coordinates[0][0])||[];
       let cxC=0,cyC=0;ring0.forEach(([lo,la])=>{cxC+=lo;cyC+=la;});
