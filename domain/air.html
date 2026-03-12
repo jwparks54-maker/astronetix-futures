@@ -131,7 +131,7 @@
     .summary{
       padding:6px 10px;
       display:grid;
-      grid-template-columns:repeat(6,minmax(0,1fr));
+      grid-template-columns:repeat(5,minmax(0,1fr));
       gap:8px;
       align-items:stretch;
     }
@@ -247,7 +247,7 @@
     }
 
     /* ── PANELS (top anchored to --th) ── */
-    :root{ --tlh:156px; --detail-w:348px; }
+    :root{ --tlh:106px; --detail-w:348px; }
     .sidebar{
       position:absolute; z-index:30;
       top:calc(var(--th) + 44px); left:12px; bottom:var(--tlh);
@@ -255,7 +255,7 @@
     }
     .detail{
       position:absolute; z-index:30;
-      top:calc(var(--th) + 44px); right:12px; bottom:var(--tlh);
+      top:calc(var(--th) + 44px); right:12px; bottom:8px;
       width:var(--detail-w); overflow:hidden;
       display:flex; flex-direction:column;
       transition:width .1s ease;
@@ -423,10 +423,10 @@
 
     /* ── TIMELINE ── */
     /* ── TIMELINE: resizable + minimizable ── */
-    :root{ --tl-h:148px; }
+    :root{ --tl-h:90px; }
     .timeline{
       position:absolute; z-index:30;
-      left:12px; right:12px; bottom:8px;
+      left:12px; right:calc(var(--detail-w) + 24px); bottom:8px;
       height:var(--tl-h);
       display:grid; grid-template-columns:180px 1fr; overflow:hidden;
       transition:height .2s cubic-bezier(.4,0,.2,1);
@@ -436,7 +436,7 @@
     /* Drag handle — sits above timeline */
     #timelineDragHandle{
       position:absolute; z-index:31;
-      left:12px; right:12px;
+      left:12px; right:calc(var(--detail-w) + 24px);
       bottom:calc(var(--tl-h) + 8px);
       height:8px; cursor:ns-resize;
       display:flex; align-items:center; justify-content:center;
@@ -711,12 +711,12 @@
 
     <!-- METRICS -->
     <div class="panel summary">
-      <div class="metric" data-filter="ALL"><div class="metric-label">Tracked</div><div id="metric-total" class="metric-value">0</div></div>
-      <div class="metric" data-filter="READY"><div class="metric-label">Ready</div><div id="metric-ready" class="metric-value">0</div></div>
-      <div class="metric" data-filter="ALERT"><div class="metric-label">Alert</div><div id="metric-alert" class="metric-value">0</div></div>
-      <div class="metric" data-filter="MAINT"><div class="metric-label">Maint</div><div id="metric-maint" class="metric-value">0</div></div>
+      <div class="metric" data-filter="ALL"><div class="metric-label">Total</div><div id="metric-total" class="metric-value">0</div></div>
+      <div class="metric"><div class="metric-label">Inflight</div><div id="metric-inflight2" class="metric-value">0</div></div>
+      <div class="metric" data-filter="ALERT"><div class="metric-label">On Alert</div><div id="metric-alert" class="metric-value">0</div></div>
+      <div class="metric" data-filter="MAINT"><div class="metric-label">Maintenance</div><div id="metric-maint" class="metric-value">0</div></div>
       <div class="metric"><div class="metric-label">Avg Fuel</div><div id="metric-fuel" class="metric-value">0%</div></div>
-      <div class="metric"><div class="metric-label">Alerts</div><div id="metric-alerts" class="metric-value">0</div></div>
+      <div class="metric" id="metric-red-wrap" style="display:none;"><div class="metric-label" style="color:#ff6b6b;">Red Force</div><div id="metric-red" class="metric-value" style="color:#ff6b6b;">0</div></div>
     </div>
 
     <!-- CONTROLS -->
@@ -1215,7 +1215,7 @@ const ICON_SVG={
 
 /* ═══ STATE ═══════════════════════════════════════════════════════════════ */
 let selCCMD="EUCOM", selFn="ALL", selStatus="ALL";
-let selAcId=null, selPkgId=null;
+let selAcId=null, selPkgId=null, selMulti=[];
 let combatMode=false, autoMaster=true;
 let metricFilter="ALL";
 let timeMode="1", timeMul=1;
@@ -1240,6 +1240,18 @@ const AOC_603 = {
     officer: "Lt Col J. Harrington",
     position: "JICO",
     watchStatus: "On Watch",
+  },
+  spins: {
+    version: "EURO-SPINS 26-071 Rev C",
+    issued: "111800Z MAR 26",
+    effectiveTo: "121800Z MAR 26",
+    items: [
+      { code:"ROE-1", text:"Weapons Hold unless self-defense" },
+      { code:"AAR-2", text:"SHELL 51/52 primary AAR track BALTIC-1" },
+      { code:"IFF-3", text:"Mode 4 mandatory east of 20°E" },
+      { code:"EMCON-4", text:"EMCON Charlie in effect PKG-BRAVO" },
+      { code:"ALT-5",  text:"Block altitude 280–340 reserved OVERLORD" },
+    ]
   },
 
   // JREAP Data Link Status (Joint Range Extension Application Protocol)
@@ -1273,7 +1285,7 @@ const AOC_603 = {
   // Current ops
   currentOp: "Op DETERRENCE",
   opPhase: "Phase 0 — Deterrence",
-  threatCondition: "THREATCON ALPHA",
+  threatCondition: "FPCON ALPHA",
   ato: "ATO-H+12",
   atoExpiry: "+36 hrs",
   acm: "ACO EURO-7 (Current)",
@@ -1329,7 +1341,7 @@ const map=new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
 
 function toBasesGJ(){ return {type:"FeatureCollection",features:visibleBases().map(b=>({type:"Feature",properties:{id:b.id,name:b.name,country:b.country,role:b.role},geometry:{type:"Point",coordinates:b.coords}}))}; }
-function toAcGJ(){ return {type:"FeatureCollection",features:filteredAC().map(a=>({type:"Feature",properties:{id:a.id,name:(a.cs||a.type),type:a.type,tail:a.tail,fn:a.fn,status:a.status,mission:a.mission,fuel:Math.round(a.fuel),auto:a.auto?1:0,icon:a.fn,color:FN_COLORS[a.fn]||"#63b7ff",sel:selAcId===a.id?1:0},geometry:{type:"Point",coordinates:acCoords(a)}}))}; }
+function toAcGJ(){ return {type:"FeatureCollection",features:filteredAC().map(a=>({type:"Feature",properties:{id:a.id,name:(a.cs||a.type),type:a.type,tail:a.tail,fn:a.fn,status:a.status,mission:a.mission,fuel:Math.round(a.fuel),auto:a.auto?1:0,icon:a.fn,color:FN_COLORS[a.fn]||"#63b7ff",sel:selAcId===a.id?1:selMulti.includes(a.id)?2:0},geometry:{type:"Point",coordinates:acCoords(a)}}))}; }
 function toRoutesGJ(){ return {type:"FeatureCollection",features:filteredAC().filter(a=>a.route).map(a=>({type:"Feature",properties:{color:FN_COLORS[a.fn]||"#63b7ff"},geometry:{type:"LineString",coordinates:a.route}}))}; }
 function toTrailsGJ(){ return {type:"FeatureCollection",features:filteredAC().filter(a=>a.trail.length>1).map(a=>({type:"Feature",properties:{color:FN_COLORS[a.fn]||"#63b7ff"},geometry:{type:"LineString",coordinates:a.trail}}))}; }
 function toCovGJ(){ return {type:"FeatureCollection",features:COVERAGE_OBJECTS.map(c=>{const p=getAC(c.parent);if(!p||!filteredAC().find(x=>x.id===p.id))return null;return{type:"Feature",properties:{color:c.color},geometry:{type:"Polygon",coordinates:[makeCircle(acCoords(p),c.radiusKm)]}};}).filter(Boolean)}; }
@@ -1516,8 +1528,54 @@ async function initLayers(){
     `).addTo(map);
   });
   map.on("mouseleave","enemy-sam-icons",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
-  map.on("click","ac-icons",e=>selectAC(e.features[0].properties.id,true,true));
+  // Single unified click handler for aircraft icons
+  // Left click = add to compare (multi), first click selects single
+  // Track whether a feature click just fired, to prevent the generic
+  // map click from immediately deselecting (MapLibre fires both handlers)
+  let _featureClickedThisTick = false;
+
+  map.on("click","ac-icons",e=>{
+    _featureClickedThisTick = true;
+    const id=e.features[0].properties.id;
+    // If already comparing, left-click adds/removes from comparison
+    if(selMulti.length>0){
+      if(selMulti.includes(id)) selMulti=selMulti.filter(x=>x!==id);
+      else selMulti.push(id);
+      if(selMulti.length>1){ selAcId=null; renderMultiCompare(); refreshMap(); }
+      else if(selMulti.length===1){ selMulti=[]; selectAC(id,true); }
+      else deselectAll();
+    } else {
+      // Normal single click = select + show detail
+      selectAC(id,true);
+    }
+  });
+
+  // Double-click on aircraft → enter compare mode with this aircraft
+  map.on("dblclick","ac-icons",e=>{
+    _featureClickedThisTick = true;
+    map.doubleClickZoom.disable(); // prevent zoom on dblclick
+    setTimeout(()=>map.doubleClickZoom.enable(), 600);
+    const id=e.features[0].properties.id;
+    if(!selMulti.includes(id)) selMulti.push(id);
+    if(selAcId && selAcId!==id && !selMulti.includes(selAcId)) selMulti.push(selAcId);
+    selAcId=null;
+    if(selMulti.length>0){ renderMultiCompare(); refreshMap(); }
+  });
+
+  // Click empty map area → deselect (but not if a feature was just clicked)
+  map.on("click",e=>{
+    if(_featureClickedThisTick){ _featureClickedThisTick=false; return; }
+    _featureClickedThisTick=false;
+    deselectAll();
+  });
   map.on("click","pkg-bubbles",e=>selectPkg(e.features[0].properties.id,true));
+  // Base click → show base posture detail
+  map.on("click","bases",e=>{
+    e.stopPropagation();
+    selectBase(e.features[0].properties.id);
+  });
+  map.on("mouseenter","bases",()=>{ map.getCanvas().style.cursor="pointer"; });
+  map.on("mouseleave","bases",()=>{ map.getCanvas().style.cursor=""; });
 }
 
 function refreshMap(){
@@ -1540,13 +1598,26 @@ function showNotice(t){
 
 function renderMetrics(){
   const f=filteredAC();
-  document.getElementById("metric-total").textContent=f.length;
-  document.getElementById("metric-ready").textContent=f.filter(a=>a.status==="READY").length;
+  const fAll = AIRCRAFT; // all friendly aircraft (not filtered) for totals
+  document.getElementById("metric-total").textContent=fAll.length;
+  // Inflight = has a route and not MAINT
+  const inflightCount = fAll.filter(a=>a.route&&a.status!=="MAINT").length;
+  const inflightEl = document.getElementById("metric-inflight2");
+  if(inflightEl) inflightEl.textContent=inflightCount;
   document.getElementById("metric-alert").textContent=f.filter(a=>a.status==="ALERT").length;
   document.getElementById("metric-maint").textContent=f.filter(a=>a.status==="MAINT").length;
+  // Red force shown in combat mode
+  const redWrap=document.getElementById("metric-red-wrap");
+  if(combatMode){
+    if(redWrap) redWrap.style.display="";
+    const redCount=ENEMY_THREATS.filter(e=>e.type==="AC").length;
+    document.getElementById("metric-red").textContent=redCount;
+  } else {
+    if(redWrap) redWrap.style.display="none";
+  }
   const avg=f.length?Math.round(f.reduce((s,a)=>s+a.fuel,0)/f.length):0;
   document.getElementById("metric-fuel").textContent=avg+"%";
-  document.getElementById("metric-alerts").textContent=alerts.filter(a=>!a.resolved).length;
+  // metric-alerts removed
 }
 
 function renderAcList(){
@@ -1566,7 +1637,29 @@ function renderAcList(){
         <span style="font-size:9px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.mission}</span>
       </div>
     </div>`).join("")||`<div class="mini-meta">None visible.</div>`;
-  el.querySelectorAll("[data-id]").forEach(n=>n.addEventListener("click",()=>selectAC(n.dataset.id,true)));
+  el.querySelectorAll("[data-id]").forEach(n=>{
+    n.addEventListener("click",e=>{
+      const id=n.dataset.id;
+      if(selMulti.length>0){
+        if(selMulti.includes(id)) selMulti=selMulti.filter(x=>x!==id);
+        else selMulti.push(id);
+        if(selMulti.length>1){ selAcId=null; renderMultiCompare(); refreshMap(); }
+        else if(selMulti.length===1){ selMulti=[]; selectAC(id,true); }
+        else deselectAll();
+      } else {
+        selectAC(id,true);
+      }
+    });
+    // Double-click in list = add to compare
+    n.addEventListener("dblclick",e=>{
+      e.stopPropagation();
+      const id=n.dataset.id;
+      if(!selMulti.includes(id)) selMulti.push(id);
+      if(selAcId && selAcId!==id && !selMulti.includes(selAcId)) selMulti.push(selAcId);
+      selAcId=null;
+      if(selMulti.length>0){ renderMultiCompare(); refreshMap(); }
+    });
+  });
 }
 
 function renderPkgList(){
@@ -1726,11 +1819,19 @@ function renderTimeline(){
 /* ═══ DETAIL ═══════════════════════════════════════════════════════════════ */
 function selectAC(id,fly=false,open3D=false){
   const a=getAC(id); if(!a) return;
-  selAcId=id; selPkgId=null;
+  // Clear any multi-select when directly selecting a single aircraft
+  selMulti=[];
+  selAcId=id; selMulti=[]; selPkgId=null;
   renderAcDetail(a);
   refreshMap();
   if(fly) map.flyTo({center:acCoords(a),zoom:7.2,pitch:55,bearing:combatMode?35:15,speed:.85});
   if(open3D) openInspector(a);
+}
+
+function deselectAll(){
+  selAcId=null; selMulti=[]; selPkgId=null;
+  clearDetail();
+  refreshMap();
 }
 
 function selectPkg(id,fly=false){
@@ -1750,16 +1851,8 @@ function setDetailContent(html){
   const el=document.getElementById("detailContent");
   if(!el) return;
   el.innerHTML=html;
-  // Always switch to details tab
+  // Switch to details tab — but never un-minimize; user controls that
   if(typeof switchDetailTab==='function') switchDetailTab('detail');
-  // Un-minimize detail panel
-  const panel=document.getElementById('detailPanel');
-  if(panel&&detailMinimized){
-    detailMinimized=false;
-    panel.classList.remove('minimized');
-    const btn=document.getElementById('detailMinBtn');
-    if(btn) btn.textContent='◁';
-  }
 }
 
 function clearDetail(){
@@ -1973,12 +2066,6 @@ function initDetailPanel(){
   // Tabs
   document.querySelectorAll('.detail-tab').forEach(btn => {
     btn.addEventListener('click', ()=>{
-      // Un-minimize if clicking a tab
-      if(detailMinimized){
-        detailMinimized = false;
-        document.getElementById('detailPanel').classList.remove('minimized');
-        document.getElementById('detailMinBtn').textContent = '◁';
-      }
       switchDetailTab(btn.dataset.tab);
     });
   });
@@ -2113,7 +2200,7 @@ function initTimelineResize(){
   const handle = document.getElementById('timelineDragHandle');
   if(!handle) return;
   let dragging = false, startY = 0, startH = 0;
-  const MIN_H = 38, MAX_H = 420;
+  const MIN_H = 38, MAX_H = 300;
 
   handle.addEventListener('mousedown', e=>{
     dragging = true;
@@ -2371,10 +2458,6 @@ const _origGenerateSitrep = typeof generateSitrep === 'function' ? generateSitre
 function generateSitrep(switchTab=true){
   // Switch to sitrep tab (only when user clicks button)
   if(switchTab) switchDetailTab('sitrep');
-  if(!detailMinimized){
-    document.getElementById('detailPanel').classList.remove('minimized');
-    detailMinimized = false;
-  }
   // Run the original sitrep logic but target sitrepContent
   const saved = document.getElementById('detailContent');
   const sitrepEl = document.getElementById('sitrepContent');
@@ -2463,15 +2546,15 @@ function renderAocStrip(){
                    : AOC_603.opPhase.includes("2") ? "var(--amber)"
                    :                                 "var(--red)";
     opStrip.innerHTML =
-      // Row 1: Op + ThreatCon
+      // Row 1: Op + FPCON
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px;">'+
         '<div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);grid-column:1/3;">'+
           '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Operation</div>'+
           '<div style="font-size:12px;font-weight:900;color:#e8f4ff;">'+AOC_603.currentOp+'</div>'+
         '</div>'+
         '<div style="padding:5px 7px;border-radius:7px;background:'+tcBg+';border:1px solid rgba(255,255,255,.05);">'+
-          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">ThreatCon</div>'+
-          '<div style="font-size:10px;font-weight:900;color:'+tcCol+';">'+tc.replace("THREATCON ","")+'</div>'+
+          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">FPCON</div>'+
+          '<div style="font-size:10px;font-weight:900;color:'+tcCol+';">'+tc.replace("FPCON ","")+'</div>'+
         '</div>'+
       '</div>'+
       // Row 2: Phase + ATO + ACO
@@ -2484,9 +2567,10 @@ function renderAocStrip(){
           '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">ATO</div>'+
           '<div style="font-size:10px;font-weight:900;color:#e8f4ff;">'+AOC_603.ato+'</div>'+
         '</div>'+
-        '<div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);">'+
-          '<div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">JICO</div>'+
-          '<div style="font-size:10px;font-weight:900;color:var(--green);">On Watch</div>'+
+        '<div style="padding:5px 7px;border-radius:7px;background:rgba(94,234,212,.06);border:1px solid rgba(94,234,212,.2);cursor:pointer;" onclick="showSpinsDetail()" title="View SPINS detail">'+
+          '<div style="font-size:8px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;font-weight:900;">SPINS</div>'+
+          '<div style="font-size:9px;font-weight:900;color:#e8f4ff;white-space:nowrap;">'+AOC_603.spins.version.split(" ").slice(-2).join(" ")+'</div>'+
+          '<div style="font-size:8px;color:var(--muted);">Eff: '+AOC_603.spins.effectiveTo.split(" ").slice(0,2).join(" ")+'</div>'+
         '</div>'+
       '</div>';
   }
@@ -2569,7 +2653,7 @@ function openAocDetail(){
     '<div class="detail-block">'+
       '<div class="section-title">JICO — Data Link Status</div>'+
       '<div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:5px 8px;background:rgba(94,234,212,.06);border-radius:7px;border-left:2px solid var(--teal);">'+
-        'JICO: <strong style="color:#e8f4ff;">'+AOC_603.jico.officer+'</strong> · '+AOC_603.jico.position+' · <span style="color:var(--green);">'+AOC_603.jico.watchStatus+'</span>'+
+        '<span style="color:var(--teal);font-weight:900;">SPINS: '+AOC_603.spins.version+'</span> · '+AOC_603.spins.items.length+' items current · JICO: <strong style="color:#e8f4ff;">'+AOC_603.jico.officer+'</strong> · <span style="color:var(--green);">'+AOC_603.jico.watchStatus+'</span>'+
       '</div>'+
       jrows+
     '</div>'+
@@ -2621,14 +2705,14 @@ document.addEventListener("keydown", e=>{
   else if(key==="2"){ document.querySelector(".time-btn[data-speed='10']")?.click(); }
   else if(key==="3"){ document.querySelector(".time-btn[data-speed='60']")?.click(); }
   else if(key==="r"){ document.querySelector(".time-btn[data-speed='replay']")?.click(); }
-  else if(key==="escape"){ document.getElementById("aircraftInspector").classList.add("hidden"); clearDetail(); }
+  else if(key==="escape"){ document.getElementById("aircraftInspector").classList.add("hidden"); deselectAll(); }
   else if(key==="f"){ document.querySelector(".chip[data-function='Fighter']")?.click(); }
   else if(key==="i"){ document.querySelector(".chip[data-function='ISR']")?.click(); }
 });
 
 /* ═══ TIMELINE MINIMIZE ════════════════════════════════════════════════════ */
 let timelineMinimized = false;
-const TL_H_FULL = 156;   // px (148 + 8 bottom gap)
+const TL_H_FULL = 106;   // px (90 + 8 + 8)
 const TL_H_MIN  = 46;    // px minimized
 
 function setTimelineHeight(minimized){
@@ -2882,7 +2966,7 @@ function activateCombatMode(){
   // ── Update AOC state for combat ──
   AOC_603.currentOp       = "Op IRONCLAD";
   AOC_603.opPhase         = "Phase 2 — Shaping";
-  AOC_603.threatCondition = "THREATCON CHARLIE";
+  AOC_603.threatCondition = "FPCON CHARLIE";
   setTimeout(()=>{ if(typeof renderIntelReport==="function") renderIntelReport(); }, 900);
   AOC_603.jico.watchStatus = "On Watch — Heightened";
   // Degrade JREAP-A under combat conditions
@@ -2893,11 +2977,7 @@ function activateCombatMode(){
   if(aocLink){ aocLink.status="DEGRADED"; aocLink.detail="Combat comms saturation — 18% packet loss. SATCOM failover active."; }
   renderAocStrip();
 
-  // ── Fly to Eastern Europe threat zone ──
-  setTimeout(()=>{
-    map.flyTo({center:[27.5,51.5], zoom:4.8, pitch:45, bearing:10, speed:.7});
-  }, 400);
-
+  // Map does NOT reorient on combat mode activation — operator keeps their view
   // ── Generate HIGH priority threat alerts ──
   setTimeout(()=>{
     addAlert("THREAT_SAM","E04","HIGH","S-400 SA-21 GROWLER active western Belarus. Engagement range covers Warsaw. Suppress before push.","Assign SEAD package to PKG-SEAD");
@@ -2919,7 +2999,7 @@ function deactivateCombatMode(){
   // ── Restore AOC peacetime state ──
   AOC_603.currentOp       = "Op DETERRENCE";
   AOC_603.opPhase         = "Phase 0 — Deterrence";
-  AOC_603.threatCondition = "THREATCON ALPHA";
+  AOC_603.threatCondition = "FPCON ALPHA";
   setTimeout(()=>{ if(typeof renderIntelReport==="function") renderIntelReport(); }, 300);
   AOC_603.jico.watchStatus = "On Watch";
   AOC_603.jreap.a.status  = "DEGRADED"; // stays slightly degraded — realistic
@@ -3011,6 +3091,170 @@ document.querySelectorAll(".metric[data-filter]").forEach(c=>{
 });
 
 /* ═══ BOOTSTRAP ═══════════════════════════════════════════════════════════ */
+
+
+
+
+/* ═══ BASE POSTURE DETAIL ═══════════════════════════════════════════════════ */
+function selectBase(baseId){
+  const base = BASES.find(b=>b.id===baseId); if(!base) return;
+  selAcId=null; selMulti=[]; selPkgId=null;
+  const all = AIRCRAFT.filter(a=>a.base===baseId);
+  const onGround = all.filter(a=>!a.route||a.status==="MAINT");
+  const inflight = all.filter(a=>a.route&&a.status!=="MAINT");
+  const ready    = all.filter(a=>a.status==="READY");
+  const alert    = all.filter(a=>a.status==="ALERT");
+  const maint    = all.filter(a=>a.status==="MAINT");
+  const avgFuel  = all.length ? Math.round(all.reduce((s,a)=>s+a.fuel,0)/all.length) : 0;
+  // Function breakdown
+  const fnCount  = {};
+  all.forEach(a=>{ fnCount[a.fn]=(fnCount[a.fn]||0)+1; });
+  const FN_COLS  = {Fighter:"#7cd7ff",Bomber:"#ff8a65",ISR:"#b388ff",Tanker:"#ffd166",Cargo:"#7ee787","AEW&C":"#4dd0e1",SOF:"#ff9ecb"};
+  // Packages at this base
+  const pkgsHere = PACKAGES.filter(pkg=>pkg.members.some(id=>{ const ac=getAC(id); return ac&&ac.base===baseId; }));
+
+  const acRows = all.map(a=>{
+    const sc=a.status==="READY"?"var(--green)":a.status==="ALERT"?"var(--amber)":"var(--red)";
+    const state=a.route&&a.status!=="MAINT"?"Inflight":"On Ground";
+    return '<div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:6px;align-items:center;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);margin-bottom:3px;cursor:pointer;" data-aid="'+a.id+'">' +
+      '<span style="width:6px;height:6px;border-radius:50%;background:'+sc+';flex-shrink:0;"></span>' +
+      '<div>' +
+        '<div style="font-size:10px;font-weight:900;color:'+(FN_COLS[a.fn]||'#aaa')+';">'+a.cs+'</div>' +
+        '<div style="font-size:9px;color:var(--muted);">'+a.fn+' · '+a.mission+'</div>' +
+      '</div>' +
+      '<span style="font-size:9px;color:var(--muted);">'+state+'</span>' +
+      '<span style="font-size:9px;font-family:monospace;color:'+(a.fuel<30?'var(--red)':a.fuel<50?'var(--amber)':'var(--muted)')+';">'+Math.round(a.fuel)+'%</span>' +
+    '</div>';
+  }).join('');
+
+  const html =
+    '<div class="detail-block">' +
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">' +
+        '<div style="width:10px;height:10px;border-radius:50%;background:#63b7ff;box-shadow:0 0 8px rgba(99,183,255,.5);flex-shrink:0;"></div>' +
+        '<div>' +
+          '<div class="detail-name" style="font-size:18px;">'+base.name+'</div>' +
+          '<div class="detail-type">'+base.country+' · '+base.ccmd+' · '+base.role+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="detail-grid">' +
+        '<div class="detail-stat"><div class="detail-stat-label">Assigned</div><div class="detail-stat-value">'+all.length+'</div></div>' +
+        '<div class="detail-stat"><div class="detail-stat-label">On Ground</div><div class="detail-stat-value">'+onGround.length+'</div></div>' +
+        '<div class="detail-stat"><div class="detail-stat-label">Inflight</div><div class="detail-stat-value" style="color:var(--teal);">'+inflight.length+'</div></div>' +
+        '<div class="detail-stat"><div class="detail-stat-label">On Alert</div><div class="detail-stat-value" style="color:var(--amber);">'+alert.length+'</div></div>' +
+        '<div class="detail-stat"><div class="detail-stat-label">Operational</div><div class="detail-stat-value" style="color:var(--green);">'+ready.length+'</div></div>' +
+        '<div class="detail-stat"><div class="detail-stat-label">Maintenance</div><div class="detail-stat-value" style="color:var(--red);">'+maint.length+'</div></div>' +
+        '<div class="detail-stat"><div class="detail-stat-label">Avg Fuel</div><div class="detail-stat-value">'+avgFuel+'%</div></div>' +
+        '<div class="detail-stat"><div class="detail-stat-label">Packages</div><div class="detail-stat-value">'+pkgsHere.length+'</div></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="detail-block">' +
+      '<div class="section-title">Force Composition</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' +
+        Object.entries(fnCount).map(([fn,n])=>
+          '<span style="padding:3px 8px;border-radius:999px;font-size:10px;font-weight:900;background:rgba(255,255,255,.05);color:'+(FN_COLS[fn]||'#aaa')+';border:1px solid rgba(255,255,255,.08);">'+fn+' ×'+n+'</span>'
+        ).join('') +
+      '</div>' +
+      '<div class="section-title" style="margin-bottom:6px;">Assigned Aircraft</div>' +
+      acRows +
+    '</div>' +
+    (pkgsHere.length ?
+      '<div class="detail-block"><div class="section-title">Packages Operating from Base</div>' +
+        pkgsHere.map(p=>'<div style="font-size:10px;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:4px;"><strong>'+p.name+'</strong> — '+p.role+'</div>').join('') +
+      '</div>' : '') +
+    '<div class="detail-block"><div class="section-title">Coordinates</div><div class="mini-meta" style="font-family:monospace;">'+base.coords[0].toFixed(4)+'°E, '+base.coords[1].toFixed(4)+'°N</div></div>';
+
+  setDetailContent(html);
+  // Wire aircraft row clicks to selectAC
+  setTimeout(()=>{
+    document.querySelectorAll('[data-aid]').forEach(n=>{
+      n.addEventListener('click',()=>selectAC(n.dataset.aid,true));
+    });
+  },50);
+  // Fly to base
+  map.flyTo({center:base.coords, zoom:6.5, speed:.8});
+  refreshMap();
+}
+
+/* ═══ SPINS DETAIL ══════════════════════════════════════════════════════════ */
+function showSpinsDetail(){
+  const sp = AOC_603.spins;
+  const combatItems = combatMode ? [
+    { code:"ROE-1C", text:"Weapons Tight — declared threat axis only" },
+    { code:"SEAD-2C", text:"SEAD corridor ECHO-1 active — deconflict with PKG-SEAD" },
+    { code:"EW-3C",  text:"GPS degraded 200km radius Zhukov node — INS/TACAN backup" },
+    { code:"LINK-4C",text:"JREAP-A degraded — JREAP-C primary, JREAP-B backup" },
+  ] : [];
+  const allItems = [...sp.items, ...combatItems];
+  const html =
+    '<div style="padding:12px 14px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">' +
+        '<div>' +
+          '<div style="font-size:14px;font-weight:900;color:var(--teal);">Special Instructions</div>' +
+          '<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+sp.version+'</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:9px;color:var(--muted);">Issued: '+sp.issued+'</div>' +
+          '<div style="font-size:9px;color:var(--muted);">Expires: '+sp.effectiveTo+'</div>' +
+        '</div>' +
+      '</div>' +
+      (combatMode?'<div style="padding:4px 8px;border-radius:6px;background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.25);font-size:9px;font-weight:900;color:#ff7070;margin-bottom:8px;letter-spacing:.05em;">⚠ COMBAT ADDENDA ACTIVE — '+combatItems.length+' items appended</div>':'') +
+      allItems.map((item,i)=>
+        '<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:4px;">' +
+          '<span style="font-size:9px;font-weight:900;font-family:monospace;color:var(--teal);min-width:56px;flex-shrink:0;padding-top:1px;">'+item.code+'</span>' +
+          '<span style="font-size:10px;color:#c8d8f0;line-height:1.4;">'+item.text+'</span>' +
+        '</div>'
+      ).join('') +
+      '<div style="margin-top:10px;padding:6px 8px;border-radius:7px;background:rgba(255,255,255,.02);font-size:9px;color:var(--muted);">'+
+        '<span style="color:var(--teal);font-weight:900;">SPINS: '+AOC_603.spins.version+'</span> · '+AOC_603.spins.items.length+' items current · JICO: <strong style="color:#e8f4ff;">'+AOC_603.jico.officer+'</strong> · <span style="color:var(--green);">'+AOC_603.jico.watchStatus+'</span>'+
+      '</div>'+
+    '</div>';
+  setDetailContent(html);
+}
+
+/* ═══ MULTI-SELECT COMPARE ═════════════════════════════════════════════════ */
+function renderMultiCompare(){
+  if(!selMulti.length) return;
+  const acs = selMulti.map(id=>getAC(id)).filter(Boolean);
+  if(!acs.length) return;
+  const FN_COLS={Fighter:"#7cd7ff",Bomber:"#ff8a65",ISR:"#b388ff",Tanker:"#ffd166",Cargo:"#7ee787","AEW&C":"#4dd0e1",SOF:"#ff9ecb"};
+  const statColor=(v,warn,crit,invert=false)=>{
+    if(invert) return v<=crit?'var(--red)':v<=warn?'var(--amber)':'var(--green)';
+    return v>=warn?'var(--green)':v>=crit?'var(--amber)':'var(--red)';
+  };
+  const html =
+    '<div style="padding:10px 12px 6px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+        '<div style="font-size:12px;font-weight:900;color:#e8f4ff;">Compare — '+acs.length+' Aircraft</div>' +
+        '<button onclick="deselectAll()" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,100,100,.3);background:rgba(255,100,100,.08);color:#ff7070;cursor:pointer;font-weight:700;">✕ Clear</button>' +
+      '</div>' +
+      // Column headers
+      '<div style="display:grid;grid-template-columns:80px '+acs.map(()=>'1fr').join(' ')+';gap:6px;margin-bottom:6px;">' +
+        '<div></div>' +
+        acs.map(a=>'<div style="text-align:center;font-size:10px;font-weight:900;color:'+(FN_COLS[a.fn]||'#aaa')+';border-radius:7px;padding:4px 2px;background:rgba(255,255,255,.04);">'+a.cs+'<br><span style="font-size:8px;font-weight:400;color:var(--muted);">'+a.type+'</span></div>').join('') +
+      '</div>' +
+      // Rows
+      [
+        {label:'Status', vals: acs.map(a=>'<span style="color:'+(a.status==='READY'?'var(--green)':a.status==='ALERT'?'var(--amber)':'var(--red)')+';">'+a.status+'</span>')},
+        {label:'Mission', vals: acs.map(a=>'<span style="font-size:9px;">'+a.mission+'</span>')},
+        {label:'Fuel', vals: acs.map(a=>'<span style="color:'+statColor(a.fuel,50,30)+'">'+Math.round(a.fuel)+'%</span>')},
+        {label:'Function', vals: acs.map(a=>'<span style="color:'+(FN_COLS[a.fn]||'#aaa')+'">'+a.fn+'</span>')},
+        {label:'Base', vals: acs.map(a=>{const b=getBase(a.base);return '<span style="font-size:9px;">'+(b?b.name.split(' ')[0]:a.base)+'</span>';})},
+        {label:'Loadout', vals: acs.map(a=>'<span style="font-size:9px;">'+(a.loadout||'—')+'</span>')},
+        {label:'Health', vals: acs.map(a=>'<span style="font-size:9px;color:'+(a.health==='Green'?'var(--green)':a.health==='Fuel Watch'?'var(--amber)':'var(--red)')+'">'+a.health+'</span>')},
+        {label:'Auto', vals: acs.map(a=>'<span style="color:'+(a.auto?'var(--teal)':'var(--muted)')+';">'+(a.auto?'ON':'OFF')+'</span>')},
+      ].map(row=>
+        '<div style="display:grid;grid-template-columns:80px '+acs.map(()=>'1fr').join(' ')+';gap:6px;margin-bottom:3px;align-items:center;">' +
+          '<div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">'+row.label+'</div>' +
+          row.vals.map(v=>'<div style="text-align:center;font-size:10px;font-weight:700;padding:3px 2px;border-radius:5px;background:rgba(255,255,255,.02);">'+v+'</div>').join('') +
+        '</div>'
+      ).join('') +
+      '<div style="margin-top:8px;padding:6px 8px;border-radius:7px;background:rgba(94,234,212,.06);border:1px solid rgba(94,234,212,.12);font-size:9px;color:var(--muted);">'+
+        '<span style="color:var(--teal);">Click any aircraft</span> to add/remove · <span style="color:var(--muted);">Esc to clear all</span> · Double-click to start comparing' +
+      '</div>' +
+    '</div>';
+
+  setDetailContent(html);
+}
 
 /* ═══ SEED INITIAL RECOMMENDATIONS ════════════════════════════════════════ */
 function seedInitialRecs(){
