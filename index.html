@@ -150,6 +150,15 @@ body::after{
     drop-shadow(0 0 28px rgba(90,170,255,.12));
 }
 
+/* ── TOP-RIGHT LOGO (ax-lead.png) ── */
+.corner-logo-wrap-right{
+  position:fixed;
+  top:40px;
+  right:22px;
+  z-index:40;
+  pointer-events:none;
+}
+
 /* background earth */
 .earth-stage{
   position:fixed;
@@ -229,7 +238,7 @@ body::after{
   inset:0;
   width:200%;
   height:100%;
-  background:url("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Whole_world_-_land_and_oceans.jpg/2560px-Whole_world_-_land_and_oceans.jpg") repeat-x center center;
+  background:url("earth-map-4096.jpg") repeat-x center center;
   background-size:auto 100%;
   animation:rotateEarth 120s linear infinite;
   z-index:1;
@@ -237,8 +246,8 @@ body::after{
 }
 
 @keyframes rotateEarth{
-  0% { background-position:0% 0; }
-  100% { background-position:-100% 0; }
+  0% { background-position:0 0; }
+  100% { background-position:-4096px 0; }
 }
 
 .shell{
@@ -662,6 +671,11 @@ h1{
     left:10px;
   }
 
+  .corner-logo-wrap-right{
+    top:36px;
+    right:10px;
+  }
+
   .corner-logo{
     width:min(110px, 32vw);
   }
@@ -684,6 +698,11 @@ h1{
 <!-- AstroNetix logo — top-left under the banner -->
 <div class="corner-logo-wrap">
   <img class="corner-logo" src="logo.png" alt="AstroNetix logo">
+</div>
+
+<!-- AX-LEAD logo — top-right under the banner -->
+<div class="corner-logo-wrap-right">
+  <img class="corner-logo" src="ax-lead.png" alt="AX-LEAD logo">
 </div>
 
 <div class="earth-stage">
@@ -795,9 +814,6 @@ h1{
   </section>
 
   <section class="training-section">
-    <div class="training-logo-wrap">
-      <img class="training-logo-top" src="ax-lead-images/ax-lead-white.png" alt="AX-LEAD logo">
-    </div>
 
     <div class="training-grid">
       <a class="domain-card" href="ax-lead/leadership.html" aria-label="Open Leadership">
