@@ -588,8 +588,6 @@ h1{
       <img class="logo" src="ax-futures.png" alt="AX-Futures logo">
     </div>
 
-    <h1>AX-Futures</h1>
-
     <p class="sub">
       Explore domain-specific operational concepts and mission-focused learning environments.
     </p>
@@ -801,13 +799,9 @@ h1{
 
   const loader = new THREE.TextureLoader();
 
-  // NASA Blue Marble 2002 — public domain
-  const EARTH_TEX  = 'https://eoimages.gsfc.nasa.gov/images/imagerecords/74000/74117/world.200402.3x5400x2700.jpg';
-  // NASA night lights — public domain
-  const NIGHT_TEX  = 'https://eoimages.gsfc.nasa.gov/images/imagerecords/144000/144898/BlackMarble_2016_01deg.jpg';
-  // Specular (ocean shine) — public domain Wikimedia
+  // Local earth texture
+  const EARTH_TEX  = 'earth-map-4096.jpg';
   const SPEC_TEX   = 'https://upload.wikimedia.org/wikipedia/commons/1/1e/Earthspec1k.jpg';
-  // Cloud layer — public domain NASA
   const CLOUD_TEX  = 'https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57747/cloud_combined_2048.jpg';
 
   let earth, clouds;
