@@ -797,208 +797,96 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
-// ── Sun direction — comes from far left, slightly above, slightly in front
-// This vector is used both for the DirectionalLight and the shader uniform
-const SUN_DIR = new THREE.Vector3(-4.5, 1.2, 2.0).normalize();
-
-// ── Globe group — offset right
+// Globe group — offset right so hero content breathes on the left
 const globeGroup = new THREE.Group();
 globeGroup.position.set(1.15, -0.05, 0);
 scene.add(globeGroup);
 
 const loader = new THREE.TextureLoader();
+
 function loadTex(local, cdn, cb) {
   loader.load(local, cb, undefined, () => { if(cdn) loader.load(cdn, cb); });
 }
 
-// ── Day/Night custom shader ────────────────────────────────────────────────
-// Blends daymap → nightlights across the terminator using smoothstep on NdotL
-const dayNightVert = `
-  varying vec2 vUv;
-  varying vec3 vWorldNormal;
-  void main(){
-    vUv = uv;
-    vWorldNormal = normalize(mat3(modelMatrix) * normal);
-    gl_Position  = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+// Earth
+loadTex(
+  'earth-map-4096.jpg',
+  'https://unpkg.com/three-globe/example/img/earth-day.jpg',
+  (earthTex) => {
+    earthTex.colorSpace = THREE.SRGBColorSpace;
+    earthTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    loadTex(
+      'earth-map-4096.jpg',
+      'https://unpkg.com/three-globe/example/img/earth-topology.png',
+      (bumpTex) => {
+        const mat = new THREE.MeshStandardMaterial({
+          map:       earthTex,
+          bumpMap:   bumpTex,
+          bumpScale: 0.018,
+          roughness: 0.94,
+          metalness: 0.02,
+        });
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.18, 96, 96), mat);
+        globeGroup.add(mesh);
+        globeGroup.userData.earth = mesh;
+      }
+    );
   }
-`;
-const dayNightFrag = `
-  uniform sampler2D tDay;
-  uniform sampler2D tNight;
-  uniform sampler2D tBump;    // unused in frag but kept for bump pass
-  uniform vec3      uSunDir;  // world-space, normalized
+);
 
-  varying vec2 vUv;
-  varying vec3 vWorldNormal;
-
-  void main(){
-    vec3  n      = normalize(vWorldNormal);
-    float NdotL  = dot(n, uSunDir);
-
-    // smoothstep blend: day when NdotL > 0, night when < 0
-    // transition width ~0.12 radians either side of terminator
-    float blend  = smoothstep(-0.10, 0.12, NdotL);
-
-    vec4 dayCol   = texture2D(tDay,   vUv);
-    vec4 nightCol = texture2D(tNight, vUv);
-
-    // City lights: only on dark side, scaled by darkness
-    float nightMask = 1.0 - blend;
-    vec3  lights    = nightCol.rgb * nightMask * 1.35;
-
-    // Day side with subtle darkening towards terminator
-    vec3  day = dayCol.rgb * max(blend, 0.0);
-
-    // Combine
-    vec3  col = day + lights;
-
-    // Very faint ambient so crushed blacks don't clip to pure void
-    col += dayCol.rgb * 0.018;
-
-    gl_FragColor = vec4(col, 1.0);
+// Clouds
+loadTex(
+  'earth-clouds.png',
+  'https://unpkg.com/three-globe/example/img/earth-clouds.png',
+  (cloudTex) => {
+    const mat = new THREE.MeshStandardMaterial({
+      map: cloudTex, alphaMap: cloudTex,
+      transparent: true, opacity: 0.22, depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.196, 64, 64), mat);
+    globeGroup.add(mesh);
+    globeGroup.userData.clouds = mesh;
   }
-`;
+);
 
-// ── Load all textures, then build earth ──────────────────────────────────────
-let earthMesh, cloudMesh;
-
-function buildEarth(dayTex, nightTex, bumpTex) {
-  dayTex.colorSpace   = THREE.SRGBColorSpace;
-  nightTex.colorSpace = THREE.SRGBColorSpace;
-  dayTex.anisotropy   = renderer.capabilities.getMaxAnisotropy();
-
-  const mat = new THREE.ShaderMaterial({
-    uniforms: {
-      tDay:    { value: dayTex   },
-      tNight:  { value: nightTex },
-      tBump:   { value: bumpTex  },
-      uSunDir: { value: SUN_DIR  },
-    },
-    vertexShader:   dayNightVert,
-    fragmentShader: dayNightFrag,
-  });
-
-  earthMesh = new THREE.Mesh(new THREE.SphereGeometry(1.18, 96, 96), mat);
-  globeGroup.add(earthMesh);
-  globeGroup.userData.earth = earthMesh;
-}
-
-// Load chain: day → night → bump
-loadTex('earth-map-4096.jpg', 'https://unpkg.com/three-globe/example/img/earth-day.jpg', (dayTex) => {
-  loadTex(
-    'assets/globe/earth_lights.jpg',
-    'https://eoimages.gsfc.nasa.gov/images/imagerecords/144000/144898/BlackMarble_2016_01deg.jpg',
-    (nightTex) => {
-      loadTex(
-        'assets/globe/earth_bump.jpg',
-        'https://unpkg.com/three-globe/example/img/earth-topology.png',
-        (bumpTex) => buildEarth(dayTex, nightTex, bumpTex)
-      );
-    }
-  );
-});
-
-// ── Clouds ────────────────────────────────────────────────────────────────────
-loadTex('assets/globe/earth_clouds.png', 'https://unpkg.com/three-globe/example/img/earth-clouds.png', (cloudTex) => {
-  const mat = new THREE.MeshStandardMaterial({
-    map: cloudTex, alphaMap: cloudTex,
-    transparent: true, opacity: 0.20, depthWrite: false,
-    roughness: 1.0, metalness: 0.0,
-  });
-  cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(1.196, 64, 64), mat);
-  globeGroup.add(cloudMesh);
-  globeGroup.userData.clouds = cloudMesh;
-});
-
-// ── Atmosphere — Fresnel glow biased toward sun side ─────────────────────────
+// Atmosphere glow shader
 const atmo = new THREE.Mesh(
-  new THREE.SphereGeometry(1.245, 96, 96),
+  new THREE.SphereGeometry(1.235, 96, 96),
   new THREE.ShaderMaterial({
     transparent: true,
     side: THREE.BackSide,
     blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    uniforms: {
-      uSunDir:   { value: SUN_DIR },
-      glowColor: { value: new THREE.Color(0x3a8fff) },
-    },
+    uniforms: { glowColor: { value: new THREE.Color(0x4ea3ff) } },
     vertexShader: `
       varying vec3 vNormal;
-      varying vec3 vWorldNormal;
       void main(){
-        vNormal      = normalize(normalMatrix * normal);
-        vWorldNormal = normalize(mat3(modelMatrix) * normal);
-        gl_Position  = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
       }`,
     fragmentShader: `
       uniform vec3 glowColor;
-      uniform vec3 uSunDir;
       varying vec3 vNormal;
-      varying vec3 vWorldNormal;
       void main(){
-        // Fresnel rim
-        float rim  = pow(max(0.0, 0.60 - dot(vNormal, vec3(0,0,1))), 3.2);
-        // Slightly brighter on the sun-facing limb
-        float sun  = max(0.0, dot(vWorldNormal, uSunDir));
-        float i    = rim * (0.55 + sun * 0.45);
-        gl_FragColor = vec4(glowColor, i * 0.18);
+        float i = pow(0.62 - dot(vNormal, vec3(0,0,1)), 2.7);
+        gl_FragColor = vec4(glowColor, i * 0.22);
       }`,
   })
 );
 globeGroup.add(atmo);
 
-// ── Lighting — directional only, from same vector as SUN_DIR ─────────────────
-// Ambient very low so night side stays dark
-scene.add(new THREE.AmbientLight(0x0a1628, 0.4));
+// Lighting
+scene.add(new THREE.AmbientLight(0xaecbff, 0.8));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3);
+sun.position.set(4.5, 2.2, 3.8);
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0x5aa0ff, 0.45);
+rim.position.set(-4, -1.5, -3);
+scene.add(rim);
 
-const sunLight = new THREE.DirectionalLight(0xfff6e8, 1.6);
-sunLight.position.copy(SUN_DIR).multiplyScalar(10);
-scene.add(sunLight);
-
-// ── Sun sprite — distant, left side, restrained ───────────────────────────────
-// Build a soft procedural sun disc if the image isn't available
-function buildSunSprite(tex) {
-  const mat = new THREE.SpriteMaterial({
-    map: tex,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    opacity: 0.28,
-    color: new THREE.Color(1.0, 0.90, 0.72),
-  });
-  const sprite = new THREE.Sprite(mat);
-  // Position far to the left, slightly up — matches SUN_DIR
-  sprite.position.set(-14, 2.8, -6);
-  sprite.scale.set(5.5, 5.5, 1);
-  scene.add(sprite);
-}
-
-// Try local sun asset first, then build a procedural disc fallback
-loader.load('assets/globe/sun.jpg',
-  buildSunSprite,
-  undefined,
-  () => {
-    // Procedural fallback: canvas radial gradient
-    const sz = 256;
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = sz;
-    const cx = cv.getContext('2d');
-    const g  = cx.createRadialGradient(sz/2,sz/2,0, sz/2,sz/2,sz/2);
-    g.addColorStop(0.00, 'rgba(255,245,210,1.0)');
-    g.addColorStop(0.12, 'rgba(255,230,160,0.85)');
-    g.addColorStop(0.35, 'rgba(255,200,80,0.35)');
-    g.addColorStop(0.65, 'rgba(255,160,40,0.08)');
-    g.addColorStop(1.00, 'rgba(255,120,0,0.0)');
-    cx.fillStyle = g;
-    cx.fillRect(0,0,sz,sz);
-    buildSunSprite(new THREE.CanvasTexture(cv));
-  }
-);
-
-// ── Stars ─────────────────────────────────────────────────────────────────────
-const starPos = new Float32Array(1600 * 3);
+// Stars
+const starPos = new Float32Array(1200 * 3);
 for(let i = 0; i < starPos.length; i += 3){
-  const r = 45 + Math.random() * 90;
+  const r = 40 + Math.random() * 80;
   const t = Math.random() * Math.PI * 2;
   const p = Math.acos(Math.random() * 2 - 1);
   starPos[i]   = r * Math.sin(p) * Math.cos(t);
@@ -1008,10 +896,10 @@ for(let i = 0; i < starPos.length; i += 3){
 const starGeo = new THREE.BufferGeometry();
 starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
 scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
-  color: 0xc8dcff, size: 0.07, transparent: true, opacity: 0.22, depthWrite: false,
+  color:0xbfd8ff, size:0.08, transparent:true, opacity:0.18, depthWrite:false,
 })));
 
-// ── Animation ─────────────────────────────────────────────────────────────────
+// Animation
 let last = 0;
 function animate(t = 0){
   requestAnimationFrame(animate);
@@ -1024,7 +912,7 @@ function animate(t = 0){
 }
 animate();
 
-// ── Resize ────────────────────────────────────────────────────────────────────
+// Resize
 function onResize(){
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
