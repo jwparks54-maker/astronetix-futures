@@ -1,36 +1,2200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <title>INDOPACOM Maritime COP · Astronetix Futures</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coming Soon</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.20.0/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@5.20.0/dist/maplibre-gl.js"></script>
   <style>
-    body{
-      margin:0;
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      background:#02050b;
-      color:white;
-      font-family:Arial,sans-serif;
-      text-align:center;
-      padding:20px;
+    :root {
+      --bg: #04111e;
+      --panel: rgba(5,14,26,.94);
+      --line: rgba(0,200,255,.14);
+      --text: #e8f6ff;
+      --muted: #7aa8c4;
+      --blue: #00c8ff;
+      --blue2: #7de0ff;
+      --green: #00e5a0;
+      --amber: #ffbe3c;
+      --red: #ff4466;
+      --teal: #00e5a0;
+      --coral: #ff6b6b;
+      --gold: #ffd166;
+      --indigo: #6699ff;
+      --shadow: 0 12px 40px rgba(0,0,0,.55);
+      --radius: 13px;
+      --th: 68px;
+      --tlh: 170px;
+      --detail-w: 360px;
+      --tl-h: 158px;
     }
-    .box{
-      border:1px solid #1e3d5c;
-      background:#07121e;
-      border-radius:16px;
-      padding:32px;
-      max-width:700px;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Courier New', 'Consolas', monospace;
+      background: radial-gradient(ellipse at 30% 20%, #061828 0%, #04111e 50%, #020b14 100%);
+      color: var(--text);
     }
-    a{color:#7cc4ff;text-decoration:none}
+    body.wartime {
+      background: radial-gradient(ellipse at 30% 20%, #1a0610 0%, #10040e 50%, #060208 100%);
+    }
+    #app, #map { position: absolute; inset: 0; }
+
+    #app::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,0,0,.025) 2px,
+        rgba(0,0,0,.025) 4px
+      );
+      pointer-events: none;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    body.wartime .panel { border-color: rgba(255,60,100,.18); }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: absolute; z-index: 40;
+      top: 10px; left: 12px; right: 12px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .topbar > * { pointer-events: auto; }
+
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 14px;
+      white-space: nowrap;
+      text-decoration: none; color: inherit;
+    }
+    .brand-logo {
+      width: 32px; height: 32px;
+      object-fit: contain; flex-shrink: 0;
+      transition: filter .25s, transform .25s;
+    }
+    .brand:hover .brand-logo {
+      filter: drop-shadow(0 0 8px rgba(0,229,160,.9)) drop-shadow(0 0 22px rgba(0,229,160,.5));
+      transform: scale(1.08);
+    }
+    .brand:hover .brand-name { color: var(--teal); }
+    .brand-vline { width: 1px; height: 28px; background: rgba(255,255,255,.10); flex-shrink: 0; }
+    .brand-wordmark { line-height: 1; }
+    .brand-name { font-size: 12px; font-weight: 900; color: #fff; letter-spacing: .02em; font-family: inherit; }
+    .brand-sub-text { font-size: 9px; font-weight: 700; color: var(--teal); letter-spacing: .18em; text-transform: uppercase; margin-top: 2px; }
+    .brand-vline2 { width: 1px; height: 28px; background: rgba(255,255,255,.07); flex-shrink: 0; }
+    .brand-cop { display: flex; flex-direction: column; gap: 2px; }
+    .brand-cop-kicker { font-size: 9px; font-weight: 700; color: var(--blue2); letter-spacing: .14em; text-transform: uppercase; }
+    .brand-cop-title {
+      font-size: 14px; font-weight: 900;
+      background: linear-gradient(90deg, #e8f8ff, #00c8ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .summary {
+      padding: 6px 10px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0,1fr));
+      gap: 8px; align-items: stretch;
+    }
+    .metric {
+      padding: 6px 9px; border-radius: 10px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.05);
+      cursor: pointer;
+    }
+    .metric:hover { border-color: rgba(0,200,255,.35); background: rgba(0,200,255,.07); }
+    .metric-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+    .metric-value { margin-top: 2px; font-size: 18px; font-weight: 900; font-family: inherit; }
+
+    .control-panel {
+      padding: 0 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ctrl-label { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
+    .ctrl-section { display: flex; flex-direction: column; gap: 4px; }
+    .ctrl-divider { width: 1px; height: 36px; background: rgba(255,255,255,.07); flex-shrink: 0; }
+    .mode-row { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; }
+    .mode-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(0,229,160,.5); transition: all .3s; }
+    body.wartime .mode-dot.war-dot { background: var(--red); box-shadow: 0 0 10px rgba(255,68,102,.6); }
+    .switch {
+      position: relative; width: 44px; height: 24px;
+      border-radius: 999px; background: #0a1a2a;
+      border: 1px solid rgba(255,255,255,.08); cursor: pointer;
+    }
+    .switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: .18s ease;
+    }
+    .switch.active { background: #0d2a1f; border-color: rgba(0,229,160,.35); }
+    .switch.active::after { left: 22px; }
+
+    .zulu {
+      display: flex; flex-direction: column; align-items: center; gap: 1px;
+      padding: 5px 10px; border-radius: 8px;
+      border-left: 1px solid rgba(255,255,255,.07);
+      font-family: 'Courier New', monospace;
+      font-size: 17px; font-weight: 900;
+      color: var(--blue); letter-spacing: .05em;
+      line-height: 1; white-space: nowrap; flex-shrink: 0;
+    }
+    .zulu-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: rgba(0,200,255,.45); }
+
+    /* ── SUBBAR ── */
+    #subbar {
+      position: absolute; z-index: 38;
+      left: 12px; right: 12px;
+      top: calc(var(--th) + 6px);
+      height: 28px;
+      display: flex; align-items: center; gap: 6px;
+      pointer-events: none;
+    }
+    #subbar > * { pointer-events: auto; }
+    .style-btn {
+      padding: 3px 9px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(5,14,26,.82); backdrop-filter: blur(4px);
+      color: rgba(255,255,255,.35); font-size: 10px; font-weight: 800;
+      cursor: pointer; text-transform: uppercase; letter-spacing: .06em;
+      font-family: inherit; height: 22px; transition: all .14s;
+    }
+    .style-btn:hover { border-color: rgba(0,200,255,.3); color: var(--blue2); }
+    .style-btn.active { background: rgba(0,200,255,.12); border-color: rgba(0,200,255,.4); color: var(--blue); }
+    body.wartime .style-btn.active { background: rgba(255,60,100,.12); border-color: rgba(255,60,100,.38); color: #ff7080; }
+
+    #map canvas { filter: brightness(.52) saturate(.35) hue-rotate(200deg); transition: filter .4s; }
+    body.osm-mode #map canvas { filter: none; }
+    body.satellite-mode #map canvas { filter: brightness(.78) saturate(.9) contrast(1.06); }
+    body.wartime #map canvas { filter: brightness(.42) saturate(.45) hue-rotate(330deg) contrast(1.1); }
+
+    /* ── PANELS ── */
+    .sidebar {
+      position: absolute; z-index: 30;
+      top: calc(var(--th) + 44px); left: 12px; bottom: var(--tlh);
+      width: 360px; overflow: auto;
+    }
+    .detail {
+      position: absolute; z-index: 30;
+      top: calc(var(--th) + 44px); right: 12px; bottom: 8px;
+      width: var(--detail-w); overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: width .1s ease;
+    }
+    .detail.minimized { width: 42px; overflow: hidden; }
+    .detail.minimized .detail-body, .detail.minimized .detail-tab-bar { display: none; }
+
+    .detail-tab-bar {
+      display: flex; gap: 0;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      background: rgba(5,12,22,.96); flex-shrink: 0;
+    }
+    .detail-tab {
+      padding: 7px 12px; font-size: 10px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); cursor: pointer; border: none;
+      background: none; border-bottom: 2px solid transparent;
+      transition: all .14s; white-space: nowrap; font-family: inherit;
+    }
+    .detail-tab.active { color: #fff; border-bottom-color: var(--blue); }
+    .detail-tab:hover:not(.active) { color: var(--blue2); }
+    .detail-body { flex: 1; overflow: auto; }
+    .panel-head {
+      flex-shrink: 0;
+      position: sticky; top: 0; z-index: 2;
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: rgba(5,12,22,.98);
+    }
+    .panel-title { font-size: 15px; font-weight: 900; }
+    .panel-sub { margin-top: 3px; font-size: 11px; color: var(--muted); line-height: 1.45; }
+
+    .auxpanel {
+      position: absolute; z-index: 30;
+      width: 300px;
+      display: flex; flex-direction: column; overflow: hidden;
+      max-height: 360px;
+      transition: max-height .25s cubic-bezier(.4,0,.2,1), bottom .25s;
+    }
+    .auxpanel.minimized { max-height: 44px; }
+    .auxpanel.minimized .auxpanel-body { display: none; }
+    .auxpanel-head {
+      flex-shrink: 0; display: flex; align-items: center;
+      justify-content: space-between; gap: 6px;
+      padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.06);
+      background: rgba(5,12,22,.98);
+    }
+    .collapse-btn {
+      width: 20px; height: 20px; border-radius: 5px; flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04);
+      color: var(--muted); font-size: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0; line-height: 1; transition: color .15s; font-family: inherit;
+    }
+    .collapse-btn:hover { color: #fff; }
+
+    /* ── TIMELINE ── */
+    .timeline {
+      position: absolute; z-index: 30;
+      left: 12px; right: calc(var(--detail-w) + 24px); bottom: 8px;
+      height: var(--tl-h);
+      display: grid; grid-template-columns: 180px 1fr; overflow: hidden;
+      transition: height .2s cubic-bezier(.4,0,.2,1);
+    }
+    .timeline.minimized { height: 38px !important; }
+    .timeline.minimized .timeline-body, .timeline.minimized #tlEventLog { display: none !important; }
+    .timeline-head {
+      padding: 8px 12px 6px; border-right: 1px solid rgba(255,255,255,.06);
+      display: flex; flex-direction: column; gap: 3px;
+      width: 180px; flex-shrink: 0; min-height: 0; overflow: hidden;
+    }
+    .timeline-title { font-size: 12px; font-weight: 900; }
+    .timeline-sub { font-size: 9px; color: var(--muted); }
+    .timeline-legend { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+    .tl-key { display: flex; align-items: center; gap: 3px; font-size: 9px; color: var(--muted); white-space: nowrap; }
+    .tl-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+    .timeline-body {
+      position: relative; overflow: scroll;
+      scrollbar-width: thin; scrollbar-color: rgba(0,200,255,.2) transparent;
+    }
+    .timeline-inner { position: relative; min-width: 1200px; padding: 6px 10px; }
+    .timeline-lanes { position: relative; z-index: 2; display: grid; gap: 2px; padding-top: 20px; }
+    .timeline-row { position: relative; height: 13px; border-radius: 999px; background: rgba(255,255,255,.02); }
+    .timeline-bar {
+      position: absolute; top: 0; height: 13px; line-height: 13px;
+      border-radius: 999px; padding: 0 7px; font-size: 8px; font-weight: 800;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+      cursor: pointer; font-family: inherit;
+    }
+
+    .section { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .section-title {
+      margin-bottom: 8px; font-size: 10px; font-weight: 900;
+      color: var(--blue2); text-transform: uppercase; letter-spacing: .1em;
+    }
+    select {
+      width: 100%; padding: 7px 9px;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,.08);
+      background: #07121f; color: var(--text); outline: none; font-size: 12px;
+      font-family: inherit;
+    }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip {
+      padding: 5px 8px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: #07121f; color: var(--text);
+      font-size: 10px; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .chip.active { background: rgba(0,200,255,.14); border-color: rgba(0,200,255,.45); }
+    body.wartime .chip.active { background: rgba(255,60,100,.12); border-color: rgba(255,60,100,.45); }
+
+    .mini-list { display: grid; gap: 6px; }
+    .mini-card {
+      padding: 8px 10px; border-radius: 10px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.05);
+      cursor: pointer; transition: border-color .14s, background .14s;
+    }
+    .mini-card:hover { border-color: rgba(0,200,255,.35); background: rgba(0,200,255,.07); }
+    .mini-card.selected { border-color: rgba(0,229,160,.55); background: rgba(0,229,160,.07); }
+    .mini-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 2px; }
+    .mini-name { font-size: 12px; font-weight: 800; }
+    .mini-meta { font-size: 10px; color: var(--muted); line-height: 1.45; }
+
+    .status { display: inline-flex; gap: 4px; align-items: center; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .status-ready .dot { background: var(--green); box-shadow: 0 0 5px rgba(0,229,160,.5); }
+    .status-patrol .dot { background: var(--blue); box-shadow: 0 0 5px rgba(0,200,255,.5); }
+    .status-alert .dot { background: var(--amber); box-shadow: 0 0 5px rgba(255,190,60,.5); }
+    .status-maint .dot { background: var(--red); box-shadow: 0 0 5px rgba(255,68,102,.5); }
+
+    .detail-empty { padding: 16px 14px; color: var(--muted); line-height: 1.55; font-size: 12px; }
+    .detail-block { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .detail-name { font-size: 20px; font-weight: 900; line-height: 1.05; }
+    .detail-type { margin-top: 4px; color: var(--blue2); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; margin-top: 10px; }
+    .detail-stat { padding: 8px 9px; border-radius: 9px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.05); }
+    .detail-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .detail-stat-value { margin-top: 3px; font-size: 13px; font-weight: 900; line-height: 1.3; }
+    .actions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+    .action {
+      padding: 8px 9px; border-radius: 9px; text-align: center;
+      background: linear-gradient(180deg, rgba(0,200,255,.20), rgba(0,200,255,.09));
+      border: 1px solid rgba(0,200,255,.32); color: #fff;
+      font-weight: 800; font-size: 10px; cursor: pointer; user-select: none; font-family: inherit;
+    }
+    .action:hover { background: rgba(0,200,255,.25); }
+    body.wartime .action { background: rgba(255,60,100,.12); border-color: rgba(255,60,100,.30); }
+
+    .rdy-bar-wrap { margin-top: 7px; }
+    .rdy-bar-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+    .rdy-bar-bg { height: 4px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .rdy-bar-fill { height: 100%; border-radius: 999px; transition: width .4s; }
+    .rdy-ok .rdy-bar-fill { background: linear-gradient(90deg, var(--green), #7effd0); }
+    .rdy-warn .rdy-bar-fill { background: linear-gradient(90deg, var(--amber), #ffe080); }
+    .rdy-crit .rdy-bar-fill { background: linear-gradient(90deg, var(--red), #ff9090); }
+
+    .notification {
+      position: absolute; left: 50%; z-index: 80;
+      top: calc(var(--th) + 10px);
+      transform: translateX(-50%);
+      padding: 8px 14px; border-radius: 10px;
+      background: rgba(5,16,28,.97); border: 1px solid rgba(0,200,255,.28);
+      color: #f0f7ff; box-shadow: var(--shadow);
+      font-size: 12px; font-weight: 700;
+      opacity: 0; pointer-events: none; transition: opacity .18s ease;
+      white-space: nowrap; font-family: inherit;
+    }
+    .notification.show { opacity: 1; }
+
+    .rec-card {
+      padding: 9px 11px; border-radius: 9px;
+      border: 1px solid rgba(255,255,255,.06);
+      border-left: 3px solid var(--blue);
+      background: rgba(255,255,255,.03);
+      margin-bottom: 6px; transition: background .15s;
+    }
+    .rec-card:hover { background: rgba(255,255,255,.05); }
+    .rec-btn {
+      padding: 4px 9px; border-radius: 5px; font-size: 9px; font-weight: 800;
+      cursor: pointer; letter-spacing: .04em; border: 1px solid transparent;
+      transition: all .12s; white-space: nowrap; font-family: inherit;
+    }
+    .rec-btn-primary { background: rgba(0,229,160,.15); border-color: rgba(0,229,160,.35); color: var(--teal); }
+    .rec-btn-primary:hover { background: rgba(0,229,160,.28); }
+    .rec-btn-secondary { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.10); color: var(--muted); }
+    .rec-btn-secondary:hover { color: #fff; border-color: rgba(255,255,255,.25); }
+
+    .shortcuts-overlay {
+      position: absolute; inset: 0; z-index: 200;
+      background: rgba(2,8,16,.85); backdrop-filter: blur(7px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .shortcuts-overlay.hidden { display: none; }
+    .shortcuts-panel {
+      width: 460px; border-radius: 16px;
+      border: 1px solid rgba(0,200,255,.22);
+      background: rgba(5,14,26,.97); padding: 20px 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+    .shortcuts-title { font-size: 15px; font-weight: 900; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .shortcuts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .shortcut-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 7px; background: rgba(255,255,255,.03); }
+    kbd {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 22px; height: 20px; padding: 0 4px;
+      border-radius: 4px; border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.07); font-family: inherit;
+      font-size: 10px; font-weight: 700; color: #c8d8f0; flex-shrink: 0;
+    }
+    .shortcut-desc { font-size: 10px; color: var(--muted); }
+
+    .severity { padding: 2px 6px; border-radius: 999px; font-size: 8px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; border: 1px solid rgba(255,255,255,.08); }
+    .sev-low { background: rgba(0,200,255,.10); color: #b0eeff; border-color: rgba(0,200,255,.22); }
+    .sev-med { background: rgba(255,190,60,.10); color: #ffe7a7; border-color: rgba(255,190,60,.22); }
+    .sev-high { background: rgba(255,68,102,.10); color: #ffd4d4; border-color: rgba(255,68,102,.22); }
+
+    .maplibregl-popup-content {
+      background: #071522; color: #eef8ff;
+      border: 1px solid rgba(0,200,255,.25); border-radius: 10px;
+      padding: 10px 12px; box-shadow: 0 12px 30px rgba(0,0,0,.4);
+      font-family: 'Courier New', monospace;
+    }
+    .maplibregl-popup-tip { border-top-color: #071522 !important; border-bottom-color: #071522 !important; }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,200,255,.18); border-radius: 2px; }
+
+    @keyframes threatFlash { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+    body.wartime .metric-value.threat-active { animation: threatFlash 1.6s infinite; color: var(--amber); }
+
+    .stack-card { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.05); cursor: pointer; margin-bottom: 5px; }
+    .stack-card:hover { border-color: rgba(0,200,255,.3); }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Console in Development</h1>
-    <p>This domain environment is being built.</p>
-    <p><a href="index.html">Return to Futures Gateway</a></p>
+<div id="app">
+  <div id="map"></div>
+  <div id="notification" class="notification"></div>
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <a href="https://futures.astronetix.us" target="_blank" rel="noopener" class="panel brand">
+      <img class="brand-logo" src="https://futures.astronetix.us/logo.png" alt="Astronetix" onerror="this.style.display='none'"/>
+      <div class="brand-wordmark">
+        <div class="brand-name">Astronetix</div>
+        <div class="brand-sub-text">Futures Platform</div>
+      </div>
+      <div class="brand-vline"></div>
+      <div class="brand-cop">
+        <div class="brand-cop-kicker">Maritime Domain · INDOPACOM</div>
+        <div class="brand-cop-title">Pacific Maritime COP</div>
+      </div>
+    </a>
+
+    <div class="panel summary">
+      <div class="metric"><div class="metric-label">Blue Forces</div><div id="m-total" class="metric-value">0</div></div>
+      <div class="metric"><div class="metric-label">Underway</div><div id="m-underway" class="metric-value">0</div></div>
+      <div class="metric"><div class="metric-label">On Station</div><div id="m-station" class="metric-value">0</div></div>
+      <div class="metric"><div class="metric-label">Alert</div><div id="m-alert" class="metric-value">0</div></div>
+      <div class="metric"><div class="metric-label">Maintenance</div><div id="m-maint" class="metric-value">0</div></div>
+      <div class="metric" id="m-red-wrap" style="display:none;"><div class="metric-label" style="color:#ff4466;">Red Force</div><div id="m-red" class="metric-value" style="color:#ff4466;">0</div></div>
+      <div class="metric"><div class="metric-label">Open Alerts</div><div id="m-alerts" class="metric-value">0</div></div>
+    </div>
+
+    <div class="panel control-panel">
+      <div class="ctrl-section">
+        <div class="ctrl-label">Mode</div>
+        <div class="mode-row">
+          <span class="mode-dot war-dot" id="warDot"></span>
+          <span id="modeLabel">Peacetime</span>
+          <div id="warSwitch" class="switch"></div>
+        </div>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="ctrl-section">
+        <div class="ctrl-label">Automation</div>
+        <div class="mode-row">
+          <span class="mode-dot" style="background:var(--teal);box-shadow:0 0 8px rgba(0,229,160,.5)"></span>
+          <span id="autoLabel">On</span>
+          <div id="autoSwitch" class="switch active"></div>
+        </div>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="ctrl-section">
+        <div class="ctrl-label">Speed</div>
+        <div style="display:flex;gap:5px;">
+          <button class="style-btn active" data-speed="1">Real</button>
+          <button class="style-btn" data-speed="10">10x</button>
+          <button class="style-btn" data-speed="60">60x</button>
+          <button class="style-btn" data-speed="replay">↩</button>
+        </div>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="zulu" id="zuluWrap">
+        <span class="zulu-label">ZULU</span>
+        <span id="zuluTime">J000 00:00Z</span>
+      </div>
+      <button onclick="document.getElementById('shortcutsOverlay').classList.remove('hidden')"
+        style="flex-shrink:0;width:20px;height:20px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--muted);font-size:11px;cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0;margin-right:4px;font-family:inherit;"
+        title="Keyboard shortcuts">?</button>
+    </div>
   </div>
+
+  <!-- SUBBAR -->
+  <div id="subbar">
+    <span style="font-size:9px;font-weight:900;letter-spacing:.18em;color:rgba(0,200,255,.35);text-transform:uppercase;">Layer</span>
+    <button class="style-btn" data-style="dark">Dark</button>
+    <button class="style-btn active" data-style="osm">OSM</button>
+    <button class="style-btn" data-style="satellite">Satellite</button>
+  </div>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="panel sidebar">
+    <div class="panel-head">
+      <div class="panel-title">INDOPACOM Maritime COP</div>
+      <div class="panel-sub">7th Fleet · Task Forces · Ship Status</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Fleet / Task Force</div>
+      <select id="fleetFilter">
+        <option value="ALL">All INDOPACOM Forces</option>
+        <option value="7F" selected>7th Fleet</option>
+        <option value="TF70">TF-70 Carrier Strike</option>
+        <option value="TF71">TF-71 Surface Action</option>
+        <option value="TF72">TF-72 Submarine</option>
+        <option value="TF73">TF-73 Logistics</option>
+        <option value="TF74">TF-74 Amphibious</option>
+        <option value="TF76">TF-76 Expeditionary</option>
+        <option value="COALITION">Coalition Units</option>
+      </select>
+    </div>
+    <div class="section" id="n2n3Strip" style="background:rgba(0,200,255,.03);border-bottom:1px solid rgba(0,200,255,.1);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+        <div>
+          <div class="section-title" style="margin-bottom:1px;color:var(--blue);">7th Fleet — YOKOSUKA</div>
+          <div style="font-size:9px;color:var(--muted);">COMSEVENTHFLT · INDOPACOM Maritime</div>
+        </div>
+        <button onclick="openFleetStatus()" style="padding:3px 9px;border-radius:5px;border:1px solid rgba(0,200,255,.35);background:rgba(0,200,255,.1);color:var(--blue);font-size:9px;font-weight:900;cursor:pointer;font-family:inherit;">STATUS</button>
+      </div>
+      <div id="fleetStatusStrip"></div>
+    </div>
+    <div class="section">
+      <div class="section-title">Vessel Type</div>
+      <div id="typeChips" class="chip-row">
+        <button class="chip active" data-type="ALL">All</button>
+        <button class="chip" data-type="CVN">CVN</button>
+        <button class="chip" data-type="DDG">DDG</button>
+        <button class="chip" data-type="SSN">SSN</button>
+        <button class="chip" data-type="CG">CG</button>
+        <button class="chip" data-type="LHA">Amphibious</button>
+        <button class="chip" data-type="AOE">Logistics</button>
+        <button class="chip" data-type="FFG">FFG</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Status</div>
+      <div id="statusChips" class="chip-row">
+        <button class="chip active" data-status="ALL">All</button>
+        <button class="chip" data-status="UNDERWAY">Underway</button>
+        <button class="chip" data-status="STATION">On Station</button>
+        <button class="chip" data-status="ALERT">Alert</button>
+        <button class="chip" data-status="MAINT">Maint</button>
+      </div>
+    </div>
+    <div class="section">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+        <div class="section-title" style="margin-bottom:0;">Vessels</div>
+        <div style="flex:1;position:relative;">
+          <input id="shipSearch" type="text" placeholder="Search name / hull…"
+            style="width:100%;box-sizing:border-box;padding:4px 7px 4px 22px;border-radius:6px;
+            border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+            color:#eaf4ff;font-size:10px;font-family:inherit;outline:none;"
+            oninput="shipSearchFilter=this.value.trim().toLowerCase();renderShipList()"
+            onfocus="this.style.borderColor='rgba(0,200,255,.5)'"
+            onblur="this.style.borderColor='rgba(255,255,255,.1)'" />
+          <span style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--muted);pointer-events:none;">▸</span>
+        </div>
+      </div>
+      <div id="shipList" class="mini-list"></div>
+    </div>
+  </aside>
+
+  <!-- ── AUX PANELS ── -->
+  <aside class="panel auxpanel" id="recPanel" style="right:calc(var(--detail-w) + 24px);">
+    <div class="auxpanel-head">
+      <div>
+        <div class="panel-title" style="font-size:13px;">Recommendations</div>
+        <div class="panel-sub" style="font-size:9px;">7th Fleet automation queue</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span id="recBadge" style="display:none;padding:1px 7px;border-radius:9px;font-size:9px;font-weight:900;background:rgba(0,229,160,.18);border:1px solid rgba(0,229,160,.3);color:var(--teal);">0</span>
+        <button class="collapse-btn" id="recCollapseBtn">▾</button>
+      </div>
+    </div>
+    <div class="auxpanel-body section" style="flex:1;overflow:auto;padding:8px 10px;">
+      <div id="recList"></div>
+    </div>
+  </aside>
+
+  <aside class="panel auxpanel" id="alertPanel" style="right:calc(var(--detail-w) + 24px);">
+    <div class="auxpanel-head">
+      <div>
+        <div class="panel-title" style="font-size:13px;">Alerts</div>
+        <div class="panel-sub" style="font-size:9px;">Readiness · posture · EMCON</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span id="alertBadge" style="display:none;padding:1px 7px;border-radius:9px;font-size:9px;font-weight:900;background:rgba(255,68,102,.18);border:1px solid rgba(255,68,102,.3);color:#ff7070;">0</span>
+        <button class="collapse-btn" id="alertCollapseBtn">▾</button>
+      </div>
+    </div>
+    <div class="auxpanel-body section" style="flex:1;overflow:auto;padding:8px 10px;">
+      <div id="alertList"></div>
+    </div>
+  </aside>
+
+  <!-- ── DETAIL PANEL ── -->
+  <aside class="panel detail" id="detailPanel">
+    <div class="panel-head" style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:9px 12px 8px;">
+      <div id="detailPanelTitle" style="font-size:13px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">SITREP</div>
+      <div style="display:flex;gap:5px;flex-shrink:0;">
+        <button id="detailMinBtn" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;">◁</button>
+      </div>
+    </div>
+    <div class="detail-tab-bar">
+      <button class="detail-tab active" data-tab="sitrep">SITREP</button>
+      <button class="detail-tab" data-tab="intel">Intel</button>
+      <button class="detail-tab" data-tab="detail">Details</button>
+    </div>
+    <div class="detail-body">
+      <div id="tabSitrep" class="detail-tab-pane">
+        <div id="sitrepContent" class="detail-empty">Generating SITREP…</div>
+        <div style="padding:8px 12px;border-top:1px solid rgba(255,255,255,.05);">
+          <button onclick="generateSitrep()" style="width:100%;padding:7px;border-radius:8px;border:1px solid rgba(0,200,255,.3);background:rgba(0,200,255,.1);color:var(--blue2);font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-family:inherit;">⟳ Refresh SITREP</button>
+        </div>
+      </div>
+      <div id="tabIntel" class="detail-tab-pane" style="display:none;">
+        <div id="intelContent"></div>
+      </div>
+      <div id="tabDetail" class="detail-tab-pane" style="display:none;">
+        <div id="detailContent" class="detail-empty">Select a vessel, port, or task force to inspect.</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── TIMELINE ── -->
+  <div class="panel timeline" id="timeline">
+    <div class="timeline-head">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div class="timeline-title">Activity Timeline</div>
+          <div class="timeline-sub" id="timelineSub">24-hr rolling · scroll →</div>
+        </div>
+        <button id="timelineToggle" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;">▾</button>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:4px;">
+        <button id="tlTabSortie" onclick="switchTlTab('sortie')" style="padding:2px 7px;border-radius:4px;border:1px solid rgba(0,200,255,.4);background:rgba(0,200,255,.15);color:var(--blue);font-size:9px;font-weight:900;cursor:pointer;font-family:inherit;">Ops</button>
+        <button id="tlTabLog" onclick="switchTlTab('log')" style="padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-size:9px;font-weight:900;cursor:pointer;font-family:inherit;">Events <span id="evLogBadge" style="display:none;background:rgba(0,200,255,.18);border-radius:3px;padding:0 3px;color:var(--blue);font-size:8px;margin-left:2px;">0</span></button>
+      </div>
+      <div class="timeline-legend" id="tlLegend">
+        <div class="tl-key"><div class="tl-dot" style="background:#00c8ff"></div>CVN</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#7de0ff"></div>DDG</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#b388ff"></div>SSN</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#ffd166"></div>Logistics</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#00e5a0"></div>Amphib</div>
+        <div class="tl-key"><div class="tl-dot" style="background:#ff4466"></div>Enemy</div>
+      </div>
+    </div>
+    <div id="tlEventLog" style="display:none;overflow-y:auto;overflow-x:hidden;background:rgba(4,10,18,.92);">
+      <div id="eventLogList"></div>
+    </div>
+    <div class="timeline-body" id="timelineScroll">
+      <div class="timeline-inner">
+        <div id="timelineGrid" style="position:absolute;inset:0 10px;top:0;display:grid;grid-template-columns:repeat(24,1fr);pointer-events:none;"></div>
+        <div id="timelineLanes" class="timeline-lanes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHORTCUTS OVERLAY -->
+  <div class="shortcuts-overlay hidden" id="shortcutsOverlay">
+    <div class="shortcuts-panel">
+      <div class="shortcuts-title">
+        <span>⌨ Keyboard Shortcuts</span>
+        <button onclick="document.getElementById('shortcutsOverlay').classList.add('hidden')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-row"><kbd>?</kbd><span class="shortcut-desc">Toggle shortcuts</span></div>
+        <div class="shortcut-row"><kbd>W</kbd><span class="shortcut-desc">Toggle wartime mode</span></div>
+        <div class="shortcut-row"><kbd>A</kbd><span class="shortcut-desc">Toggle automation</span></div>
+        <div class="shortcut-row"><kbd>M</kbd><span class="shortcut-desc">Cycle map layer</span></div>
+        <div class="shortcut-row"><kbd>T</kbd><span class="shortcut-desc">Toggle timeline</span></div>
+        <div class="shortcut-row"><kbd>Esc</kbd><span class="shortcut-desc">Clear selection</span></div>
+        <div class="shortcut-row"><kbd>1</kbd><span class="shortcut-desc">Real-time speed</span></div>
+        <div class="shortcut-row"><kbd>2</kbd><span class="shortcut-desc">10× speed</span></div>
+        <div class="shortcut-row"><kbd>3</kbd><span class="shortcut-desc">60× speed</span></div>
+        <div class="shortcut-row"><kbd>R</kbd><span class="shortcut-desc">Replay reset</span></div>
+        <div class="shortcut-row"><kbd>S</kbd><span class="shortcut-desc">Filter: Submarines</span></div>
+        <div class="shortcut-row"><kbd>C</kbd><span class="shortcut-desc">Filter: Carriers</span></div>
+      </div>
+      <div style="margin-top:10px;font-size:9px;color:rgba(0,200,255,.4);text-align:center;">Press any key to dismiss</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   INDOPACOM MARITIME COP — DATA MODEL
+   ════════════════════════════════════════════════════ */
+
+const PORTS = [
+  { id:"yokosuka",  name:"Fleet Activities Yokosuka", country:"Japan",       ccmd:"INDOPACOM", coords:[139.664,35.290], role:"7th Fleet HQ", note:"Primary US Navy forward-deployed base. Home of USS George Washington (CVN-73)." },
+  { id:"sasebo",    name:"Fleet Activities Sasebo",   country:"Japan",       ccmd:"INDOPACOM", coords:[129.737,33.155], role:"Amphibious / Patrol", note:"Home of USS America (LHA-6) ESG. MCM and patrol craft." },
+  { id:"guam",      name:"Naval Base Guam (Apra Harbor)", country:"Guam",    ccmd:"INDOPACOM", coords:[144.655,13.443], role:"Submarine / Logistics", note:"Primary Pacific submarine hub. Trident refit pier. Fuel and munitions depot." },
+  { id:"okinawa",   name:"White Beach / Camp Shields", country:"Japan",      ccmd:"INDOPACOM", coords:[127.962,26.317], role:"Amphibious Staging", note:"III MEF / 31st MEU staging. Logistics support for western Pacific ops." },
+  { id:"pearlyarb", name:"Joint Base Pearl Harbor–Hickam", country:"Hawaii", ccmd:"INDOPACOM", coords:[-157.970,21.367], role:"INDOPACOM HQ", note:"INDOPACOM headquarters. CNO Pacific. SSN/SSBN maintenance cycle." },
+  { id:"subic",     name:"Subic Bay (Allied Logistics)", country:"Philippines", ccmd:"INDOPACOM", coords:[120.270,14.800], role:"Logistics / EDCA", note:"EDCA access agreement. Logistics pre-positioning for SCS operations." },
+  { id:"darwin",    name:"HMAS Coonawarra / Darwin",   country:"Australia",  ccmd:"INDOPACOM", coords:[130.845,-12.462], role:"Rotational / Coalition", note:"MRF-D Marines. Coalition staging hub. US/AUS exercise base." },
+  { id:"busan",     name:"Chinhae / Busan",             country:"ROK",       ccmd:"INDOPACOM", coords:[128.622,35.105], role:"US/ROK Naval Base", note:"COMNAVFORKOREA. CFC maritime component. ROK surface fleet." },
+  { id:"singapore", name:"Changi Naval Base / RSS",     country:"Singapore", ccmd:"INDOPACOM", coords:[103.989,1.342], role:"Logistics / LCS Hub", note:"LCS forward-deployed to Singapore. P-8 maritime patrol. CTF-73." },
+  { id:"bremerton", name:"Naval Base Kitsap–Bremerton", country:"USA",       ccmd:"INDOPACOM", coords:[-122.654,47.557], role:"CONUS Pacific Reserve", note:"Trident SSBN home port. CVN maintenance. Strategic reserve." },
+  { id:"san_diego", name:"Naval Base San Diego",        country:"USA",       ccmd:"INDOPACOM", coords:[-117.191,32.717], role:"CONUS Pacific Fleet", note:"Pacific Fleet surface ships. Amphibious ready group staging." },
+];
+
+const TYPE_COLOR = {
+  CVN:"#00c8ff", CG:"#4da6ff", DDG:"#7de0ff", FFG:"#a0d8ff",
+  SSN:"#b388ff", SSBN:"#cc66ff",
+  LHA:"#00e5a0", LPD:"#50f0b0", LSD:"#80f4c0",
+  AOE:"#ffd166", AKE:"#ffe084",
+  MCM:"#ff9ecb", PC:"#ff9ecb",
+};
+
+const SHIPS = [
+  { id:"S01", name:"USS George Washington", hull:"CVN-73", type:"CVN", tf:"TF70", port:"yokosuka",
+    status:"UNDERWAY", rdy:92, fuel:88, crew:5000, auto:true,
+    mission:"CSG-5 Lead / Philippine Sea Freedom of Navigation",
+    loadout:["CVW-5 air wing (80 AC)","Mk-41 VLS (96-cell)","Evolved SeaSparrow","CIWS ×2","20mm Phalanx"],
+    notes:"Flagship CSG-5. CVW-5 embarked. Conducting FON WESTPAC-2.",
+    route:[[-157.970,21.367],[165.0,20.0],[139.664,35.290],[130.0,25.0],[125.0,18.0],[125.0,16.0]],
+    rp:.42, rs:.003, trail:[], tb:{s:0,e:20,l:"CSG-5 FON"} },
+  { id:"S02", name:"USS Shiloh", hull:"CG-67", type:"CG", tf:"TF70", port:"yokosuka",
+    status:"UNDERWAY", rdy:88, fuel:72, crew:400, auto:true,
+    mission:"CSG-5 AAW / BMD Picket",
+    loadout:["Mk-41 VLS (122-cell)","SM-3 Block IIA","SM-6","Harpoon SSM","Mk-46 Torpedo"],
+    notes:"BMD-capable. Area AAW screen for GW. SPY-1B radar.",
+    route:[[-157.970,21.367],[164.0,20.5],[138.0,34.0],[128.0,24.0],[124.0,17.0]],
+    rp:.44, rs:.003, trail:[], tb:{s:2,e:18,l:"BMD Picket"} },
+  { id:"S03", name:"USS Benfold", hull:"DDG-65", type:"DDG", tf:"TF70", port:"yokosuka",
+    status:"UNDERWAY", rdy:94, fuel:81, crew:280, auto:true,
+    mission:"CSG-5 ASW / Screen",
+    loadout:["Mk-41 VLS (90-cell)","SM-2","ASROC","Mk-46 Torpedo","Harpoon"],
+    notes:"Forward screen. MH-60R ASW helicopter embarked.",
+    route:[[-157.970,21.367],[163.0,19.5],[137.0,33.5],[127.0,23.5],[123.5,16.5]],
+    rp:.40, rs:.003, trail:[], tb:{s:1,e:17,l:"ASW Screen"} },
+  { id:"S04", name:"USS Howard", hull:"DDG-83", type:"DDG", tf:"TF70", port:"yokosuka",
+    status:"UNDERWAY", rdy:87, fuel:65, crew:280, auto:true,
+    mission:"CSG-5 NGFS / Strike Escort",
+    loadout:["Mk-41 VLS","Tomahawk TLAM","SM-2","ASROC","Harpoon"],
+    notes:"Tomahawk-capable. Deep strike escort role CSG-5.",
+    route:[[-157.970,21.367],[166.0,21.0],[140.0,35.5],[130.5,25.5],[126.0,19.0]],
+    rp:.46, rs:.003, trail:[], tb:{s:0,e:16,l:"Strike Escort"} },
+  { id:"S05", name:"USS Preble", hull:"DDG-88", type:"DDG", tf:"TF70", port:"yokosuka",
+    status:"ALERT", rdy:96, fuel:95, crew:280, auto:true,
+    mission:"CSG-5 Alert Screen — EMCON",
+    loadout:["Mk-41 VLS","SM-2","SM-6","ASROC","Harpoon"],
+    notes:"EMCON Alpha. Alert posture. Potential tail-follower detected.",
+    route:null, rp:0, rs:0, trail:[], tb:{s:0,e:4,l:"Alert"} },
+  { id:"S06", name:"USS Bunker Hill", hull:"CG-52", type:"CG", tf:"TF71", port:"san_diego",
+    status:"UNDERWAY", rdy:78, fuel:68, crew:400, auto:true,
+    mission:"TF-71 SAG Lead — SCS Patrol",
+    loadout:["Mk-41 VLS (122-cell)","SM-2","Tomahawk","Harpoon","Mk-46"],
+    notes:"TF-71 SAG lead. South China Sea freedom of navigation patrol.",
+    route:[[120.270,14.800],[116.0,16.0],[113.5,18.0],[111.0,16.0],[115.0,12.0],[118.0,14.0],[120.270,14.800]],
+    rp:.28, rs:.004, trail:[], tb:{s:3,e:20,l:"SCS FON"} },
+  { id:"S07", name:"USS Decatur", hull:"DDG-73", type:"DDG", tf:"TF71", port:"san_diego",
+    status:"UNDERWAY", rdy:82, fuel:74, crew:280, auto:true,
+    mission:"SCS Freedom of Navigation — Fiery Cross",
+    loadout:["Mk-41 VLS","SM-2","ASROC","Tomahawk","Harpoon"],
+    notes:"Close-approach FON within 12nm Fiery Cross Reef. PLAN shadowing.",
+    route:[[120.270,14.800],[116.5,15.5],[113.0,17.0],[112.0,14.0],[114.0,10.5],[117.5,13.0],[120.270,14.800]],
+    rp:.35, rs:.004, trail:[], tb:{s:5,e:22,l:"FON"} },
+  { id:"S08", name:"USS Chancellorsville", hull:"CG-62", type:"CG", tf:"TF71", port:"yokosuka",
+    status:"STATION", rdy:91, fuel:86, crew:400, auto:true,
+    mission:"Taiwan Strait Transit — Routine",
+    loadout:["Mk-41 VLS","SM-2","Tomahawk","Harpoon","Mk-46"],
+    notes:"Taiwan Strait transit. PLAAF aircraft shadowing at safe distance.",
+    route:[[128.622,35.105],[122.5,30.0],[120.5,24.0],[118.0,22.0],[116.5,20.0]],
+    rp:.52, rs:.003, trail:[], tb:{s:4,e:16,l:"TST"} },
+  { id:"S09", name:"USS Connecticut", hull:"SSN-22", type:"SSN", tf:"TF72", port:"guam",
+    status:"UNDERWAY", rdy:95, fuel:99, crew:135, auto:true,
+    mission:"Strategic ISR — PLAN SSBN Tracking",
+    loadout:["Mk-48 ADCAP Torpedo ×50","Tomahawk TLAM ×38","UUM-44 SUBROC","Mk-67 SLMM"],
+    notes:"EMCON Bravo. Tracking PLAN Jin-class SSBN. Position classified.",
+    route:[[144.655,13.443],[140.0,18.0],[135.0,22.0],[128.0,26.0],[130.0,30.0],[132.0,28.0],[144.655,13.443]],
+    rp:.18, rs:.003, trail:[], tb:{s:0,e:22,l:"SSBN Track"} },
+  { id:"S10", name:"USS Cheyenne", hull:"SSN-773", type:"SSN", tf:"TF72", port:"guam",
+    status:"UNDERWAY", rdy:90, fuel:99, crew:135, auto:true,
+    mission:"WESTPAC Barrier — SLOC Monitoring",
+    loadout:["Mk-48 ADCAP ×40","Tomahawk ×30","SUBROC"],
+    notes:"Monitoring First Island Chain chokepoints. ELINT collection.",
+    route:[[144.655,13.443],[130.0,20.0],[125.0,22.0],[122.0,28.0],[120.0,24.0],[122.5,18.0],[144.655,13.443]],
+    rp:.33, rs:.003, trail:[], tb:{s:2,e:20,l:"SLOC Mon"} },
+  { id:"S11", name:"USS Annapolis", hull:"SSN-760", type:"SSN", tf:"TF72", port:"guam",
+    status:"ALERT", rdy:98, fuel:99, crew:135, auto:true,
+    mission:"Alert Hold — Guam SSBN Bastion Defense",
+    loadout:["Mk-48 ADCAP ×44","Tomahawk ×32","SUBROC","UUM-44"],
+    notes:"Alert posture. Bastion defense Guam. Ready launch Tomahawk strike package.",
+    route:null, rp:0, rs:0, trail:[], tb:{s:0,e:6,l:"Alert"} },
+  { id:"S12", name:"USS Wyoming", hull:"SSBN-742", type:"SSBN", tf:"TF72", port:"bremerton",
+    status:"UNDERWAY", rdy:99, fuel:99, crew:155, auto:true,
+    mission:"Deterrence Patrol — WESTPAC",
+    loadout:["Trident II D5 ×20","Mk-5 RVs (nuclear)"],
+    notes:"Strategic deterrence patrol. Position not disclosed. EMCON Alpha.",
+    route:[[144.655,13.443],[150.0,25.0],[155.0,32.0],[160.0,38.0]],
+    rp:.12, rs:.002, trail:[], tb:{s:0,e:24,l:"Det Patrol"} },
+  { id:"S13", name:"USNS Rainier", hull:"T-AOE-7", type:"AOE", tf:"TF73", port:"guam",
+    status:"UNDERWAY", rdy:88, fuel:95, crew:690, auto:true,
+    mission:"Combat Logistics Force — CSG-5 Support",
+    loadout:["JP-5 Fuel (2M gal)","Fleet Ordnance","Dry Cargo"],
+    notes:"CLF. Scheduled RAS with GW strike group. 72hr logistics cycle.",
+    route:[[144.655,13.443],[140.0,24.0],[132.0,28.0],[127.0,22.0],[130.0,18.0],[144.655,13.443]],
+    rp:.24, rs:.003, trail:[], tb:{s:4,e:20,l:"CLF Support"} },
+  { id:"S14", name:"USNS Wally Schirra", hull:"T-AKE-8", type:"AKE", tf:"TF73", port:"guam",
+    status:"UNDERWAY", rdy:82, fuel:91, crew:124, auto:true,
+    mission:"Munitions Resupply — SCS Forces",
+    loadout:["Ordnance (SM-2/SM-6)","Dry Cargo","Medical Supplies"],
+    notes:"T-AKE dry cargo ship. Munitions resupply for TF-71 surface group.",
+    route:[[144.655,13.443],[137.0,20.0],[127.0,16.0],[118.0,14.0],[120.270,14.800],[130.0,18.0],[144.655,13.443]],
+    rp:.31, rs:.003, trail:[], tb:{s:6,e:22,l:"Munitions"} },
+  { id:"S15", name:"USNS Guadalupe", hull:"T-AO-200", type:"AOE", tf:"TF73", port:"singapore",
+    status:"STATION", rdy:91, fuel:98, crew:124, auto:true,
+    mission:"SEA Logistics Hub — CTF-73",
+    loadout:["JP-5 (3.5M gal)","Diesel","Lube Oil"],
+    notes:"Pre-positioned for SCS CLF. Ready to surge north if CSG fuel critical.",
+    route:[[103.989,1.342],[108.0,5.0],[112.0,8.0],[112.0,12.0],[108.0,10.0],[103.989,1.342]],
+    rp:.20, rs:.003, trail:[], tb:{s:2,e:16,l:"CLF Hub"} },
+  { id:"S16", name:"USS America", hull:"LHA-6", type:"LHA", tf:"TF74", port:"sasebo",
+    status:"UNDERWAY", rdy:89, fuel:82, crew:2600, auto:true,
+    mission:"ESG-7 Lead / 31st MEU Embarked",
+    loadout:["F-35B ×10","MV-22B ×12","AH-1Z ×4","31st MEU (2200 Marines)","Landing craft"],
+    notes:"31st MEU embarked. FDNF forward-deployed. Ready for NEO/crisis response.",
+    route:[[129.737,33.155],[130.0,30.0],[128.0,26.0],[127.5,22.0],[125.5,18.0],[123.0,16.0]],
+    rp:.30, rs:.003, trail:[], tb:{s:0,e:18,l:"ESG-7"} },
+  { id:"S17", name:"USS New Orleans", hull:"LPD-18", type:"LPD", tf:"TF74", port:"sasebo",
+    status:"UNDERWAY", rdy:86, fuel:77, crew:380, auto:true,
+    mission:"ESG-7 Assault Element",
+    loadout:["LCAC ×2","AAV ×14","CH-53E ×4","Marine Rifle Battalion"],
+    notes:"ESG-7 assault element. Well deck operational. LCAC loaded.",
+    route:[[129.737,33.155],[130.5,30.5],[128.5,26.5],[128.0,22.5],[126.0,18.5]],
+    rp:.32, rs:.003, trail:[], tb:{s:1,e:17,l:"Assault"} },
+  { id:"S18", name:"USS Germantown", hull:"LSD-42", type:"LSD", tf:"TF74", port:"okinawa",
+    status:"STATION", rdy:80, fuel:72, crew:340, auto:true,
+    mission:"Okinawa Staging / 31 MEU Pre-positioned",
+    loadout:["LCAC ×4","Cargo / HMMWV ×200","Marines ×400"],
+    notes:"Forward-staged. Well deck ready. Pre-positioned for rapid lift.",
+    route:[[127.962,26.317],[128.5,25.5],[130.0,24.0],[127.0,25.0],[127.962,26.317]],
+    rp:.18, rs:.003, trail:[], tb:{s:6,e:18,l:"Staged"} },
+  { id:"S19", name:"USS Coronado", hull:"LCS-4", type:"PC", tf:"TF76", port:"singapore",
+    status:"UNDERWAY", rdy:79, fuel:65, crew:95, auto:true,
+    mission:"SCS Maritime Patrol — LCS Singapore Det",
+    loadout:["57mm Mk-110","SeaRAM","MH-60R","Surface Warfare Module"],
+    notes:"LCS forward-deployed Singapore. ASEAN partner engagement.",
+    route:[[103.989,1.342],[107.0,3.0],[109.0,6.0],[111.0,9.0],[109.0,6.0],[103.989,1.342]],
+    rp:.41, rs:.005, trail:[], tb:{s:0,e:14,l:"SCS Patrol"} },
+  { id:"S20", name:"USS Independence", hull:"LCS-2", type:"PC", tf:"TF76", port:"singapore",
+    status:"MAINT", rdy:38, fuel:45, crew:95, auto:false,
+    mission:"Maintenance — Changi Naval Base",
+    loadout:["57mm Mk-110","Mine Countermeasures Module","MH-60R"],
+    notes:"Scheduled maintenance Changi NB. Propulsion inspection. ETA RTD 72hr.",
+    route:null, rp:0, rs:0, trail:[], tb:{s:4,e:20,l:"Maint"} },
+  { id:"S21", name:"USS Avenger", hull:"MCM-1", type:"MCM", tf:"TF76", port:"sasebo",
+    status:"UNDERWAY", rdy:84, fuel:78, crew:84, auto:true,
+    mission:"Mine Countermeasures — East China Sea",
+    loadout:["SLQ-48 MCM System","Mk-103 Moored Mine Sweep","Mk-104 Acoustic Sweep"],
+    notes:"MCM ops East China Sea corridor. Pre-transit mine clearance.",
+    route:[[129.737,33.155],[130.0,32.0],[131.5,31.0],[133.0,30.0],[131.0,31.5],[129.737,33.155]],
+    rp:.26, rs:.004, trail:[], tb:{s:3,e:16,l:"MCM"} },
+  { id:"S22", name:"HMAS Brisbane", hull:"DDG-41", type:"DDG", tf:"COALITION", port:"darwin",
+    status:"UNDERWAY", rdy:91, fuel:80, crew:205, auto:true,
+    mission:"AUS-US Maritime Partnership — Darwin",
+    loadout:["Mk-41 VLS","SM-2","ESSM","ASROC","Harpoon Block II"],
+    notes:"RAN Hobart-class destroyer. AUSINDEX bilateral exercise.",
+    route:[[130.845,-12.462],[133.0,-10.0],[136.0,-8.0],[138.0,-10.0],[133.0,-12.0],[130.845,-12.462]],
+    rp:.22, rs:.004, trail:[], tb:{s:2,e:18,l:"AUSINDEX"} },
+  { id:"S23", name:"ROKS Sejong the Great", hull:"DDG-991", type:"DDG", tf:"COALITION", port:"busan",
+    status:"UNDERWAY", rdy:93, fuel:85, crew:300, auto:true,
+    mission:"ROK-US BMD Watch — Korea Strait",
+    loadout:["Mk-41 VLS","SM-2","SM-3","ASROC","Harpoon"],
+    notes:"ROK Aegis destroyer. BMD-configured. Korea Strait patrol.",
+    route:[[128.622,35.105],[130.0,33.0],[131.5,31.0],[132.0,33.0],[130.0,35.0],[128.622,35.105]],
+    rp:.37, rs:.004, trail:[], tb:{s:0,e:16,l:"BMD Watch"} },
+  { id:"S24", name:"JS Kongo", hull:"DDG-173", type:"DDG", tf:"COALITION", port:"yokosuka",
+    status:"STATION", rdy:96, fuel:88, crew:300, auto:true,
+    mission:"JMSDF BMD Station — Philippine Sea",
+    loadout:["Mk-41 VLS","SM-3 Block IIA","SM-2","ASROC","Type-90 SSM"],
+    notes:"JMSDF Kongo-class. BMD-capable. Coordinating with CSG-5.",
+    route:[[139.664,35.290],[140.0,32.0],[138.0,28.0],[135.0,25.0],[138.0,28.0],[139.664,35.290]],
+    rp:.45, rs:.003, trail:[], tb:{s:1,e:20,l:"BMD"} },
+  { id:"S25", name:"RSS Tenacious", hull:"72", type:"FFG", tf:"COALITION", port:"singapore",
+    status:"UNDERWAY", rdy:88, fuel:76, crew:220, auto:true,
+    mission:"RSN Patrol — Malacca / SCS Approach",
+    loadout:["Harpoon SSM","MICA VL","Otobreda 76mm","MH-35 Helicopter"],
+    notes:"Republic of Singapore Navy. IMDEX-25 bilateral exercise participant.",
+    route:[[103.989,1.342],[104.5,2.5],[106.0,4.0],[105.0,5.0],[103.0,3.5],[103.989,1.342]],
+    rp:.19, rs:.004, trail:[], tb:{s:4,e:18,l:"RSN Patrol"} },
+];
+
+const THREATS = [
+  { id:"T01", type:"SURFACE", name:"PLAN Shandong (CV-17)", nation:"PRC", threat:"HIGH",
+    coords:[118.5,20.5], color:"#ff2244",
+    detail:"PLAN Type-002 carrier. J-15 and J-35 air wing. Tracking west of Philippines.",
+    route:[[118.5,20.5],[115.0,18.0],[113.0,15.0],[115.0,18.0],[118.5,20.5]], rp:.15, rs:.004 },
+  { id:"T02", type:"SURFACE", name:"PLAN Type-055 DDG ×2", nation:"PRC", threat:"HIGH",
+    coords:[120.0,22.0], color:"#ff4455",
+    detail:"Nanchang-class destroyers. Area AAW/ASuW screen for Shandong CVBG.",
+    route:[[120.0,22.0],[117.0,20.0],[114.0,17.0],[117.0,20.0],[120.0,22.0]], rp:.22, rs:.004 },
+  { id:"T03", type:"SURFACE", name:"PLAN Type-054A FFG ×3", nation:"PRC", threat:"MED",
+    coords:[113.0,16.0], color:"#ff6600",
+    detail:"ASW screen. Operating near Spratly Island chain. 2nm from USS Decatur track.",
+    route:[[113.0,16.0],[111.0,14.0],[113.0,12.0],[114.5,14.0],[113.0,16.0]], rp:.31, rs:.004 },
+  { id:"T04", type:"SURFACE", name:"PLAN Survey Vessel", nation:"PRC", threat:"LOW",
+    coords:[109.0,10.5], color:"#ffaa00",
+    detail:"PLAN Haiyang Dizhi research vessel. SIGINT / seafloor mapping suspected.",
+    route:[[109.0,10.5],[110.0,9.0],[111.0,10.0],[110.0,11.0],[109.0,10.5]], rp:.44, rs:.003 },
+  { id:"T05", type:"SUB", name:"PLAN Type-093 SSN (suspected)", nation:"PRC", threat:"HIGH",
+    coords:[125.0,19.0], color:"#cc44ff",
+    detail:"Acoustic contact classified. Bearing 285° from USS Connecticut datum. EMCON.",
+    route:[[125.0,19.0],[128.0,22.0],[130.0,25.0],[128.0,22.0],[125.0,19.0]], rp:.10, rs:.003 },
+  { id:"T06", type:"MISSILE", name:"DPRK Hwasong-15 (ICBM Launch)", nation:"DPRK", threat:"HIGH",
+    coords:[127.0,39.0], color:"#ff0033",
+    detail:"Launch detected from Pyongyang Military District. Trajectory: WESTPAC. BMD assets cued.",
+    route:null, rp:0, rs:0 },
+  { id:"T07", type:"SURFACE", name:"PLAN Liaoning (CV-16)", nation:"PRC", threat:"HIGH",
+    coords:[123.0,28.0], color:"#ff2244",
+    detail:"PLAN Type-001 carrier. J-15 air wing. Taiwan Strait approach monitoring.",
+    route:[[123.0,28.0],[122.0,26.0],[121.0,24.5],[122.0,26.0],[123.0,28.0]], rp:.25, rs:.003 },
+  { id:"T08", type:"SURFACE", name:"RFS Varyag (CG)", nation:"RU", threat:"MED",
+    coords:[131.0,43.0], color:"#ff8800",
+    detail:"Russian Pacific Fleet flagship. Slava-class cruiser. Transiting south.",
+    route:[[131.0,43.0],[132.0,40.0],[133.0,37.0],[132.0,40.0],[131.0,43.0]], rp:.18, rs:.003 },
+];
+
+const TASK_FORCES = [
+  { id:"TF70", name:"Task Force 70", role:"Carrier Strike Group 5", flagship:"S01" },
+  { id:"TF71", name:"Task Force 71", role:"Surface Action Group",   flagship:"S06" },
+  { id:"TF72", name:"Task Force 72", role:"Submarine Force",        flagship:"S09" },
+  { id:"TF73", name:"Task Force 73", role:"Combat Logistics Force", flagship:"S13" },
+  { id:"TF74", name:"Task Force 74", role:"Amphibious Force",       flagship:"S16" },
+  { id:"TF76", name:"Task Force 76", role:"Expeditionary Strike",   flagship:"S19" },
+];
+
+const FLEET7 = {
+  commander: "VADM Karl Thomas",
+  flagship: "USS Blue Ridge (LCC-19)",
+  location: "Yokosuka, Japan",
+  op: "Op PACIFIC DETERRENCE",
+  phase: "Phase 0 — Presence",
+  threatCon: "THREATCON BRAVO",
+  emcon: "EMCON Charlie (SSN/SSBN); Delta (SSBN bastion)",
+  n2: { officer:"CAPT R. Walsh", status:"ON WATCH", detail:"N2J ISR — P-8 continuous coverage Luzon Strait + GIUK analog equiv." },
+  n3: { officer:"CAPT S. Kim",   status:"ON WATCH", detail:"N3 Ops — 25 ships underway, 4 exercises concurrent, 1 contingency OPORD active." },
+  n4: { officer:"CDR T. Nguyen", status:"ON WATCH", detail:"N4 Logistics — CLF 72hr cycle nominal. JP-5 87% across AOR. T-AOE-7 RAS +18hr." },
+  datalinks: [
+    { name:"Link 16",   status:"UP",       nodes:22, latency:28,  detail:"Full TADIL J connectivity. All TF linked." },
+    { name:"Link 11",   status:"UP",       nodes:14, latency:55,  detail:"NTDS/Link-11. Legacy platforms integrated." },
+    { name:"SIPRNET",   status:"UP",       nodes:18, latency:12,  detail:"Secret IP network. All ships connected." },
+    { name:"LOCE",      status:"DEGRADED", nodes:8,  latency:180, detail:"Linked Op Intel Center — partial. 3 SSN offline (EMCON)." },
+    { name:"CEC",       status:"UP",       nodes:9,  latency:8,   detail:"Cooperative Engagement Capability. CSG-5 + TF-71." },
+    { name:"JULAS",     status:"UP",       nodes:6,  latency:22,  detail:"Joint Undersea Surveillance. SOSUS feeds active." },
+  ]
+};
+
+/* ═══ STATE ══════════════════════════════════════════ */
+let selFleet="7F", selType="ALL", selStatus="ALL";
+let selShipId=null, selPortId=null, selThreatId=null;
+let wartime=false, autoMaster=true;
+let alerts=[], tasks=[], eventLog=[];
+let alertCtr=0, taskCtr=0;
+let timeSpeed=1;
+let shipSearchFilter="";
+let detailMinimized=false, activeTab="sitrep";
+let prevCamera=null;
+let simTime=Date.now();
+
+/* ═══ HELPERS ════════════════════════════════════════ */
+const getShip=id=>SHIPS.find(s=>s.id===id);
+const getPort=id=>PORTS.find(p=>p.id===id);
+const getThreat=id=>THREATS.find(t=>t.id===id);
+const getTF=id=>TASK_FORCES.find(t=>t.id===id);
+
+function rdyCls(r){ return r>=70?"rdy-ok":r>=40?"rdy-warn":"rdy-crit"; }
+function rdyLbl(r){ return r>=70?"Nominal":r>=40?"Degraded":"Critical"; }
+
+function interpRoute(route,p){
+  if(!route||route.length<2) return null;
+  const segs=[]; let total=0;
+  for(let i=0;i<route.length-1;i++){
+    const a=route[i],b=route[i+1],len=Math.sqrt((b[0]-a[0])**2+(b[1]-a[1])**2);
+    segs.push({a,b,len}); total+=len;
+  }
+  if(!total) return route[0];
+  let t=total*(p%1);
+  for(const s of segs){ if(t<=s.len){ const f=s.len?t/s.len:0; return[s.a[0]+(s.b[0]-s.a[0])*f,s.a[1]+(s.b[1]-s.a[1])*f]; } t-=s.len; }
+  return route[route.length-1];
+}
+
+function shipCoords(s){ return s.route?interpRoute(s.route,s.rp)||getPort(s.port).coords:getPort(s.port).coords; }
+function threatCoords(t){ return t.route?interpRoute(t.route,t.rp)||t.coords:t.coords; }
+
+function makeCircle(center,radiusKm,steps=44){
+  const [lng,lat]=center;
+  const dLat=radiusKm/111;
+  const dLon=radiusKm/(111*Math.cos(lat*Math.PI/180));
+  const c=[]; for(let i=0;i<=steps;i++){ const a=i/steps*Math.PI*2; c.push([lng+Math.cos(a)*dLon,lat+Math.sin(a)*dLat]); }
+  return c;
+}
+
+function filteredShips(){
+  return SHIPS.filter(s=>{
+    if(selFleet!=="ALL"){
+      if(selFleet==="7F"&&s.tf==="COALITION") return false;
+      if(selFleet!=="7F"&&selFleet!=="ALL"&&s.tf!==selFleet) return false;
+    }
+    if(selType!=="ALL"){
+      if(selType==="LHA"&&!["LHA","LPD","LSD"].includes(s.type)) return false;
+      else if(selType==="AOE"&&!["AOE","AKE"].includes(s.type)) return false;
+      else if(selType!=="LHA"&&selType!=="AOE"&&s.type!==selType) return false;
+    }
+    if(selStatus!=="ALL"&&s.status!==selStatus) return false;
+    if(shipSearchFilter){
+      const q=shipSearchFilter;
+      if(!s.name.toLowerCase().includes(q)&&!s.hull.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+/* ═══ MAP ════════════════════════════════════════════ */
+const map = new maplibregl.Map({
+  container:"map",
+  center:[145,18], zoom:3.8,
+  minZoom:2.2, maxZoom:10,
+  style:{
+    version:8,
+    sources:{ osm:{ type:"raster", tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize:256, attribution:"© OpenStreetMap" } },
+    layers:[{id:"osm",type:"raster",source:"osm"}]
+  }
+});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
+
+const SHIP_SVG = {
+  CVN:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#00c8ff" stroke="#041218" stroke-width="2.5"><rect x="8" y="26" width="56" height="22" rx="4"/><rect x="22" y="14" width="12" height="14" rx="2"/><rect x="36" y="18" width="26" height="6" rx="1"/><path d="M8 36 L4 40 L8 44"/></g></svg>`,
+  DDG:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#7de0ff" stroke="#041218" stroke-width="2.5"><path d="M8 32 L58 28 L64 36 L58 44 L8 40 Z"/><rect x="20" y="22" width="8" height="10" rx="2"/><rect x="32" y="24" width="14" height="6" rx="1"/></g></svg>`,
+  CG:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#4da6ff" stroke="#041218" stroke-width="2.5"><path d="M6 30 L56 26 L66 36 L56 46 L6 42 Z"/><rect x="16" y="20" width="10" height="12" rx="2"/><rect x="30" y="22" width="18" height="8" rx="2"/></g></svg>`,
+  SSN:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#b388ff" stroke="#041218" stroke-width="2.5"><ellipse cx="36" cy="36" rx="30" ry="10"/><rect x="30" y="22" width="6" height="14" rx="3"/></g></svg>`,
+  SSBN:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#cc66ff" stroke="#041218" stroke-width="2.5"><ellipse cx="36" cy="36" rx="30" ry="12"/><rect x="28" y="20" width="8" height="16" rx="3"/></g></svg>`,
+  LHA:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#00e5a0" stroke="#041218" stroke-width="2.5"><rect x="6" y="24" width="60" height="26" rx="5"/><rect x="16" y="12" width="16" height="14" rx="2"/><rect x="36" y="16" width="20" height="8" rx="2"/><path d="M6 36 L2 40 L6 44"/></g></svg>`,
+  LPD:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#50f0b0" stroke="#041218" stroke-width="2.5"><rect x="8" y="26" width="56" height="22" rx="4"/><rect x="18" y="16" width="12" height="12" rx="2"/><rect x="34" y="18" width="18" height="8" rx="2"/></g></svg>`,
+  LSD:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#80f4c0" stroke="#041218" stroke-width="2.5"><rect x="10" y="28" width="52" height="18" rx="3"/><rect x="20" y="18" width="10" height="12" rx="2"/></g></svg>`,
+  AOE:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#ffd166" stroke="#041218" stroke-width="2.5"><rect x="8" y="26" width="54" height="22" rx="4"/><rect x="18" y="14" width="8" height="14" rx="2"/><rect x="30" y="18" width="18" height="8" rx="2"/></g></svg>`,
+  AKE:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#ffe084" stroke="#041218" stroke-width="2.5"><rect x="10" y="28" width="50" height="18" rx="3"/><rect x="20" y="18" width="8" height="12" rx="2"/></g></svg>`,
+  PC:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#ff9ecb" stroke="#041218" stroke-width="2.5"><path d="M12 34 L52 30 L58 36 L52 42 L12 40 Z"/><rect x="22" y="24" width="6" height="10" rx="2"/></g></svg>`,
+  FFG:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#a0d8ff" stroke="#041218" stroke-width="2.5"><path d="M10 32 L54 28 L62 36 L54 44 L10 40 Z"/><rect x="22" y="22" width="8" height="10" rx="2"/></g></svg>`,
+  MCM:`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><g fill="#ff9ecb" stroke="#041218" stroke-width="2.5"><path d="M14 34 L50 30 L56 36 L50 42 L14 40 Z"/><circle cx="36" cy="36" r="6" fill="none" stroke="#ff9ecb" stroke-width="2"/></g></svg>`,
+};
+
+const THREAT_SVG = {
+  SURFACE:`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g fill="#ff2244" stroke="#200010" stroke-width="2"><path d="M8 28 L52 24 L58 32 L52 40 L8 36 Z"/><rect x="18" y="18" width="8" height="10" rx="1"/></g><line x1="6" y1="6" x2="58" y2="58" stroke="#ff2244" stroke-width="3"/><line x1="58" y1="6" x2="6" y2="58" stroke="#ff2244" stroke-width="3"/></svg>`,
+  SUB:`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g fill="#cc44ff" stroke="#200010" stroke-width="2"><ellipse cx="32" cy="32" rx="26" ry="9"/><rect x="26" y="20" width="6" height="12" rx="2"/></g><line x1="6" y1="6" x2="58" y2="58" stroke="#ff2244" stroke-width="3"/><line x1="58" y1="6" x2="6" y2="58" stroke="#ff2244" stroke-width="3"/></svg>`,
+  MISSILE:`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><polygon points="32,4 40,24 58,24 44,36 50,56 32,44 14,56 20,36 6,24 24,24" fill="#ff0033" stroke="#200010" stroke-width="2"/></svg>`,
+};
+
+async function svgToImg(svg){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml;charset=utf-8"}));
+    img.onload=()=>{URL.revokeObjectURL(url);res(img);}; img.onerror=rej; img.src=url;
+  });
+}
+
+/* ── GeoJSON builders ── */
+function toPortsGJ(){
+  return {type:"FeatureCollection",features:PORTS.map(p=>({type:"Feature",properties:{id:p.id,name:p.name,country:p.country,role:p.role},geometry:{type:"Point",coordinates:p.coords}}))};
+}
+function toShipsGJ(){
+  return {type:"FeatureCollection",features:filteredShips().map(s=>({type:"Feature",properties:{
+    id:s.id,name:s.name,hull:s.hull,type:s.type,tf:s.tf,status:s.status,
+    rdy:s.rdy,auto:s.auto?1:0,color:TYPE_COLOR[s.type]||"#7de0ff",
+    icon:s.type,sel:selShipId===s.id?1:0,
+    rdy_low:s.rdy<40
+  },geometry:{type:"Point",coordinates:shipCoords(s)}}))};
+}
+function toRoutesGJ(){
+  return {type:"FeatureCollection",features:filteredShips().filter(s=>s.route).map(s=>({type:"Feature",properties:{color:TYPE_COLOR[s.type]||"#7de0ff"},geometry:{type:"LineString",coordinates:s.route}}))};
+}
+function toTrailsGJ(){
+  return {type:"FeatureCollection",features:filteredShips().filter(s=>s.trail.length>1).map(s=>({type:"Feature",properties:{color:TYPE_COLOR[s.type]||"#7de0ff"},geometry:{type:"LineString",coordinates:s.trail}}))};
+}
+function toThreatsGJ(){
+  if(!wartime) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:THREATS.filter(t=>t.type!=="MISSILE").map(t=>({type:"Feature",properties:{
+    id:t.id,name:t.name,nation:t.nation,threat:t.threat,color:t.color,icon:t.type,detail:t.detail
+  },geometry:{type:"Point",coordinates:threatCoords(t)}}))};
+}
+function toThreatRoutesGJ(){
+  if(!wartime) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:THREATS.filter(t=>t.route&&t.type!=="MISSILE").map(t=>({type:"Feature",properties:{color:t.color},geometry:{type:"LineString",coordinates:t.route}}))};
+}
+function toMissilesGJ(){
+  if(!wartime) return {type:"FeatureCollection",features:[]};
+  return {type:"FeatureCollection",features:THREATS.filter(t=>t.type==="MISSILE").map(t=>({type:"Feature",properties:{id:t.id,name:t.name,nation:t.nation,threat:t.threat,color:t.color},geometry:{type:"Point",coordinates:t.coords}}))};
+}
+function toADZGJ(){
+  const zones=[];
+  const csShip=getShip("S01"); if(csShip) zones.push({center:shipCoords(csShip),r:185,color:"#00c8ff"});
+  zones.push({center:[144.655,13.443],r:370,color:"#00e5a0"});
+  return {type:"FeatureCollection",features:zones.map(z=>({type:"Feature",properties:{color:z.color},geometry:{type:"Polygon",coordinates:[makeCircle(z.center,z.r)]}}))};
+}
+
+async function initLayers(){
+  document.body.classList.add("osm-mode");
+  for(const[k,v] of Object.entries(SHIP_SVG)){
+    const img=await svgToImg(v);
+    if(!map.hasImage(k)) map.addImage(k,img,{pixelRatio:2});
+  }
+  for(const[k,v] of Object.entries(THREAT_SVG)){
+    const img=await svgToImg(v);
+    if(!map.hasImage("T_"+k)) map.addImage("T_"+k,img,{pixelRatio:2});
+  }
+
+  map.addSource("ports",{type:"geojson",data:toPortsGJ()});
+  map.addSource("ships",{type:"geojson",data:toShipsGJ()});
+  map.addSource("routes",{type:"geojson",data:toRoutesGJ()});
+  map.addSource("trails",{type:"geojson",data:toTrailsGJ()});
+  map.addSource("threats",{type:"geojson",data:toThreatsGJ()});
+  map.addSource("threat-routes",{type:"geojson",data:toThreatRoutesGJ()});
+  map.addSource("missiles",{type:"geojson",data:toMissilesGJ()});
+  map.addSource("adz",{type:"geojson",data:toADZGJ()});
+  map.addSource("hover-src",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
+
+  map.addLayer({id:"adz-fill",type:"fill",source:"adz",paint:{"fill-color":["get","color"],"fill-opacity":.04}});
+  map.addLayer({id:"adz-line",type:"line",source:"adz",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.3,"line-dasharray":[3,2]}});
+  map.addLayer({id:"routes",type:"line",source:"routes",paint:{"line-color":["get","color"],"line-width":["interpolate",["linear"],["zoom"],3,1.2,8,2.5],"line-opacity":.3,"line-dasharray":[2,3]}});
+  map.addLayer({id:"trails",type:"line",source:"trails",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.22}});
+  map.addLayer({id:"threat-routes",type:"line",source:"threat-routes",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.4,"line-dasharray":[2,2]}});
+  map.addLayer({id:"ports-glow",type:"circle",source:"ports",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,10,8,22],"circle-color":"rgba(0,200,255,.2)","circle-blur":.7}});
+  map.addLayer({id:"ports",type:"circle",source:"ports",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,4,8,8],"circle-color":"#00c8ff","circle-stroke-width":2,"circle-stroke-color":"#041218"}});
+  map.addLayer({id:"ports-label",type:"symbol",source:"ports",minzoom:4,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#c0e8ff","text-halo-color":"#04111e","text-halo-width":1.3}});
+  map.addLayer({id:"ship-sel",type:"circle",source:"ships",filter:["==",["get","sel"],1],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,16,8,26],"circle-color":"rgba(255,255,255,.12)","circle-stroke-width":2,"circle-stroke-color":"rgba(255,255,255,.5)"}});
+  map.addLayer({id:"ship-alert",type:"circle",source:"ships",filter:["==",["get","status"],"ALERT"],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,12,8,20],"circle-color":"rgba(255,190,60,.05)","circle-stroke-width":1.8,"circle-stroke-color":"rgba(255,190,60,.55)"}});
+  map.addLayer({id:"ship-crit",type:"circle",source:"ships",filter:["==",["get","rdy_low"],true],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,11,6,17,8,22],"circle-color":"transparent","circle-stroke-width":2.5,"circle-stroke-color":"rgba(255,68,102,1)","circle-stroke-opacity":.9}});
+  map.addLayer({id:"ship-rings",type:"circle",source:"ships",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,9,6,14,8,18],"circle-color":"transparent","circle-stroke-width":1.5,"circle-stroke-color":["case",["==",["get","status"],"ALERT"],"rgba(255,190,60,.8)",["==",["get","status"],"MAINT"],"rgba(255,100,80,.6)","rgba(0,200,255,.28)"],"circle-stroke-opacity":["interpolate",["linear"],["zoom"],3,.35,5,.65,7,.9]}});
+  map.addLayer({id:"ship-icons",type:"symbol",source:"ships",layout:{"icon-image":["get","icon"],"icon-size":["interpolate",["linear"],["zoom"],2.5,.55,4.5,.40,7,.28,10,.18],"icon-allow-overlap":true,"icon-ignore-placement":true}});
+  map.addLayer({id:"ship-label",type:"symbol",source:"ships",minzoom:5.5,layout:{"text-field":["concat",["get","name"]," ",["get","hull"]],"text-size":9,"text-offset":[0,1.3],"text-anchor":"top"},paint:{"text-color":"#e8f6ff","text-halo-color":"#04111e","text-halo-width":1.2}});
+  map.addLayer({id:"threat-rings",type:"circle",source:"threats",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,12,7,20],"circle-color":"transparent","circle-stroke-width":2,"circle-stroke-color":"rgba(255,50,70,.85)","circle-stroke-opacity":.75}});
+  map.addLayer({id:"threat-icons",type:"symbol",source:"threats",layout:{"icon-image":["concat","T_",["get","icon"]],"icon-size":["interpolate",["linear"],["zoom"],2.5,.5,4.5,.35,7,.24],"icon-allow-overlap":true,"icon-ignore-placement":true}});
+  map.addLayer({id:"threat-labels",type:"symbol",source:"threats",minzoom:4.5,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#ff7070","text-halo-color":"#04111e","text-halo-width":1.3}});
+  map.addLayer({id:"missile-icons",type:"symbol",source:"missiles",layout:{"icon-image":"T_MISSILE","icon-size":["interpolate",["linear"],["zoom"],2.5,.55,5,.38],"icon-allow-overlap":true}});
+  map.addLayer({id:"missile-labels",type:"symbol",source:"missiles",minzoom:4,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#ff4466","text-halo-color":"#04111e","text-halo-width":1.2}});
+  map.addLayer({id:"hover-pulse",type:"circle",source:"hover-src",paint:{"circle-radius":18,"circle-color":"rgba(0,229,160,.06)","circle-stroke-width":5,"circle-stroke-color":"rgba(0,229,160,1)","circle-stroke-opacity":.9,"circle-blur":.15}});
+
+  const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false});
+  map.on("mouseenter","ship-icons",e=>{
+    map.getCanvas().style.cursor="pointer";
+    const p=e.features[0].properties,s=getShip(p.id);
+    pop.setLngLat(e.features[0].geometry.coordinates).setHTML(`
+      <div style="font-weight:800;font-size:12px;margin-bottom:4px;">${p.name} <span style="color:#7de0ff;font-family:monospace;">${p.hull}</span></div>
+      <div style="font-size:10px;color:#8bc8e0;">${p.tf||''} · ${s?.mission||''}</div>
+      <div style="font-size:10px;margin-top:4px;">Status: <b>${p.status}</b> · Rdns: <b>${p.rdy}%</b></div>
+    `).addTo(map);
+  });
+  map.on("mouseleave","ship-icons",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
+  map.on("mouseenter","threat-icons",e=>{
+    map.getCanvas().style.cursor="crosshair";
+    const p=e.features[0].properties;
+    pop.setLngLat(e.features[0].geometry.coordinates).setHTML(`
+      <div style="font-weight:900;color:#ff6060;font-size:12px;margin-bottom:4px;">⚠ ${p.name}</div>
+      <div style="font-size:10px;color:#ffaa80;">${p.nation} · Level: <b>${p.threat}</b></div>
+      <div style="font-size:10px;margin-top:4px;color:#ffd0d0;">${p.detail}</div>
+    `).addTo(map);
+  });
+  map.on("mouseleave","threat-icons",()=>{ map.getCanvas().style.cursor=""; pop.remove(); });
+  map.on("mouseenter","ports",()=>{ map.getCanvas().style.cursor="pointer"; });
+  map.on("mouseleave","ports",()=>{ map.getCanvas().style.cursor=""; });
+
+  let _featClick=false;
+  map.on("click","ship-icons",e=>{ _featClick=true; selectShip(e.features[0].properties.id,true); });
+  map.on("click","ports",e=>{ _featClick=true; selectPort(e.features[0].properties.id); });
+  map.on("click","threat-icons",e=>{ _featClick=true; selectThreat(e.features[0].properties.id); });
+  map.on("click",e=>{ if(_featClick){_featClick=false;return;} deselectAll(); });
+}
+
+function refreshMap(){
+  [["ports",toPortsGJ()],["ships",toShipsGJ()],["routes",toRoutesGJ()],["trails",toTrailsGJ()],
+   ["threats",toThreatsGJ()],["threat-routes",toThreatRoutesGJ()],["missiles",toMissilesGJ()],["adz",toADZGJ()]]
+  .forEach(([k,d])=>{ const s=map.getSource(k); if(s) s.setData(d); });
+}
+
+function refreshAll(){
+  refreshMap();
+  renderMetrics();
+  renderShipList();
+  renderAlerts();
+  renderRecs();
+  renderTimeline();
+}
+
+/* ═══ NOTIFICATIONS ══════════════════════════════════ */
+function showNotice(t){
+  const n=document.getElementById("notification");
+  n.textContent=t; n.classList.add("show");
+  clearTimeout(showNotice._t);
+  showNotice._t=setTimeout(()=>n.classList.remove("show"),1900);
+}
+
+/* ═══ ZULU CLOCK ════════════════════════════════════ */
+function startZulu(){
+  function tick(){
+    const now=new Date();
+    const d=now.getUTCDay();
+    const dayNames=["SUN","MON","TUE","WED","THU","FRI","SAT"];
+    const H=String(now.getUTCHours()).padStart(2,"0");
+    const M=String(now.getUTCMinutes()).padStart(2,"0");
+    const S=String(now.getUTCSeconds()).padStart(2,"0");
+    const doy=Math.floor((now-(new Date(now.getUTCFullYear(),0,0)))/(86400000));
+    document.getElementById("zuluTime").textContent=`J${String(doy).padStart(3,"0")} ${H}:${M}Z`;
+  }
+  tick();
+  setInterval(tick,1000);
+}
+
+/* ═══ MAP STYLE SWITCH ══════════════════════════════ */
+const MAP_STYLES = {
+  dark: {
+    version:8,
+    sources:{ osm:{ type:"raster", tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize:256, attribution:"© OpenStreetMap" }},
+    layers:[{id:"osm",type:"raster",source:"osm"}]
+  },
+  osm: {
+    version:8,
+    sources:{ osm:{ type:"raster", tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize:256, attribution:"© OpenStreetMap" }},
+    layers:[{id:"osm",type:"raster",source:"osm"}]
+  },
+  satellite: {
+    version:8,
+    sources:{ sat:{ type:"raster", tiles:["https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize:256, attribution:"© Esri" }},
+    layers:[{id:"sat",type:"raster",source:"sat"}]
+  }
+};
+
+let currentMapStyle="osm";
+function switchMapStyle(style){
+  currentMapStyle=style;
+  document.querySelectorAll("[data-style]").forEach(b=>{
+    b.classList.toggle("active",b.dataset.style===style);
+  });
+  document.body.classList.remove("osm-mode","satellite-mode","dark-mode");
+  if(style==="osm") document.body.classList.add("osm-mode");
+  else if(style==="satellite") document.body.classList.add("satellite-mode");
+  const styleObj=MAP_STYLES[style]||MAP_STYLES.osm;
+  const center=map.getCenter();
+  const zoom=map.getZoom();
+  const pitch=map.getPitch();
+  const bearing=map.getBearing();
+  map.setStyle(styleObj);
+  map.once("styledata",async ()=>{
+    // Re-add all images and layers after style change
+    for(const[k,v] of Object.entries(SHIP_SVG)){
+      const img=await svgToImg(v);
+      if(!map.hasImage(k)) map.addImage(k,img,{pixelRatio:2});
+    }
+    for(const[k,v] of Object.entries(THREAT_SVG)){
+      const img=await svgToImg(v);
+      if(!map.hasImage("T_"+k)) map.addImage("T_"+k,img,{pixelRatio:2});
+    }
+    // Re-add sources
+    const srcData={
+      ports:toPortsGJ(), ships:toShipsGJ(), routes:toRoutesGJ(), trails:toTrailsGJ(),
+      threats:toThreatsGJ(), "threat-routes":toThreatRoutesGJ(), missiles:toMissilesGJ(), adz:toADZGJ(),
+      "hover-src":{type:"FeatureCollection",features:[]}
+    };
+    for(const[k,d] of Object.entries(srcData)){
+      if(!map.getSource(k)) map.addSource(k,{type:"geojson",data:d});
+    }
+    // Re-add all layers (same as initLayers minus the image loading)
+    const addLayerIfMissing=(layerDef)=>{ if(!map.getLayer(layerDef.id)) map.addLayer(layerDef); };
+    addLayerIfMissing({id:"adz-fill",type:"fill",source:"adz",paint:{"fill-color":["get","color"],"fill-opacity":.04}});
+    addLayerIfMissing({id:"adz-line",type:"line",source:"adz",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.3,"line-dasharray":[3,2]}});
+    addLayerIfMissing({id:"routes",type:"line",source:"routes",paint:{"line-color":["get","color"],"line-width":["interpolate",["linear"],["zoom"],3,1.2,8,2.5],"line-opacity":.3,"line-dasharray":[2,3]}});
+    addLayerIfMissing({id:"trails",type:"line",source:"trails",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.22}});
+    addLayerIfMissing({id:"threat-routes",type:"line",source:"threat-routes",paint:{"line-color":["get","color"],"line-width":1.5,"line-opacity":.4,"line-dasharray":[2,2]}});
+    addLayerIfMissing({id:"ports-glow",type:"circle",source:"ports",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,10,8,22],"circle-color":"rgba(0,200,255,.2)","circle-blur":.7}});
+    addLayerIfMissing({id:"ports",type:"circle",source:"ports",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,4,8,8],"circle-color":"#00c8ff","circle-stroke-width":2,"circle-stroke-color":"#041218"}});
+    addLayerIfMissing({id:"ports-label",type:"symbol",source:"ports",minzoom:4,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#c0e8ff","text-halo-color":"#04111e","text-halo-width":1.3}});
+    addLayerIfMissing({id:"ship-sel",type:"circle",source:"ships",filter:["==",["get","sel"],1],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,16,8,26],"circle-color":"rgba(255,255,255,.12)","circle-stroke-width":2,"circle-stroke-color":"rgba(255,255,255,.5)"}});
+    addLayerIfMissing({id:"ship-alert",type:"circle",source:"ships",filter:["==",["get","status"],"ALERT"],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,12,8,20],"circle-color":"rgba(255,190,60,.05)","circle-stroke-width":1.8,"circle-stroke-color":"rgba(255,190,60,.55)"}});
+    addLayerIfMissing({id:"ship-crit",type:"circle",source:"ships",filter:["==",["get","rdy_low"],true],paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,11,6,17,8,22],"circle-color":"transparent","circle-stroke-width":2.5,"circle-stroke-color":"rgba(255,68,102,1)","circle-stroke-opacity":.9}});
+    addLayerIfMissing({id:"ship-rings",type:"circle",source:"ships",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,9,6,14,8,18],"circle-color":"transparent","circle-stroke-width":1.5,"circle-stroke-color":["case",["==",["get","status"],"ALERT"],"rgba(255,190,60,.8)",["==",["get","status"],"MAINT"],"rgba(255,100,80,.6)","rgba(0,200,255,.28)"],"circle-stroke-opacity":["interpolate",["linear"],["zoom"],3,.35,5,.65,7,.9]}});
+    addLayerIfMissing({id:"ship-icons",type:"symbol",source:"ships",layout:{"icon-image":["get","icon"],"icon-size":["interpolate",["linear"],["zoom"],2.5,.55,4.5,.40,7,.28,10,.18],"icon-allow-overlap":true,"icon-ignore-placement":true}});
+    addLayerIfMissing({id:"ship-label",type:"symbol",source:"ships",minzoom:5.5,layout:{"text-field":["concat",["get","name"]," ",["get","hull"]],"text-size":9,"text-offset":[0,1.3],"text-anchor":"top"},paint:{"text-color":"#e8f6ff","text-halo-color":"#04111e","text-halo-width":1.2}});
+    addLayerIfMissing({id:"threat-rings",type:"circle",source:"threats",paint:{"circle-radius":["interpolate",["linear"],["zoom"],3,12,7,20],"circle-color":"transparent","circle-stroke-width":2,"circle-stroke-color":"rgba(255,50,70,.85)","circle-stroke-opacity":.75}});
+    addLayerIfMissing({id:"threat-icons",type:"symbol",source:"threats",layout:{"icon-image":["concat","T_",["get","icon"]],"icon-size":["interpolate",["linear"],["zoom"],2.5,.5,4.5,.35,7,.24],"icon-allow-overlap":true,"icon-ignore-placement":true}});
+    addLayerIfMissing({id:"threat-labels",type:"symbol",source:"threats",minzoom:4.5,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#ff7070","text-halo-color":"#04111e","text-halo-width":1.3}});
+    addLayerIfMissing({id:"missile-icons",type:"symbol",source:"missiles",layout:{"icon-image":"T_MISSILE","icon-size":["interpolate",["linear"],["zoom"],2.5,.55,5,.38],"icon-allow-overlap":true}});
+    addLayerIfMissing({id:"missile-labels",type:"symbol",source:"missiles",minzoom:4,layout:{"text-field":["get","name"],"text-size":9,"text-offset":[0,1.2],"text-anchor":"top"},paint:{"text-color":"#ff4466","text-halo-color":"#04111e","text-halo-width":1.2}});
+    addLayerIfMissing({id:"hover-pulse",type:"circle",source:"hover-src",paint:{"circle-radius":18,"circle-color":"rgba(0,229,160,.06)","circle-stroke-width":5,"circle-stroke-color":"rgba(0,229,160,1)","circle-stroke-opacity":.9,"circle-blur":.15}});
+    map.jumpTo({center,zoom,pitch,bearing});
+  });
+}
+
+/* ═══ LAYOUT SYNC ═══════════════════════════════════ */
+function syncLayout(){
+  const tb=document.querySelector(".topbar");
+  if(tb){
+    const h=tb.offsetHeight;
+    document.documentElement.style.setProperty("--th",h+"px");
+  }
+}
+
+/* ═══ UI RENDERS ════════════════════════════════════ */
+function renderMetrics(){
+  const all=SHIPS;
+  const f=filteredShips();
+  document.getElementById("m-total").textContent=all.length;
+  document.getElementById("m-underway").textContent=all.filter(s=>s.status==="UNDERWAY").length;
+  document.getElementById("m-station").textContent=all.filter(s=>s.status==="STATION").length;
+  document.getElementById("m-alert").textContent=f.filter(s=>s.status==="ALERT").length;
+  document.getElementById("m-maint").textContent=f.filter(s=>s.status==="MAINT").length;
+  document.getElementById("m-alerts").textContent=alerts.filter(a=>!a.resolved).length;
+  const rw=document.getElementById("m-red-wrap");
+  if(rw) rw.style.display=wartime?"":"none";
+  const rm=document.getElementById("m-red");
+  if(rm) rm.textContent=THREATS.filter(t=>t.type!=="MISSILE").length;
+}
+
+function renderShipList(){
+  const el=document.getElementById("shipList");
+  const ships=filteredShips();
+  el.innerHTML=ships.map(s=>{
+    const col=TYPE_COLOR[s.type]||"#7de0ff";
+    const statCls=s.status==="UNDERWAY"?"status-patrol":s.status==="STATION"?"status-ready":s.status==="ALERT"?"status-alert":"status-maint";
+    const rdCls=rdyCls(s.rdy);
+    return `<div class="mini-card${selShipId===s.id?' selected':''}" data-id="${s.id}">
+      <div class="mini-top">
+        <div class="mini-name" style="color:${col};">${s.name}</div>
+        <div class="status ${statCls}"><span class="dot"></span>${s.status}</div>
+      </div>
+      <div class="mini-meta" style="font-family:monospace;color:#7de0ff;">${s.hull}</div>
+      <div class="mini-meta">${s.tf} · ${s.type} · Rdns ${s.rdy}%</div>
+      <div class="${rdCls} rdy-bar-wrap">
+        <div class="rdy-bar-bg"><div class="rdy-bar-fill" style="width:${s.rdy}%"></div></div>
+      </div>
+      <div style="margin-top:4px;font-size:9px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.mission}</div>
+    </div>`;
+  }).join("")||`<div style="color:var(--muted);font-size:11px;padding:8px;">No vessels match filter.</div>`;
+  el.querySelectorAll("[data-id]").forEach(n=>{
+    n.addEventListener("click",()=>{
+      if(selShipId===n.dataset.id) deselectAll();
+      else selectShip(n.dataset.id,true);
+    });
+  });
+}
+
+function renderAlerts(){
+  const el=document.getElementById("alertList");
+  const active=alerts.filter(a=>!a.resolved);
+  const badge=document.getElementById("alertBadge");
+  if(badge){ badge.textContent=active.length; badge.style.display=active.length?"":"none"; }
+  document.getElementById("m-alerts").textContent=active.length;
+  if(!active.length){ el.innerHTML='<div style="color:var(--muted);font-size:11px;padding:4px 0;">No active alerts.</div>'; return; }
+  el.innerHTML=active.slice(0,10).map(a=>{
+    const s=getShip(a.tid); const lbl=s?`${s.name} (${s.hull})`:a.tid;
+    const col=a.sev==="HIGH"?'#ff7070':a.sev==="MED"?'var(--amber)':'var(--blue)';
+    return `<div class="stack-card" data-aid="${a.id}" style="border-left:3px solid ${col};">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
+        <div style="font-size:11px;font-weight:900;color:${col};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lbl}</div>
+        <span class="severity ${a.sev==="HIGH"?"sev-high":a.sev==="MED"?"sev-med":"sev-low"}">${a.sev}</span>
+      </div>
+      <div class="mini-meta">${a.msg}</div>
+    </div>`;
+  }).join("");
+  el.querySelectorAll("[data-aid]").forEach(n=>n.addEventListener("click",()=>{
+    const a=alerts.find(x=>x.id===n.dataset.aid); if(!a) return;
+    if(getShip(a.tid)) selectShip(a.tid,true);
+  }));
+}
+
+function renderRecs(){
+  const el=document.getElementById("recList");
+  const live=tasks.filter(t=>!t.done).slice(0,12);
+  const badge=document.getElementById("recBadge");
+  if(badge){ badge.textContent=live.length; badge.style.display=live.length?"":"none"; }
+  if(!live.length){ el.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:10px 0;opacity:.5;">✓ Queue clear</div>'; return; }
+  el.innerHTML=live.map(t=>{
+    const s=getShip(t.tid);
+    const subj=s?`${s.name} (${s.hull})`:t.tid;
+    const lc=t.sev==="HIGH"?'var(--red)':t.sev==="MED"?'var(--amber)':'var(--teal)';
+    const autoBadge=t.auto?'<span style="background:rgba(0,229,160,.15);border:1px solid rgba(0,229,160,.3);color:var(--teal);font-size:8px;font-weight:900;padding:1px 5px;border-radius:3px;">AUTO</span>'
+      :'<span style="background:rgba(0,200,255,.12);border:1px solid rgba(0,200,255,.25);color:var(--blue);font-size:8px;font-weight:900;padding:1px 5px;border-radius:3px;">OPR</span>';
+    return `<div class="rec-card" data-tid="${t.id}" style="border-left-color:${lc};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:5px;margin-bottom:4px;">
+        <div style="font-size:11px;font-weight:900;">${t.label}</div>${autoBadge}
+      </div>
+      <div style="font-size:10px;color:var(--blue2);margin-bottom:2px;">${subj}</div>
+      ${t.detail?`<div style="font-size:9px;color:#6a88a8;line-height:1.4;margin-bottom:5px;padding:3px 6px;border-radius:4px;background:rgba(0,0,0,.15);">${t.detail}</div>`:''}
+      <div style="display:flex;gap:5px;margin-top:5px;">
+        <button class="rec-btn rec-btn-primary" data-exec="${t.id}">${t.action}</button>
+        <button class="rec-btn rec-btn-secondary" data-dismiss="${t.id}">Dismiss</button>
+      </div>
+    </div>`;
+  }).join("");
+  el.querySelectorAll("[data-exec]").forEach(b=>b.addEventListener("click",e=>{ e.stopPropagation(); execTask(b.dataset.exec); }));
+  el.querySelectorAll("[data-dismiss]").forEach(b=>b.addEventListener("click",e=>{ e.stopPropagation(); const t=tasks.find(x=>x.id===b.dataset.dismiss); if(t){ t.done=true; renderRecs(); } }));
+}
+
+function renderTimeline(){
+  const lanes=document.getElementById("timelineLanes");
+  if(!lanes) return;
+  const all=filteredShips();
+  const nowH=(new Date().getUTCHours()+new Date().getUTCMinutes()/60)%24;
+  const nowPct=(nowH/24)*100;
+  let html=all.map(s=>{
+    const left=(s.tb.s/24)*100, width=Math.max(((s.tb.e-s.tb.s)/24)*100,3);
+    const isSel=selShipId===s.id;
+    const col=TYPE_COLOR[s.type]||"#7de0ff";
+    const bg=s.status==="MAINT"?"#ff6644":s.status==="ALERT"?"#ffd166":col;
+    const extra=isSel?`outline:2px solid #fff;outline-offset:-1px;z-index:5;`:"";
+    return `<div class="timeline-row"><div class="timeline-bar" data-id="${s.id}" style="left:${left}%;width:${width}%;background:${bg};color:#05111c;${extra}" title="${s.name} — ${s.mission}">${s.name} · ${s.tb.l}</div></div>`;
+  }).join("");
+  if(wartime){
+    html+=THREATS.filter(t=>t.route).map(t=>{
+      return `<div class="timeline-row"><div class="timeline-bar" style="left:5%;width:15%;background:#ff2244;color:#fff;opacity:.9;">${t.name}</div></div>`;
+    }).join("");
+  }
+  html+=`<div style="position:absolute;top:20px;bottom:0;left:${nowPct}%;width:2px;background:rgba(255,220,80,.65);z-index:10;pointer-events:none;box-shadow:0 0 5px rgba(255,220,80,.45);"></div>`;
+  lanes.innerHTML=html;
+  // Build hour grid
+  const grid=document.getElementById("timelineGrid");
+  if(grid){
+    grid.innerHTML=Array.from({length:24},(_,i)=>`
+      <div style="border-right:1px solid rgba(255,255,255,.05);position:relative;">
+        <span style="position:absolute;top:2px;left:3px;font-size:8px;color:rgba(255,255,255,.2);font-family:monospace;">${String(i).padStart(2,"0")}Z</span>
+      </div>`).join("");
+  }
+  lanes.querySelectorAll("[data-id]").forEach(n=>n.addEventListener("click",()=>{
+    if(selShipId===n.dataset.id) deselectAll(); else selectShip(n.dataset.id,true);
+  }));
+}
+
+/* ═══ TIMELINE TAB ══════════════════════════════════ */
+function switchTlTab(tab){
+  const sortieBtn=document.getElementById("tlTabSortie");
+  const logBtn=document.getElementById("tlTabLog");
+  const logEl=document.getElementById("tlEventLog");
+  const bodyEl=document.getElementById("timelineScroll");
+  const legendEl=document.getElementById("tlLegend");
+  if(tab==="sortie"){
+    if(sortieBtn){ sortieBtn.style.background="rgba(0,200,255,.15)"; sortieBtn.style.borderColor="rgba(0,200,255,.4)"; sortieBtn.style.color="var(--blue)"; }
+    if(logBtn){ logBtn.style.background="transparent"; logBtn.style.borderColor="rgba(255,255,255,.1)"; logBtn.style.color="var(--muted)"; }
+    if(logEl) logEl.style.display="none";
+    if(bodyEl) bodyEl.style.display="";
+    if(legendEl) legendEl.style.display="";
+    const badge=document.getElementById("evLogBadge"); if(badge) badge.style.display="none";
+  } else {
+    if(logBtn){ logBtn.style.background="rgba(0,200,255,.15)"; logBtn.style.borderColor="rgba(0,200,255,.4)"; logBtn.style.color="var(--blue)"; }
+    if(sortieBtn){ sortieBtn.style.background="transparent"; sortieBtn.style.borderColor="rgba(255,255,255,.1)"; sortieBtn.style.color="var(--muted)"; }
+    if(logEl) logEl.style.display="";
+    if(bodyEl) bodyEl.style.display="none";
+    if(legendEl) legendEl.style.display="none";
+    const badge=document.getElementById("evLogBadge"); if(badge) badge.style.display="none";
+    renderEventLog();
+  }
+}
+
+/* ═══ DETAIL TABS ════════════════════════════════════ */
+function switchDetailTab(tab){
+  activeTab=tab;
+  document.querySelectorAll(".detail-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  document.querySelectorAll(".detail-tab-pane").forEach(p=>p.style.display="none");
+  const pane=document.getElementById("tab"+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(pane) pane.style.display="";
+  if(tab==="sitrep"){ document.getElementById("detailPanelTitle").textContent="SITREP"; generateSitrep(false); }
+  if(tab==="intel") renderIntelReport();
+}
+
+/* ═══ FLEET STATUS STRIP ════════════════════════════ */
+function renderFleetStrip(){
+  const el=document.getElementById("fleetStatusStrip");
+  if(!el) return;
+  const dlc={UP:"var(--green)",DEGRADED:"var(--amber)",DOWN:"var(--red)"};
+  const links=FLEET7.datalinks.slice(0,3).map(l=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:3px;">
+      <span style="font-size:10px;font-weight:900;color:#e8f8ff;">${l.name}</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="font-size:9px;color:var(--muted);font-family:monospace;">${l.nodes}n · ${l.latency}ms</span>
+        <span style="font-size:9px;font-weight:900;color:${dlc[l.status]||'var(--muted)'};">${l.status}</span>
+      </div>
+    </div>`).join("");
+  const tcCol=FLEET7.threatCon.includes("CHARLIE")||FLEET7.threatCon.includes("DELTA")?"var(--red)":FLEET7.threatCon.includes("BRAVO")?"var(--amber)":"var(--green)";
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:7px;">
+      <div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);">
+        <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px;">Operation</div>
+        <div style="font-size:11px;font-weight:900;color:#e8f8ff;">${FLEET7.op.replace("Op ","")}</div>
+      </div>
+      <div style="padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);">
+        <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px;">ThreatCon</div>
+        <div style="font-size:11px;font-weight:900;color:${tcCol};">${FLEET7.threatCon.replace("THREATCON ","")}</div>
+      </div>
+    </div>
+    <div style="font-size:9px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Data Links</div>
+    ${links}`;
+}
+
+/* ═══ FLEET FULL STATUS ════════════════════════════ */
+function openFleetStatus(){
+  const j=FLEET7;
+  const dlc={UP:"var(--green)",DEGRADED:"var(--amber)",DOWN:"var(--red)"};
+  const dlRows=j.datalinks.map(l=>{
+    const col=dlc[l.status]||"var(--muted)";
+    return `<div style="padding:7px 9px;border-radius:9px;border:1px solid rgba(255,255,255,.05);border-left:2px solid ${col};background:rgba(255,255,255,.02);margin-bottom:5px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+        <span style="font-size:12px;font-weight:900;color:#e8f8ff;">${l.name}</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:9px;color:var(--muted);font-family:monospace;">${l.nodes} nodes · ${l.latency}ms</span>
+          <span style="font-size:10px;font-weight:900;color:${col};">${l.status}</span>
+        </div>
+      </div>
+      <div style="font-size:9px;color:#7aa8c4;">${l.detail}</div>
+    </div>`;
+  }).join("");
+  const ncodes=[j.n2,j.n3,j.n4].map((n,i)=>{
+    const code=["N2","N3","N4"][i];
+    return `<div style="padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:4px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+        <span style="font-size:11px;font-weight:900;color:var(--blue2);">${code}</span>
+        <span style="font-size:9px;color:${n.status.includes("WATCH")?"var(--green)":"var(--amber)"};">${n.status}</span>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:1px;">${n.officer}</div>
+      <div style="font-size:9px;color:#7aa8c4;">${n.detail}</div>
+    </div>`;
+  }).join("");
+  const html=`
+    <div class="detail-block">
+      <div class="detail-name">7th Fleet HQ</div>
+      <div class="detail-type">${j.flagship} · ${j.location}</div>
+      <div class="detail-grid" style="margin-top:10px;">
+        <div class="detail-stat"><div class="detail-stat-label">Commander</div><div class="detail-stat-value" style="font-size:11px;">${j.commander}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">ThreatCon</div><div class="detail-stat-value" style="color:var(--amber);">${j.threatCon.replace("THREATCON ","")}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Operation</div><div class="detail-stat-value" style="font-size:11px;">${j.op}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Phase</div><div class="detail-stat-value" style="font-size:11px;">${j.phase}</div></div>
+        <div class="detail-stat" style="grid-column:1/-1;"><div class="detail-stat-label">EMCON</div><div class="detail-stat-value" style="font-size:11px;">${j.emcon}</div></div>
+      </div>
+    </div>
+    <div class="detail-block"><div class="section-title">Data Link Status</div>${dlRows}</div>
+    <div class="detail-block"><div class="section-title">Staff Sections</div>${ncodes}</div>`;
+  setDetailContent(html,"7th Fleet Status");
+  switchDetailTab("detail");
+}
+
+/* ═══ SELECTION ═════════════════════════════════════ */
+function selectShip(id,fly=false){
+  const s=getShip(id); if(!s) return;
+  if(fly&&!prevCamera) prevCamera={center:map.getCenter().toArray(),zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing()};
+  selShipId=id; selPortId=null; selThreatId=null;
+  renderShipDetail(s);
+  switchDetailTab("detail");
+  refreshMap();
+  if(fly) map.flyTo({center:shipCoords(s),zoom:7.0,pitch:45,bearing:wartime?25:10,speed:.85});
+  logEvent("SEL",s.id,"Selected: "+s.name+" ("+s.hull+") — "+s.mission,"INFO");
+}
+
+function selectPort(id){
+  const p=getPort(id); if(!p) return;
+  if(!prevCamera) prevCamera={center:map.getCenter().toArray(),zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing()};
+  selPortId=id; selShipId=null; selThreatId=null;
+  renderPortDetail(p);
+  switchDetailTab("detail");
+  refreshMap();
+  map.flyTo({center:p.coords,zoom:7.5,speed:.8});
+}
+
+function selectThreat(id){
+  const t=getThreat(id); if(!t) return;
+  if(!prevCamera) prevCamera={center:map.getCenter().toArray(),zoom:map.getZoom(),pitch:map.getPitch(),bearing:map.getBearing()};
+  selThreatId=id; selShipId=null; selPortId=null;
+  renderThreatDetail(t);
+  switchDetailTab("detail");
+  map.flyTo({center:threatCoords(t),zoom:5.5,speed:.8});
+  logEvent("THREAT",t.id,"Threat selected: "+t.name+" — "+t.threat+" / "+t.nation,"ALERT");
+}
+
+function deselectAll(){
+  selShipId=null; selPortId=null; selThreatId=null;
+  clearDetail();
+  refreshMap();
+  if(prevCamera){
+    map.flyTo({center:prevCamera.center,zoom:prevCamera.zoom,pitch:prevCamera.pitch,bearing:prevCamera.bearing,speed:.75});
+    prevCamera=null;
+  }
+}
+
+/* ═══ DETAIL RENDERS ════════════════════════════════ */
+function setDetailContent(html,title){
+  const el=document.getElementById("detailContent"); if(!el) return;
+  el.innerHTML=html; el.className="";
+  if(title) document.getElementById("detailPanelTitle").textContent=title;
+}
+function clearDetail(){
+  const el=document.getElementById("detailContent"); if(!el) return;
+  el.className="detail-empty"; el.innerHTML="Select a vessel, port, or task force to inspect.";
+  document.getElementById("detailPanelTitle").textContent="SITREP";
+  switchDetailTab("sitrep");
+}
+
+function renderShipDetail(s){
+  const port=getPort(s.port), coords=shipCoords(s);
+  const rc=rdyCls(s.rdy), rl=rdyLbl(s.rdy);
+  const actAlerts=alerts.filter(a=>!a.resolved&&a.tid===s.id);
+  const tc=TYPE_COLOR[s.type]||"#7de0ff";
+  const statusCls=s.status==="UNDERWAY"?`color:var(--blue);`:s.status==="STATION"?`color:var(--green);`:s.status==="ALERT"?`color:var(--amber);`:`color:var(--red);`;
+  setDetailContent(`
+    <div class="detail-block">
+      <div class="detail-name" style="color:${tc};">${s.name}</div>
+      <div class="detail-type" style="font-family:monospace;">${s.hull} · ${s.type} · ${s.tf}</div>
+      <div class="${rc} rdy-bar-wrap">
+        <div class="rdy-bar-labels"><span>READINESS</span><span>${s.rdy}% — ${rl}</span></div>
+        <div class="rdy-bar-bg"><div class="rdy-bar-fill" style="width:${s.rdy}%"></div></div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="detail-stat-label">Hull</div><div class="detail-stat-value" style="font-family:monospace;color:${tc};">${s.hull}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Status</div><div class="detail-stat-value" style="${statusCls}">${s.status}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Home Port</div><div class="detail-stat-value" style="font-size:11px;">${port?.name||s.port}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Crew</div><div class="detail-stat-value">${s.crew.toLocaleString()}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Automation</div><div class="detail-stat-value">${s.auto?"Enabled":"Disabled"}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Task Force</div><div class="detail-stat-value">${s.tf}</div></div>
+        <div class="detail-stat" style="grid-column:1/-1;"><div class="detail-stat-label">Mission</div><div class="detail-stat-value" style="font-size:11px;">${s.mission}</div></div>
+        <div class="detail-stat" style="grid-column:1/-1;"><div class="detail-stat-label">Position</div><div class="detail-stat-value" style="font-family:monospace;font-size:11px;">${coords[1].toFixed(2)}°N · ${coords[0].toFixed(2)}°E</div></div>
+      </div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Loadout / Capability</div>
+      <ul style="margin:0;padding-left:16px;font-size:11px;line-height:1.65;color:#b8d4e8;">${s.loadout.map(x=>'<li>'+x+'</li>').join('')}</ul>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Notes</div>
+      <div style="font-size:10px;color:#8aa8c4;line-height:1.55;padding:6px 8px;border-radius:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);">${s.notes}</div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Actions</div>
+      <div class="actions">
+        <div class="action" data-cmd="ToggleAuto" data-id="${s.id}">Toggle Automation</div>
+        <div class="action" data-cmd="Alert" data-id="${s.id}">Set EMCON / Alert</div>
+        <div class="action" data-cmd="Retask" data-id="${s.id}">Retask</div>
+        <div class="action" data-cmd="RTB" data-id="${s.id}">Return to Port</div>
+      </div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Active Alerts</div>
+      ${actAlerts.length?('<ul style="margin:0;padding-left:16px;font-size:11px;line-height:1.65;color:#ff8080;">'+actAlerts.map(x=>'<li>['+x.sev+']: '+x.msg+'</li>').join('')+'</ul>'):'<div style="color:var(--green);font-size:11px;">None.</div>'}
+    </div>`, s.name);
+  document.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",()=>handleCmd(b.dataset.id,b.dataset.cmd)));
+}
+
+function renderPortDetail(p){
+  const ships=SHIPS.filter(s=>s.port===p.id);
+  const underway=ships.filter(s=>s.status==="UNDERWAY").length;
+  const moored=ships.filter(s=>s.status!=="UNDERWAY").length;
+  setDetailContent(`
+    <div class="detail-block">
+      <div class="detail-name">${p.name}</div>
+      <div class="detail-type">${p.country} · ${p.ccmd} · ${p.role}</div>
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="detail-stat-label">Ships Assigned</div><div class="detail-stat-value">${ships.length}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Underway</div><div class="detail-stat-value" style="color:var(--blue);">${underway}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">In Port</div><div class="detail-stat-value" style="color:var(--green);">${moored}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Coordinates</div><div class="detail-stat-value" style="font-family:monospace;font-size:10px;">${p.coords[1].toFixed(2)}N · ${p.coords[0].toFixed(2)}E</div></div>
+      </div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Operational Notes</div>
+      <div style="font-size:10px;color:#8aa8c4;line-height:1.6;padding:7px 9px;background:rgba(255,255,255,.02);border-radius:7px;border:1px solid rgba(255,255,255,.04);">${p.note}</div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Assigned Vessels (${ships.length})</div>
+      ${ships.map(s=>{
+        const col=TYPE_COLOR[s.type]||"#7de0ff";
+        const sc=s.status==="UNDERWAY"?"var(--blue)":s.status==="ALERT"?"var(--amber)":"var(--green)";
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:3px;cursor:pointer;" onclick="selectShip('${s.id}',true)">
+          <div><div style="font-size:11px;font-weight:900;color:${col};">${s.name}</div><div style="font-size:9px;color:var(--muted);">${s.hull} · ${s.type}</div></div>
+          <span style="font-size:9px;font-weight:900;color:${sc};">${s.status}</span>
+        </div>`;
+      }).join("")}
+    </div>`,p.name);
+}
+
+function renderThreatDetail(t){
+  const tc=t.threat==="HIGH"?"var(--red)":t.threat==="MED"?"var(--amber)":"var(--teal)";
+  const coord=threatCoords(t);
+  const typeLabel=t.type==="SURFACE"?"Surface Combatant":t.type==="SUB"?"Submarine":"Missile Threat";
+  setDetailContent(`
+    <div style="padding:4px 10px;font-size:9px;font-weight:900;text-align:center;letter-spacing:.1em;text-transform:uppercase;color:${tc};background:rgba(255,50,80,.07);border-bottom:1px solid rgba(255,50,80,.15);">
+      ${t.nation} · ${typeLabel} · LEVEL: ${t.threat}
+    </div>
+    <div class="detail-block">
+      <div class="detail-name" style="color:${tc};">${t.name}</div>
+      <div class="detail-type">${typeLabel} · ${t.nation}</div>
+      <div class="detail-grid" style="margin-top:10px;">
+        <div class="detail-stat"><div class="detail-stat-label">Threat Level</div><div class="detail-stat-value" style="color:${tc};">${t.threat}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Nation</div><div class="detail-stat-value">${t.nation}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Track ID</div><div class="detail-stat-value" style="font-family:monospace;">${t.id}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Type</div><div class="detail-stat-value">${t.type}</div></div>
+        <div class="detail-stat" style="grid-column:1/-1;"><div class="detail-stat-label">Position</div><div class="detail-stat-value" style="font-family:monospace;font-size:11px;">${coord[1].toFixed(2)}°N · ${coord[0].toFixed(2)}°E</div></div>
+      </div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Intel Assessment</div>
+      <div style="font-size:11px;color:#ffcccc;line-height:1.55;padding:7px 9px;border-radius:7px;background:rgba(255,50,80,.05);border:1px solid rgba(255,50,80,.12);">${t.detail}</div>
+    </div>
+    <div class="detail-block">
+      <div class="section-title">Actions</div>
+      <div class="actions">
+        <div class="action" onclick="addTask('TRACK','${t.id}','HIGH','Track threat: ${t.name}','Maintain Track',false);renderRecs();showNotice('Track task queued')">Queue Track Task</div>
+        <div class="action" onclick="map.flyTo({center:${JSON.stringify(coord)},zoom:7,speed:.9})">Center Map</div>
+      </div>
+    </div>`,t.name);
+}
+
+/* ═══ COMMANDS ══════════════════════════════════════ */
+function handleCmd(id,cmd){
+  const s=getShip(id); if(!s) return;
+  if(cmd==="ToggleAuto"){ s.auto=!s.auto; showNotice(`${s.name} auto ${s.auto?"ON":"OFF"}`); }
+  else if(cmd==="Alert"){ s.status="ALERT"; showNotice(`${s.name} → ALERT`); }
+  else if(cmd==="Retask"){ s.mission=wartime?"Combat Retask":"Peacetime Retask"; showNotice(`${s.name} retasked`); }
+  else if(cmd==="RTB"){ s.route=null; s.rp=0; s.rs=0; s.mission="Returning to Port"; s.status="UNDERWAY"; showNotice(`${s.name} RTB`); }
+  refreshAll();
+  if(selShipId===s.id) renderShipDetail(s);
+}
+
+/* ═══ ALERTS / TASKS ════════════════════════════════ */
+function addAlert(type,tid,sev,msg){
+  if(alerts.find(a=>!a.resolved&&a.type===type&&a.tid===tid)) return null;
+  const a={id:"A"+(++alertCtr),tid,type,sev,msg,resolved:false};
+  alerts.unshift(a); if(alerts.length>40) alerts=alerts.slice(0,40);
+  logEvent("ALERT",tid,"["+sev+"] "+msg,sev==="HIGH"?"ALERT":"WARN");
+  return a;
+}
+function resolveAlert(type,tid){ alerts.forEach(a=>{ if(a.type===type&&a.tid===tid&&!a.resolved) a.resolved=true; }); }
+function addTask(kind,tid,sev,label,action,auto=false,detail=""){
+  if(tasks.find(t=>!t.done&&t.kind===kind&&t.tid===tid)) return null;
+  const t={id:"T"+(++taskCtr),kind,tid,sev,label,action,auto,detail,done:false};
+  tasks.unshift(t); if(tasks.length>40) tasks=tasks.slice(0,40); return t;
+}
+function execTask(tid){
+  const t=tasks.find(x=>x.id===tid&&!x.done); if(!t) return;
+  const s=getShip(t.tid);
+  if(s){
+    if(t.action==="RTB"||t.action==="Return to Port"){ s.route=null; s.rp=0; s.rs=0; s.mission="Returning to Port"; s.status="UNDERWAY"; }
+    if(t.action==="Set Alert"||t.action==="Set EMCON") s.status="ALERT";
+  }
+  t.done=true;
+  showNotice(`${t.action} — ${s?s.name:t.tid}`);
+  logEvent("ACTION",t.tid,(t.auto?"[AUTO] ":"")+(t.action||"Task")+" — "+(s?s.name:t.tid),t.auto?"AUTO":"ACTION");
+  refreshAll();
+}
+
+/* ═══ EVENT LOG ═════════════════════════════════════ */
+function logEvent(type,tid,msg,sev="INFO"){
+  const now=new Date();
+  const ts=`${String(now.getUTCHours()).padStart(2,"0")}:${String(now.getUTCMinutes()).padStart(2,"0")}:${String(now.getUTCSeconds()).padStart(2,"0")}Z`;
+  eventLog.unshift({ts,type,tid,msg,sev});
+  if(eventLog.length>120) eventLog=eventLog.slice(0,120);
+  renderEventLog();
+}
+function renderEventLog(){
+  const el=document.getElementById("eventLogList"); if(!el) return;
+  const SEV={INFO:"var(--teal)",WARN:"var(--amber)",ALERT:"#ff6b6b",ACTION:"#b388ff",AUTO:"var(--blue)"};
+  el.innerHTML=eventLog.slice(0,40).map(e=>{
+    const col=SEV[e.sev]||"var(--muted)";
+    return `<div style="display:grid;grid-template-columns:52px 1fr;gap:4px;padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.03);">
+      <span style="font-size:9px;font-family:monospace;color:var(--muted);">${e.ts}</span>
+      <span style="font-size:10px;color:${col};line-height:1.4;">${e.sev!=="INFO"?`<strong style="color:${col};">[${e.sev}]</strong> `:""}${e.msg}</span>
+    </div>`;
+  }).join("")||`<div style="padding:8px;font-size:10px;color:var(--muted);">No events.</div>`;
+  const badge=document.getElementById("evLogBadge");
+  const logVisible=document.getElementById("tlEventLog")?.style?.display!=="none";
+  if(badge&&!logVisible&&eventLog.length>0){ badge.style.display=""; badge.textContent=Math.min(eventLog.length,99); }
+}
+
+/* ═══ SITREP ════════════════════════════════════════ */
+function generateSitrep(switchTab=true){
+  if(switchTab) switchDetailTab("sitrep");
+  const el=document.getElementById("sitrepContent"); if(!el) return;
+  const all=SHIPS;
+  const underway=all.filter(s=>s.status==="UNDERWAY");
+  const station=all.filter(s=>s.status==="STATION");
+  const alertShips=all.filter(s=>s.status==="ALERT");
+  const maint=all.filter(s=>s.status==="MAINT");
+  const avgRdy=Math.round(all.reduce((s,a)=>s+a.rdy,0)/all.length);
+  const liveAlerts=alerts.filter(a=>!a.resolved);
+  const zuluStr=document.getElementById("zuluTime")?.textContent||"--Z";
+  const classStr=wartime?"SIM/SECRET — NOFORN":"SIM/UNCLASSIFIED";
+  const classCol=wartime?"var(--red)":"var(--green)";
+
+  const tfRows=TASK_FORCES.map(tf=>{
+    const ships=all.filter(s=>s.tf===tf.id);
+    const uw=ships.filter(s=>s.status==="UNDERWAY").length;
+    const al=ships.filter(s=>s.status==="ALERT").length;
+    const mx=ships.filter(s=>s.status==="MAINT").length;
+    const ar=ships.length?Math.round(ships.reduce((s,a)=>s+a.rdy,0)/ships.length):0;
+    const flagShip=getShip(tf.flagship);
+    return `<div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);margin-bottom:4px;">
+      <div>
+        <div style="font-size:11px;font-weight:900;color:#e8f8ff;">${tf.name}</div>
+        <div style="font-size:9px;color:var(--muted);">${tf.role} · ${ships.length} vessels</div>
+        ${flagShip?`<div style="font-size:9px;color:var(--blue2);font-family:monospace;">${flagShip.name} (flagship)</div>`:""}
+      </div>
+      <span style="font-size:9px;color:var(--blue);font-family:monospace;">${uw} UW</span>
+      <span style="font-size:9px;color:var(--amber);font-family:monospace;">${al} ALT</span>
+      <span style="font-size:9px;color:var(--red);font-family:monospace;">${mx} MX</span>
+      <span style="font-size:9px;font-family:monospace;color:${ar<50?"var(--red)":ar<70?"var(--amber)":"var(--muted)"};">${ar}%</span>
+    </div>`;
+  }).join("");
+
+  const threatSection=wartime?`
+    <div class="section-title" style="margin-top:10px;">Red Force Picture</div>
+    <div style="padding:7px 9px;border-radius:8px;background:rgba(255,50,80,.06);border:1px solid rgba(255,50,80,.14);margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:900;color:#ff8888;margin-bottom:4px;">⚠ OPFOR CONTACTS: ${THREATS.length}</div>
+      ${THREATS.map(t=>`<div style="font-size:10px;color:#ffcccc;margin-bottom:2px;">· ${t.name} — <span style="color:${t.threat==="HIGH"?"#ff6060":t.threat==="MED"?"var(--amber)":"var(--teal)"};">${t.threat}</span> · ${t.nation}</div>`).join("")}
+    </div>`:"";
+
+  const alertSection=liveAlerts.length?`
+    <div class="section-title" style="margin-top:10px;">Active Alerts (${liveAlerts.length})</div>
+    ${liveAlerts.slice(0,5).map(a=>{
+      const s=getShip(a.tid);
+      const col=a.sev==="HIGH"?"#ff7070":a.sev==="MED"?"var(--amber)":"var(--blue)";
+      return `<div style="font-size:10px;color:${col};padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);">[${a.sev}] ${s?s.name:a.tid}: ${a.msg}</div>`;
+    }).join("")}`:"";
+
+  el.innerHTML=`
+    <div style="padding:4px 10px;text-align:center;font-size:8px;font-weight:900;letter-spacing:.18em;color:${classCol};background:rgba(0,0,0,.2);border-bottom:1px solid rgba(255,255,255,.06);">${classStr}</div>
+    <div style="padding:10px 14px 6px;">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:2px;letter-spacing:.06em;">SITREP · COMSEVENTHFLT · ${zuluStr}</div>
+      <div style="font-size:13px;font-weight:900;color:#e8f8ff;margin-bottom:4px;">${FLEET7.op} — ${FLEET7.phase}</div>
+      <div style="font-size:10px;color:var(--amber);font-weight:800;">${FLEET7.threatCon} · ${FLEET7.emcon.split(";")[0]}</div>
+    </div>
+
+    <div style="padding:6px 14px 8px;border-bottom:1px solid rgba(255,255,255,.05);">
+      <div class="section-title">Force Summary</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;">
+        <div style="padding:6px 8px;border-radius:7px;background:rgba(0,200,255,.06);border:1px solid rgba(0,200,255,.12);text-align:center;">
+          <div style="font-size:18px;font-weight:900;color:var(--blue);">${all.length}</div>
+          <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Total</div>
+        </div>
+        <div style="padding:6px 8px;border-radius:7px;background:rgba(0,200,255,.06);border:1px solid rgba(0,200,255,.12);text-align:center;">
+          <div style="font-size:18px;font-weight:900;color:var(--blue);">${underway.length}</div>
+          <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Underway</div>
+        </div>
+        <div style="padding:6px 8px;border-radius:7px;background:rgba(255,190,60,.06);border:1px solid rgba(255,190,60,.12);text-align:center;">
+          <div style="font-size:18px;font-weight:900;color:var(--amber);">${alertShips.length}</div>
+          <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Alert</div>
+        </div>
+        <div style="padding:6px 8px;border-radius:7px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.12);text-align:center;">
+          <div style="font-size:18px;font-weight:900;color:var(--green);">${avgRdy}%</div>
+          <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Avg Rdns</div>
+        </div>
+      </div>
+      <div class="section-title">Task Force Disposition</div>
+      ${tfRows}
+      ${threatSection}
+      ${alertSection}
+    </div>
+    <div style="padding:8px 14px;font-size:8px;color:rgba(255,255,255,.2);text-align:center;letter-spacing:.1em;text-transform:uppercase;">
+      ${classStr} · Auto-generated · Not for distribution
+    </div>`;
+}
+
+/* ═══ INTEL REPORT ══════════════════════════════════ */
+function renderIntelReport(){
+  const el=document.getElementById("intelContent"); if(!el) return;
+  const zuluStr=document.getElementById("zuluTime")?.textContent||"--Z";
+  const planOOB=[
+    {name:"PLAN CVG Shandong",    type:"CV",    threat:"HIGH",   detail:"J-15/J-35 wing ~48 AC. Shadowing CSG-5 passage."},
+    {name:"PLAN CVG Liaoning",    type:"CV",    threat:"HIGH",   detail:"Taiwan Strait approach. J-15 sorties observed."},
+    {name:"PLAN Type-055 ×2",     type:"DDG",   threat:"HIGH",   detail:"Nanchang-class. Integrated AW screen."},
+    {name:"PLAN Type-054A ×3",    type:"FFG",   threat:"MED",    detail:"Near Fiery Cross. ASW posture."},
+    {name:"PLAN Type-093 SSN",    type:"SSN",   threat:"HIGH",   detail:"Acoustic classified. Probable first island chain."},
+    {name:"DPRK Hwasong-15",      type:"ICBM",  threat:"HIGH",   detail:"Launch window open. BMD assets cued."},
+    {name:"RFS Varyag",           type:"CG",    threat:"MED",    detail:"Pacific Fleet flagship. Routine SLOC transit."},
+    {name:"PLAN Survey Vessel",   type:"INTEL", threat:"LOW",    detail:"SIGINT collection. Seafloor mapping."},
+  ];
+  const oobRows=planOOB.map(t=>{
+    const tc=t.threat==="HIGH"?"#ff7070":t.threat==="MED"?"var(--amber)":"var(--teal)";
+    return `<div style="padding:6px 9px;border-radius:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-left:2px solid ${tc};margin-bottom:4px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:11px;font-weight:900;color:#e8f8ff;">${t.name}</span>
+        <span style="font-size:8px;font-weight:900;color:${tc};">${t.threat}</span>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-top:1px;">${t.type} · ${t.detail}</div>
+    </div>`;
+  }).join("");
+
+  el.innerHTML=`
+    <div style="padding:4px 10px;text-align:center;font-size:8px;font-weight:900;letter-spacing:.18em;color:#ff7070;background:rgba(255,50,80,.07);border-bottom:1px solid rgba(255,50,80,.15);">SIM/SECRET // NOFORN // REL TO USA, FVEY</div>
+    <div style="padding:10px 14px 0;">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">N2 INTELLIGENCE REPORT · ${zuluStr}</div>
+      <div style="font-size:13px;font-weight:900;color:#e8f8ff;margin-bottom:8px;">INDOPACOM AOR Intelligence Summary</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="section-title">PLAN Order of Battle — Current</div>
+      ${oobRows}
+    </div>
+
+    <div class="detail-block">
+      <div class="section-title">SIGINT Collection</div>
+      <div style="display:grid;gap:5px;">
+        <div style="padding:7px 9px;border-radius:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);">
+          <div style="font-size:10px;font-weight:900;color:#b388ff;margin-bottom:2px;">P-8A VP-4 Detachment — Luzon Strait</div>
+          <div style="font-size:9px;color:var(--muted);">HF/UHF intercepts classified. PLAN frequency hops detected. New EMCON procedures suspected.</div>
+        </div>
+        <div style="padding:7px 9px;border-radius:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);">
+          <div style="font-size:10px;font-weight:900;color:#b388ff;margin-bottom:2px;">JULAS Undersea — First Island Chain</div>
+          <div style="font-size:9px;color:var(--muted);">3 acoustic contacts of interest. One confirmed Type-093 profile. Two inconclusive.</div>
+        </div>
+        <div style="padding:7px 9px;border-radius:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);">
+          <div style="font-size:10px;font-weight:900;color:#b388ff;margin-bottom:2px;">NRO IMINT — Shandong CVBG</div>
+          <div style="font-size:9px;color:var(--muted);">CV underway in Philippine Sea. Flight ops observed. 12 J-15 sorties past 6hr.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <div class="section-title">COA Assessment</div>
+      <div style="display:grid;gap:5px;">
+        <div style="padding:7px 9px;border-radius:7px;background:rgba(0,200,255,.04);border:1px solid rgba(0,200,255,.10);">
+          <div style="font-size:10px;font-weight:900;color:var(--blue2);margin-bottom:2px;">COA 1 — Coercive Signaling (Most Likely)</div>
+          <div style="font-size:9px;color:var(--muted);">PLAN continues coercive positioning. No kinetic action. Designed to assert administrative control over SCS features.</div>
+        </div>
+        <div style="padding:7px 9px;border-radius:7px;background:rgba(255,190,60,.04);border:1px solid rgba(255,190,60,.10);">
+          <div style="font-size:10px;font-weight:900;color:var(--amber);margin-bottom:2px;">COA 2 — Quarantine / ADIZ Declaration (Possible)</div>
+          <div style="font-size:9px;color:var(--muted);">PLAN declares exclusion zone around contested feature. Forces USN surface ships to alter transit. Escalation ladder step.</div>
+        </div>
+        <div style="padding:7px 9px;border-radius:7px;background:rgba(255,50,80,.04);border:1px solid rgba(255,50,80,.10);">
+          <div style="font-size:10px;font-weight:900;color:#ff8080;margin-bottom:2px;">COA 3 — Kinetic Action (Least Likely)</div>
+          <div style="font-size:9px;color:var(--muted);">Direct engagement of USN surface forces. Cross-domain escalation possible. Low probability; high consequence.</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:8px 14px;font-size:8px;color:rgba(255,255,255,.2);text-align:center;letter-spacing:.1em;text-transform:uppercase;">
+      SIM/SECRET // NOFORN · Auto-generated · N2J INDOPACOM
+    </div>`;
+}
+
+/* ═══ AUTOMATION ════════════════════════════════════ */
+function runAutomation(){
+  if(!autoMaster) return;
+  SHIPS.forEach(s=>{
+    if(!s.auto) return;
+    // Fuel burn: surface ships ~0.3%/tick, subs negligible
+    if(s.type!=="SSN"&&s.type!=="SSBN"&&s.status==="UNDERWAY"){
+      s.fuel=Math.max(0,s.fuel-0.12);
+      s.rdy=Math.max(0,s.rdy-0.04);
+    }
+    // Low fuel alert
+    if(s.fuel<30&&s.status==="UNDERWAY"){
+      const al=addAlert("FUEL",s.id,"HIGH",`Low fuel: ${Math.round(s.fuel)}% — UNREP required`);
+      if(al) addTask("UNREP",s.id,"HIGH","Schedule UNREP","Return to Port",true,`${s.name} fuel at ${Math.round(s.fuel)}%`);
+    }
+    // Auto RTB if critical
+    if(s.fuel<12&&s.auto&&s.route){
+      s.route=null; s.rp=0; s.rs=0; s.mission="EMERGENCY RTB — Fuel Critical"; s.status="UNDERWAY";
+      resolveAlert("FUEL",s.id);
+      logEvent("AUTO",s.id,"[AUTO] Emergency RTB — fuel critical: "+s.name,"AUTO");
+    }
+  });
+}
+
+/* ═══ MOVEMENT ══════════════════════════════════════ */
+function updateMovement(){
+  const dt=0.0001*timeSpeed;
+  SHIPS.forEach(s=>{
+    if(!s.route||s.status==="MAINT") return;
+    const prevPos=shipCoords(s);
+    s.rp=(s.rp+s.rs*timeSpeed*0.8)%1;
+    const pos=shipCoords(s);
+    // Trail
+    if(s.trail.length===0||Math.hypot(pos[0]-prevPos[0],pos[1]-prevPos[1])>0.02){
+      s.trail.push([...pos]);
+      if(s.trail.length>80) s.trail.shift();
+    }
+  });
+  THREATS.forEach(t=>{
+    if(!t.route) return;
+    t.rp=(t.rp+t.rs*timeSpeed*0.8)%1;
+  });
+}
+
+/* ═══ SEED INITIAL DATA ═════════════════════════════ */
+function seedInitialData(){
+  // A few starter tasks
+  addTask("FON","S07","MED","FON op approaching Fiery Cross Reef","Maintain Track",false,"USS Decatur within 12nm contested feature");
+  addTask("BMD","S02","MED","BMD picket — maintain station","Maintain Station",true,"Shiloh covering JMSDF coordination");
+  addTask("LOGISTICS","S13","LOW","Schedule RAS with CSG-5","Execute UNREP",true,"T-AOE-7 Rainier — 72hr window");
+  // An alert for the maint ship
+  addAlert("MAINT","S20","MED","USS Independence maintenance overrun — projected 72hr additional");
+}
+
+/* ═══ EVENT WIRING ═══════════════════════════════════ */
+function wireEvents(){
+  // War mode switch
+  document.getElementById("warSwitch").addEventListener("click",()=>{
+    wartime=!wartime;
+    document.body.classList.toggle("wartime",wartime);
+    document.getElementById("modeLabel").textContent=wartime?"WARTIME":"Peacetime";
+    const dot=document.getElementById("warDot");
+    if(dot){ dot.style.background=wartime?"var(--red)":"var(--green)"; dot.style.boxShadow=wartime?"0 0 10px rgba(255,68,102,.6)":"0 0 8px rgba(0,229,160,.5)"; }
+    showNotice(wartime?"⚠ WARTIME MODE ACTIVATED":"Peacetime mode");
+    if(wartime){ addAlert("WARTIME","SYSTEM","HIGH","Wartime posture activated. All units — EMCON Charlie."); }
+    refreshAll();
+    generateSitrep(false);
+    logEvent("MODE","SYSTEM",wartime?"Wartime mode activated":"Peacetime mode","ALERT");
+  });
+
+  // Auto switch
+  document.getElementById("autoSwitch").addEventListener("click",()=>{
+    autoMaster=!autoMaster;
+    document.getElementById("autoSwitch").classList.toggle("active",autoMaster);
+    document.getElementById("autoLabel").textContent=autoMaster?"On":"Off";
+    showNotice("Automation "+(autoMaster?"ON":"OFF"));
+  });
+
+  // Speed buttons
+  document.querySelectorAll("[data-speed]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      document.querySelectorAll("[data-speed]").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      const v=b.dataset.speed;
+      if(v==="replay"){ SHIPS.forEach(s=>{ s.rp=0; s.trail=[]; }); THREATS.forEach(t=>t.rp=0); timeSpeed=10; showNotice("Replay reset"); }
+      else timeSpeed=parseInt(v)||1;
+    });
+  });
+
+  // Map style buttons
+  document.querySelectorAll("[data-style]").forEach(b=>{
+    b.addEventListener("click",()=>switchMapStyle(b.dataset.style));
+  });
+
+  // Fleet filter
+  document.getElementById("fleetFilter").addEventListener("change",e=>{
+    selFleet=e.target.value; refreshAll();
+  });
+
+  // Type chips
+  document.getElementById("typeChips").addEventListener("click",e=>{
+    const chip=e.target.closest("[data-type]"); if(!chip) return;
+    selType=chip.dataset.type;
+    document.querySelectorAll("[data-type]").forEach(c=>c.classList.toggle("active",c.dataset.type===selType));
+    refreshAll();
+  });
+
+  // Status chips
+  document.getElementById("statusChips").addEventListener("click",e=>{
+    const chip=e.target.closest("[data-status]"); if(!chip) return;
+    selStatus=chip.dataset.status;
+    document.querySelectorAll("[data-status]").forEach(c=>c.classList.toggle("active",c.dataset.status===selStatus));
+    refreshAll();
+  });
+
+  // Collapse buttons
+  const recCollapseBtn=document.getElementById("recCollapseBtn");
+  if(recCollapseBtn) recCollapseBtn.addEventListener("click",()=>{
+    const p=document.getElementById("recPanel");
+    p.classList.toggle("minimized");
+    recCollapseBtn.textContent=p.classList.contains("minimized")?"▸":"▾";
+  });
+
+  const alertCollapseBtn=document.getElementById("alertCollapseBtn");
+  if(alertCollapseBtn) alertCollapseBtn.addEventListener("click",()=>{
+    const p=document.getElementById("alertPanel");
+    p.classList.toggle("minimized");
+    alertCollapseBtn.textContent=p.classList.contains("minimized")?"▸":"▾";
+  });
+
+  // Detail minimize
+  document.getElementById("detailMinBtn").addEventListener("click",()=>{
+    detailMinimized=!detailMinimized;
+    const panel=document.getElementById("detailPanel");
+    panel.classList.toggle("minimized",detailMinimized);
+    document.getElementById("detailMinBtn").textContent=detailMinimized?"▷":"◁";
+    document.documentElement.style.setProperty("--detail-w",detailMinimized?"42px":"360px");
+    // Reposition timeline
+    const tl=document.getElementById("timeline");
+    if(tl) tl.style.right=`calc(${detailMinimized?"42px":"360px"} + 24px)`;
+    // Reposition aux panels
+    const rp=document.getElementById("recPanel");
+    const ap=document.getElementById("alertPanel");
+    if(rp) rp.style.right=`calc(${detailMinimized?"42px":"360px"} + 24px)`;
+    if(ap) ap.style.right=`calc(${detailMinimized?"42px":"360px"} + 24px)`;
+  });
+
+  // Timeline toggle
+  document.getElementById("timelineToggle").addEventListener("click",()=>{
+    const tl=document.getElementById("timeline");
+    tl.classList.toggle("minimized");
+    document.getElementById("timelineToggle").textContent=tl.classList.contains("minimized")?"▴":"▾";
+  });
+
+  // Detail tabs
+  document.querySelectorAll(".detail-tab").forEach(tab=>{
+    tab.addEventListener("click",()=>switchDetailTab(tab.dataset.tab));
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown",e=>{
+    const overlay=document.getElementById("shortcutsOverlay");
+    if(!overlay.classList.contains("hidden")){ overlay.classList.add("hidden"); return; }
+    if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
+    switch(e.key.toLowerCase()){
+      case "?": overlay.classList.remove("hidden"); break;
+      case "w": document.getElementById("warSwitch").click(); break;
+      case "a": document.getElementById("autoSwitch").click(); break;
+      case "m":
+        const styles=["dark","osm","satellite"];
+        const idx=(styles.indexOf(currentMapStyle)+1)%styles.length;
+        switchMapStyle(styles[idx]); break;
+      case "t": document.getElementById("timelineToggle").click(); break;
+      case "escape": deselectAll(); break;
+      case "1": document.querySelector("[data-speed='1']").click(); break;
+      case "2": document.querySelector("[data-speed='10']").click(); break;
+      case "3": document.querySelector("[data-speed='60']").click(); break;
+      case "r": document.querySelector("[data-speed='replay']").click(); break;
+      case "s":
+        selType=selType==="SSN"?"ALL":"SSN";
+        document.querySelectorAll("[data-type]").forEach(c=>c.classList.toggle("active",c.dataset.type===selType));
+        refreshAll(); break;
+      case "c":
+        selType=selType==="CVN"?"ALL":"CVN";
+        document.querySelectorAll("[data-type]").forEach(c=>c.classList.toggle("active",c.dataset.type===selType));
+        refreshAll(); break;
+    }
+  });
+
+  // Position aux panels
+  positionAuxPanels();
+  window.addEventListener("resize",()=>{ syncLayout(); positionAuxPanels(); });
+}
+
+function positionAuxPanels(){
+  const recPanel=document.getElementById("recPanel");
+  const alertPanel=document.getElementById("alertPanel");
+  const tl=document.getElementById("timeline");
+  if(!recPanel||!alertPanel) return;
+  const tlH=tl?tl.offsetHeight:158;
+  const bottomOffset=tlH+20;
+  recPanel.style.bottom=(bottomOffset+10+220)+"px";
+  alertPanel.style.bottom=(bottomOffset+10)+"px";
+}
+
+/* ═══ BOOTSTRAP ══════════════════════════════════════ */
+map.on("load",async ()=>{
+  await initLayers();
+  syncLayout();
+  startZulu();
+  renderFleetStrip();
+  renderMetrics();
+  renderShipList();
+  renderAlerts();
+  renderRecs();
+  renderTimeline();
+  generateSitrep(false);
+  renderIntelReport();
+  seedInitialData();
+  wireEvents();
+  renderAlerts();
+  renderRecs();
+
+  logEvent("SYSTEM","SYS","INDOPACOM Maritime COP initialized · 7th Fleet · WESTPAC","INFO");
+  logEvent("N3","SYS","Op PACIFIC DETERRENCE — Phase 0 Presence active","INFO");
+  logEvent("N4","SYS","CLF cycle nominal · JP-5 87% AOR · T-AOE-7 RAS +18hr","INFO");
+
+  // Main simulation loop
+  setInterval(()=>{
+    updateMovement();
+    runAutomation();
+    refreshMap();
+    renderMetrics();
+    // Lighter UI updates every other tick
+  },2200);
+
+  // UI refresh at slower cadence
+  setInterval(()=>{
+    renderShipList();
+    renderAlerts();
+    renderRecs();
+    renderTimeline();
+    if(activeTab==="sitrep") generateSitrep(false);
+    positionAuxPanels();
+    // Update selected ship detail if open
+    if(selShipId){ const s=getShip(selShipId); if(s&&activeTab==="detail") renderShipDetail(s); }
+  },8000);
+
+  showNotice("INDOPACOM Maritime COP · 7th Fleet · Online");
+});
+</script>
 </body>
 </html>
