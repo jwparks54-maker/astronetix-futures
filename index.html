@@ -172,12 +172,12 @@ body::after{
   display:block;
   width:100%;
   height:100%;
-  opacity:.72;
-  filter:saturate(.9) brightness(.9);
+  opacity:.92;
+  filter:saturate(.95) brightness(.95);
 }
 
 @media(max-width:768px){
-  #ax-globe-bg canvas{ opacity:.5; }
+  #ax-globe-bg canvas{ opacity:.75; }
 }
 
 .shell{
@@ -826,6 +826,38 @@ loadTex(
           roughness: 0.94,
           metalness: 0.02,
         });
+
+        // Sun from far left of screen — most of globe is lit, shadow only on right edge
+        const sunDir = new THREE.Vector3(-5.0, 1.0, 2.5).normalize();
+
+        // Inject day/night terminator into the standard material
+        mat.onBeforeCompile = (shader) => {
+          shader.uniforms.uSunDir = { value: sunDir };
+
+          // Pass world normal to fragment
+          shader.vertexShader = shader.vertexShader.replace(
+            '#include <worldnormal_vertex>',
+            `#include <worldnormal_vertex>
+             vWorldNormal = normalize(mat3(modelMatrix) * normal);`
+          );
+          shader.vertexShader = 'varying vec3 vWorldNormal;\n' + shader.vertexShader;
+
+          // In fragment: darken the night side using NdotL smoothstep
+          shader.fragmentShader = 'varying vec3 vWorldNormal;\nuniform vec3 uSunDir;\n' + shader.fragmentShader;
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <dithering_fragment>',
+            `#include <dithering_fragment>
+             float NdotL    = dot(normalize(vWorldNormal), uSunDir);
+             // shadow only on the right quarter — globe mostly lit
+             // terminator at NdotL ~ 0.55 to 0.75 (right edge)
+             float dayMask  = smoothstep(0.50, 0.72, NdotL);
+             float shadow   = mix(0.04, 1.0, dayMask);
+             gl_FragColor.rgb *= shadow;`
+          );
+
+          mat.userData.shader = shader;
+        };
+
         const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.18, 96, 96), mat);
         globeGroup.add(mesh);
         globeGroup.userData.earth = mesh;
@@ -874,30 +906,35 @@ const atmo = new THREE.Mesh(
 );
 globeGroup.add(atmo);
 
-// Lighting
-scene.add(new THREE.AmbientLight(0xaecbff, 0.8));
-const sun = new THREE.DirectionalLight(0xffffff, 1.3);
-sun.position.set(4.5, 2.2, 3.8);
+scene.add(new THREE.AmbientLight(0xaecbff, 0.25));
+const sun = new THREE.DirectionalLight(0xfff8f0, 2.0);
+sun.position.set(-5.0, 1.0, 2.5);
 scene.add(sun);
-const rim = new THREE.DirectionalLight(0x5aa0ff, 0.45);
-rim.position.set(-4, -1.5, -3);
-scene.add(rim);
 
-// Stars
-const starPos = new Float32Array(1200 * 3);
-for(let i = 0; i < starPos.length; i += 3){
-  const r = 40 + Math.random() * 80;
-  const t = Math.random() * Math.PI * 2;
-  const p = Math.acos(Math.random() * 2 - 1);
-  starPos[i]   = r * Math.sin(p) * Math.cos(t);
-  starPos[i+1] = r * Math.sin(p) * Math.sin(t);
-  starPos[i+2] = r * Math.cos(p);
-}
-const starGeo = new THREE.BufferGeometry();
-starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
-  color:0xbfd8ff, size:0.08, transparent:true, opacity:0.18, depthWrite:false,
-})));
+// Stars — layered for depth and density
+const starLayers = [
+  { count: 2000, rMin: 40, rMax: 70,  size: 0.22, opacity: 0.75, color: 0xffffff },  // close, bright
+  { count: 3000, rMin: 60, rMax: 100, size: 0.16, opacity: 0.55, color: 0xd0e8ff },  // mid, blue-white
+  { count: 4000, rMin: 80, rMax: 130, size: 0.11, opacity: 0.40, color: 0xbfd8ff },  // distant
+  { count:  400, rMin: 45, rMax: 90,  size: 0.32, opacity: 0.90, color: 0xfff5e0 },  // bright foreground stars
+];
+
+starLayers.forEach(({ count, rMin, rMax, size, opacity, color }) => {
+  const pos = new Float32Array(count * 3);
+  for(let i = 0; i < pos.length; i += 3){
+    const r = rMin + Math.random() * (rMax - rMin);
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(Math.random() * 2 - 1);
+    pos[i]   = r * Math.sin(p) * Math.cos(t);
+    pos[i+1] = r * Math.sin(p) * Math.sin(t);
+    pos[i+2] = r * Math.cos(p);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
+    color, size, transparent: true, opacity, depthWrite: false, sizeAttenuation: true,
+  })));
+});
 
 // Animation
 let last = 0;
