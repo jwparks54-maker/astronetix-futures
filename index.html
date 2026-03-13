@@ -128,12 +128,26 @@ body::after{
 }
 
 @keyframes bannerScroll{
-  0%{
-    transform:translateX(0);
-  }
-  100%{
-    transform:translateX(-50%);
-  }
+  0%{transform:translateX(0);}
+  100%{transform:translateX(-50%);}
+}
+
+/* ── TOP-LEFT LOGO (logo.png) ── */
+.corner-logo-wrap{
+  position:fixed;
+  top:40px; /* sits just below the 32px banner */
+  left:22px;
+  z-index:40;
+  pointer-events:none;
+}
+
+.corner-logo{
+  display:block;
+  width:min(200px, 22vw);
+  height:auto;
+  filter:
+    drop-shadow(0 0 12px rgba(90,170,255,.22))
+    drop-shadow(0 0 28px rgba(90,170,255,.12));
 }
 
 /* background earth */
@@ -215,7 +229,7 @@ body::after{
   inset:0;
   width:200%;
   height:100%;
-  background:url("earth-map-4096.jpg") repeat-x center center;
+  background:url("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Whole_world_-_land_and_oceans.jpg/2560px-Whole_world_-_land_and_oceans.jpg") repeat-x center center;
   background-size:auto 100%;
   animation:rotateEarth 120s linear infinite;
   z-index:1;
@@ -223,8 +237,8 @@ body::after{
 }
 
 @keyframes rotateEarth{
-  0% { background-position:0 0; }
-  100% { background-position:-4096px 0; }
+  0% { background-position:0% 0; }
+  100% { background-position:-100% 0; }
 }
 
 .shell{
@@ -256,24 +270,25 @@ body::after{
     transparent 100%);
 }
 
+/* ── HERO LOGO (ax-futures.png) ── */
 .logo-wrap{
   display:flex;
   justify-content:center;
   align-items:center;
   margin-bottom:14px;
-  min-height:92px;
+  min-height:140px;
 }
 
 .logo{
-  max-width:min(360px, 46vw);
-  max-height:92px;
+  max-width:min(280px, 36vw);
+  max-height:280px;
   width:auto;
   height:auto;
   display:block;
   object-fit:contain;
   filter:
-    drop-shadow(0 0 16px rgba(90,170,255,.12))
-    drop-shadow(0 0 36px rgba(90,170,255,.06));
+    drop-shadow(0 0 20px rgba(90,170,255,.22))
+    drop-shadow(0 0 48px rgba(90,170,255,.12));
 }
 
 h1{
@@ -380,7 +395,6 @@ h1{
   filter:saturate(1.06) contrast(1.08) brightness(.81);
 }
 
-/* lock content layout so all cards align */
 .card-content{
   position:absolute;
   inset:0;
@@ -453,7 +467,6 @@ h1{
   transform:translateX(4px);
 }
 
-/* corner accents */
 .domain-card .corner{
   position:absolute;
   z-index:3;
@@ -560,6 +573,10 @@ h1{
     width:min(620px, 94vw);
     height:min(620px, 94vw);
   }
+
+  .corner-logo{
+    width:min(150px, 28vw);
+  }
 }
 
 @media (max-width:640px){
@@ -582,8 +599,12 @@ h1{
   }
 
   .logo{
-    max-width:230px;
-    max-height:58px;
+    max-width:180px;
+    max-height:180px;
+  }
+
+  .logo-wrap{
+    min-height:100px;
   }
 
   h1{
@@ -635,6 +656,15 @@ h1{
   .training-logo-top{
     width:min(220px, 62vw);
   }
+
+  .corner-logo-wrap{
+    top:36px;
+    left:10px;
+  }
+
+  .corner-logo{
+    width:min(110px, 32vw);
+  }
 }
 </style>
 </head>
@@ -651,6 +681,11 @@ h1{
   </div>
 </div>
 
+<!-- AstroNetix logo — top-left under the banner -->
+<div class="corner-logo-wrap">
+  <img class="corner-logo" src="logo.png" alt="AstroNetix logo">
+</div>
+
 <div class="earth-stage">
   <div class="earth-glow"></div>
   <div class="earth-container">
@@ -660,8 +695,9 @@ h1{
 
 <div class="shell">
   <section class="hero">
+    <!-- AX-Futures logo — centred in the hero -->
     <div class="logo-wrap">
-      <img class="logo" src="logo.png" alt="AstroNetix logo">
+      <img class="logo" src="ax-futures.png" alt="AX-Futures logo">
     </div>
 
     <h1>AX-Futures</h1>
