@@ -826,38 +826,6 @@ loadTex(
           roughness: 0.94,
           metalness: 0.02,
         });
-
-        // Sun from far left of screen — most of globe is lit, shadow only on right edge
-        const sunDir = new THREE.Vector3(-5.0, 1.0, 2.5).normalize();
-
-        // Inject day/night terminator into the standard material
-        mat.onBeforeCompile = (shader) => {
-          shader.uniforms.uSunDir = { value: sunDir };
-
-          // Pass world normal to fragment
-          shader.vertexShader = shader.vertexShader.replace(
-            '#include <worldnormal_vertex>',
-            `#include <worldnormal_vertex>
-             vWorldNormal = normalize(mat3(modelMatrix) * normal);`
-          );
-          shader.vertexShader = 'varying vec3 vWorldNormal;\n' + shader.vertexShader;
-
-          // In fragment: darken the night side using NdotL smoothstep
-          shader.fragmentShader = 'varying vec3 vWorldNormal;\nuniform vec3 uSunDir;\n' + shader.fragmentShader;
-          shader.fragmentShader = shader.fragmentShader.replace(
-            '#include <dithering_fragment>',
-            `#include <dithering_fragment>
-             float NdotL    = dot(normalize(vWorldNormal), uSunDir);
-             // shadow only on the right quarter — globe mostly lit
-             // terminator at NdotL ~ 0.55 to 0.75 (right edge)
-             float dayMask  = smoothstep(0.50, 0.72, NdotL);
-             float shadow   = mix(0.04, 1.0, dayMask);
-             gl_FragColor.rgb *= shadow;`
-          );
-
-          mat.userData.shader = shader;
-        };
-
         const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.18, 96, 96), mat);
         globeGroup.add(mesh);
         globeGroup.userData.earth = mesh;
@@ -906,10 +874,14 @@ const atmo = new THREE.Mesh(
 );
 globeGroup.add(atmo);
 
-scene.add(new THREE.AmbientLight(0xaecbff, 0.25));
-const sun = new THREE.DirectionalLight(0xfff8f0, 2.0);
-sun.position.set(-5.0, 1.0, 2.5);
+// Lighting
+scene.add(new THREE.AmbientLight(0xaecbff, 0.8));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3);
+sun.position.set(4.5, 2.2, 3.8);
 scene.add(sun);
+const rim = new THREE.DirectionalLight(0x5aa0ff, 0.45);
+rim.position.set(-4, -1.5, -3);
+scene.add(rim);
 
 // Stars — layered for depth and density
 const starLayers = [
