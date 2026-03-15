@@ -1,36 +1,1970 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coming Soon</title>
-  <style>
-    body{
-      margin:0;
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      background:#02050b;
-      color:white;
-      font-family:Arial,sans-serif;
-      text-align:center;
-      padding:20px;
-    }
-    .box{
-      border:1px solid #1e3d5c;
-      background:#07121e;
-      border-radius:16px;
-      padding:32px;
-      max-width:700px;
-    }
-    a{color:#7cc4ff;text-decoration:none}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX-LEAD | Simulation Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#01030a;--deep:#040810;--panel:#070c18;--card:#090f1d;
+  --elevated:#0c1422;--hover:#101c2e;
+  --cyan:#00cce0;--cg:rgba(0,204,224,.07);--cm:rgba(0,204,224,.16);--ch:rgba(0,204,224,.42);--cglow:rgba(0,204,224,.18);
+  --blue:#0062d4;--amber:#d49018;--red:#cc3a3a;--green:#00b070;--purple:#8050d4;
+  --t1:#ddeeff;--t2:#5a88b0;--t3:#223a54;
+  --r1:rgba(0,204,224,.07);--r2:rgba(0,204,224,.15);--r3:rgba(0,204,224,.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font-size:13px}
+
+/* ── GRID ── */
+#app{
+  display:grid;
+  grid-template-rows:50px 1fr 158px;
+  grid-template-columns:228px 1fr 268px;
+  grid-template-areas:
+    "top top top"
+    "lft ctr rgt"
+    "lft bot bot";
+  height:100vh;overflow:hidden;
+}
+
+/* ── TOPBAR ── */
+#top{grid-area:top;background:rgba(1,3,10,.95);border-bottom:1px solid var(--r1);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  backdrop-filter:blur(12px);z-index:50}
+.tb-brand{display:flex;align-items:center;gap:14px}
+.tb-logo img{height:22px;display:block}
+.tb-logo-fb{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;
+  letter-spacing:.12em;color:var(--t1);display:none}
+.tb-logo-fb em{color:var(--cyan);font-style:normal}
+.tb-sep{width:1px;height:18px;background:var(--r2)}
+.tb-crumb{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--t3);display:flex;align-items:center;gap:8px}
+.tb-crumb .active{color:var(--t2)}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-badge{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--cyan);background:var(--cg);
+  border:1px solid var(--ch);padding:5px 12px}
+.tb-clock{font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:500;
+  letter-spacing:.06em;color:var(--amber);min-width:52px;text-align:right}
+.blink{animation:blink 2.2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── LEFT PANEL ── */
+#lft{grid-area:lft;background:var(--deep);border-right:1px solid var(--r1);
+  display:flex;flex-direction:column;overflow:hidden}
+.lft-tabs{display:flex;border-bottom:1px solid var(--r1);flex-shrink:0}
+.lft-tab{flex:1;padding:9px 6px;font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);
+  cursor:pointer;border-bottom:2px solid transparent;text-align:center;transition:all .2s}
+.lft-tab:hover{color:var(--t2)}
+.lft-tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* module list */
+#mod-list{flex:1;overflow-y:auto;display:none}
+#mod-list.on{display:block}
+.mod-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--t3);padding:12px 14px 6px}
+.mod-item{display:flex;align-items:flex-start;gap:9px;padding:10px 14px;
+  cursor:pointer;border-left:2px solid transparent;transition:all .2s}
+.mod-item:hover{background:var(--panel)}
+.mod-item.active{background:var(--cg);border-left-color:var(--cyan)}
+.mod-item.locked{opacity:.3;cursor:not-allowed}
+.mi-icon{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;background:var(--card);border:1px solid var(--r1);margin-top:1px}
+.mi-icon svg{width:13px;height:13px;stroke:var(--t2);fill:none;stroke-width:1.5}
+.mod-item.active .mi-icon{background:var(--cg);border-color:var(--r2)}
+.mod-item.active .mi-icon svg{stroke:var(--cyan)}
+.mi-body{}
+.mi-num{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:2px}
+.mod-item.active .mi-num{color:var(--cyan);opacity:.7}
+.mi-name{font-family:'Barlow Condensed',sans-serif;font-size:.8rem;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--t2);line-height:1.2}
+.mod-item.active .mi-name{color:var(--t1)}
+.mi-status{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.1em;
+  text-transform:uppercase;margin-top:3px}
+.s-active{color:var(--cyan)}.s-avail{color:var(--t3)}.s-locked{color:var(--t3);opacity:.5}
+.s-done{color:var(--green)}
+
+/* inject feed */
+#inj-feed{flex:1;overflow-y:auto;display:none;padding:8px}
+#inj-feed.on{display:block}
+.feed-empty{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--t3);padding:16px 8px;text-align:center}
+.feed-item{background:var(--card);border:1px solid var(--r1);border-left:2px solid;
+  padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:all .25s;
+  animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.feed-item:hover{background:var(--elevated)}
+.feed-item.f-inject{border-left-color:var(--amber)}
+.feed-item.f-decision{border-left-color:var(--cyan)}
+.feed-item.f-consequence.f-pos{border-left-color:var(--green)}
+.feed-item.f-consequence.f-neg{border-left-color:var(--red)}
+.feed-item.f-consequence.f-mix{border-left-color:var(--amber)}
+.feed-item.f-init{border-left-color:var(--t3)}
+.fi-time{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.15em;
+  text-transform:uppercase;margin-bottom:3px}
+.feed-item.f-inject .fi-time{color:var(--amber)}
+.feed-item.f-decision .fi-time{color:var(--cyan)}
+.feed-item.f-consequence.f-pos .fi-time{color:var(--green)}
+.feed-item.f-consequence.f-neg .fi-time{color:var(--red)}
+.feed-item.f-consequence.f-mix .fi-time{color:var(--amber)}
+.feed-item.f-init .fi-time{color:var(--t3)}
+.fi-label{font-family:'Barlow Condensed',sans-serif;font-size:.78rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--t1);margin-bottom:2px;line-height:1.2}
+.fi-sub{font-size:.72rem;color:var(--t2);line-height:1.4}
+
+/* ── CENTER PANEL ── */
+#ctr{grid-area:ctr;background:var(--panel);overflow:hidden;
+  position:relative;display:flex;flex-direction:column}
+#ctr::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,204,224,.022) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,204,224,.022) 1px,transparent 1px);
+  background-size:46px 46px;pointer-events:none;z-index:0}
+.ev-hdr{background:rgba(0,0,0,.45);border-bottom:1px solid var(--r1);
+  padding:13px 20px;flex-shrink:0;position:relative;z-index:1}
+.ev-hdr-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.ev-tag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:4px}
+.ev-title{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;
+  letter-spacing:.03em;color:var(--t1);line-height:1.1;margin-bottom:3px}
+.ev-sub{font-size:.8rem;color:var(--t2)}
+.ev-meta{display:flex;align-items:center;gap:16px}
+.ev-obj{font-size:.76rem;color:var(--t2)}
+.ev-obj strong{color:var(--t1)}
+.phase-strip{display:flex;border-bottom:1px solid var(--r1);
+  background:rgba(0,0,0,.3);flex-shrink:0;position:relative;z-index:1}
+.ps{flex:1;padding:8px 10px;font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);
+  border-right:1px solid var(--r1);display:flex;align-items:center;gap:6px;
+  cursor:default;transition:background .2s}
+.ps:last-child{border-right:none}
+.ps.done{color:var(--t3)}
+.ps.active{color:var(--cyan);background:rgba(0,204,224,.05)}
+.ps-n{width:15px;height:15px;border-radius:50%;background:var(--r1);
+  color:var(--t3);font-size:7.5px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;font-weight:600}
+.ps.done .ps-n{background:var(--t3);color:var(--void)}
+.ps.active .ps-n{background:var(--cyan);color:var(--void)}
+.scenario-scroll{flex:1;overflow-y:auto;position:relative;z-index:1}
+.scenario-scroll::-webkit-scrollbar{width:4px}
+.scenario-scroll::-webkit-scrollbar-thumb{background:var(--r2)}
+.scenario-body{padding:18px 20px}
+
+/* scenario components */
+.sitrep-card{background:rgba(0,0,0,.35);border:1px solid var(--r1);
+  border-left:2px solid var(--cyan);padding:14px 16px;margin-bottom:16px}
+.sitrep-label{font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);opacity:.7;margin-bottom:7px}
+.sitrep-text{font-size:.82rem;color:var(--t2);line-height:1.65}
+
+.inject-banner{border:1px solid;border-left:3px solid;padding:13px 16px;
+  margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;
+  animation:injectIn .35s ease}
+@keyframes injectIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.inject-banner.lvl-1{background:rgba(212,144,24,.07);border-color:rgba(212,144,24,.28);border-left-color:var(--amber)}
+.inject-banner.lvl-2{background:rgba(204,58,58,.06);border-color:rgba(204,58,58,.25);border-left-color:var(--red)}
+.inject-banner.lvl-3{background:rgba(0,204,224,.06);border-color:rgba(0,204,224,.22);border-left-color:var(--cyan)}
+.ib-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.ib-src{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.18em;
+  text-transform:uppercase;margin-bottom:4px}
+.inject-banner.lvl-1 .ib-src{color:var(--amber)}
+.inject-banner.lvl-2 .ib-src{color:var(--red)}
+.inject-banner.lvl-3 .ib-src{color:var(--cyan)}
+.ib-text{font-size:.82rem;color:var(--t1);line-height:1.55;margin-bottom:4px}
+.ib-sub{font-size:.76rem;color:var(--t2);line-height:1.5}
+
+.dp-wrap{background:rgba(0,0,0,.42);border:1px solid var(--r2);margin-bottom:8px}
+.dp-hdr{background:rgba(0,204,224,.05);border-bottom:1px solid var(--r1);
+  padding:11px 16px;display:flex;align-items:center;gap:9px}
+.dp-hdr-icon{font-size:12px}
+.dp-hdr-title{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;
+  font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t1)}
+.dp-hdr-time{font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--t3);margin-left:auto}
+.dp-opts{padding:12px;display:flex;flex-direction:column;gap:7px}
+.dp-opt{background:var(--card);border:1px solid var(--r1);padding:11px 14px;
+  cursor:pointer;transition:all .22s;display:flex;align-items:flex-start;gap:10px;
+  position:relative;overflow:hidden}
+.dp-opt::before{content:'';position:absolute;left:0;top:0;bottom:0;
+  width:0;background:var(--cg);transition:width .3s}
+.dp-opt:hover::before{width:100%}
+.dp-opt:hover{border-color:var(--r2)}
+.dp-opt.sel{border-color:var(--cyan);background:rgba(0,204,224,.05)}
+.dp-opt.sel::before{width:100%;background:rgba(0,204,224,.03)}
+.dp-opt.rej{opacity:.35;cursor:not-allowed;pointer-events:none}
+.opt-key{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;
+  color:var(--t3);flex-shrink:0;width:18px;text-align:center;margin-top:1px;
+  position:relative;z-index:1}
+.dp-opt.sel .opt-key{color:var(--cyan)}
+.dp-opt:hover .opt-key{color:var(--t2)}
+.opt-body{position:relative;z-index:1}
+.opt-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.87rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--t1);margin-bottom:3px}
+.opt-desc{font-size:.77rem;color:var(--t2);line-height:1.48}
+.opt-risk{font-family:'IBM Plex Mono',monospace;font-size:7.5px;
+  letter-spacing:.11em;text-transform:uppercase;margin-top:5px}
+.risk-lo{color:var(--green)}.risk-md{color:var(--amber)}.risk-hi{color:var(--red)}
+.dp-foot{padding:10px 12px;border-top:1px solid var(--r1);
+  display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.dp-hint{font-family:'IBM Plex Mono',monospace;font-size:7.5px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--t3)}
+.btn-confirm{font-family:'Barlow Condensed',sans-serif;font-size:11px;
+  font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--void);background:var(--cyan);border:none;padding:8px 22px;
+  cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+  transition:all .2s;opacity:.35;pointer-events:none}
+.btn-confirm.on{opacity:1;pointer-events:auto}
+.btn-confirm.on:hover{box-shadow:0 0 18px var(--cglow)}
+
+.con-panel{border:1px solid;border-left:3px solid;padding:14px 16px;
+  margin-bottom:14px;display:none;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.con-panel.pos{background:rgba(0,176,112,.04);border-color:rgba(0,176,112,.18);border-left-color:var(--green)}
+.con-panel.neg{background:rgba(204,58,58,.04);border-color:rgba(204,58,58,.18);border-left-color:var(--red)}
+.con-panel.mix{background:rgba(212,144,24,.04);border-color:rgba(212,144,24,.18);border-left-color:var(--amber)}
+.con-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;
+  text-transform:uppercase;margin-bottom:7px}
+.con-panel.pos .con-lbl{color:var(--green)}
+.con-panel.neg .con-lbl{color:var(--red)}
+.con-panel.mix .con-lbl{color:var(--amber)}
+.con-title{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--t1);margin-bottom:6px}
+.con-text{font-size:.8rem;color:var(--t2);line-height:1.6;margin-bottom:8px}
+.con-2nd{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--t3);line-height:1.7}
+.btn-adv{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--cyan);background:transparent;
+  border:1px solid var(--ch);padding:8px 20px;cursor:pointer;transition:all .22s;
+  margin-top:12px;display:inline-block}
+.btn-adv:hover{background:var(--cg)}
+
+.resolution{background:rgba(0,0,0,.5);border:1px solid var(--r2);padding:28px;
+  text-align:center;margin-bottom:16px}
+.res-icon{font-size:28px;margin-bottom:12px}
+.res-title{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;
+  letter-spacing:.04em;color:var(--t1);margin-bottom:6px}
+.res-sub{font-size:.86rem;color:var(--t2);margin-bottom:20px}
+.res-scores{display:flex;justify-content:center;gap:28px;margin-bottom:24px;flex-wrap:wrap}
+.rs-item{}
+.rs-val{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;color:var(--cyan)}
+.rs-lbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--t3)}
+.res-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+/* ── RIGHT PANEL ── */
+#rgt{grid-area:rgt;background:var(--deep);border-left:1px solid var(--r1);
+  display:flex;flex-direction:column;overflow:hidden}
+.rgt-tabs{display:flex;border-bottom:1px solid var(--r1);flex-shrink:0}
+.rgt-tab{flex:1;padding:9px 4px;font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);
+  cursor:pointer;border-bottom:2px solid transparent;text-align:center;transition:all .2s}
+.rgt-tab:hover{color:var(--t2)}
+.rgt-tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+.rgt-body{flex:1;overflow-y:auto;padding:12px}
+.rgt-body::-webkit-scrollbar{width:3px}
+.rgt-body::-webkit-scrollbar-thumb{background:var(--r2)}
+
+/* team cards */
+.r-sec-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:9px;
+  display:flex;align-items:center;gap:8px}
+.r-sec-lbl::after{content:'';flex:1;height:1px;background:var(--r1)}
+.tm-card{background:var(--card);border:1px solid var(--r1);border-top:2px solid;
+  padding:11px 12px;margin-bottom:8px;cursor:pointer;transition:all .25s}
+.tm-card:hover{background:var(--elevated);transform:translateX(2px)}
+.tm-card.mil{border-top-color:var(--blue)}
+.tm-card.civ{border-top-color:var(--green)}
+.tm-card.ctr{border-top-color:var(--amber)}
+.tm-card.isr{border-top-color:var(--purple)}
+.tm-card.cyber{border-top-color:var(--red)}
+.tm-card.prog{border-top-color:var(--t2)}
+.tm-card.space{border-top-color:#4488cc}
+.tm-card.air{border-top-color:#44bbcc}
+.tm-card.maritime{border-top-color:#2266aa}
+.tm-card.intel{border-top-color:#88aa44}
+.tm-badge{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.16em;
+  text-transform:uppercase;padding:2px 7px;display:inline-block;margin-bottom:6px}
+.tm-card.mil .tm-badge{color:var(--blue);background:rgba(0,98,212,.14);border:1px solid rgba(0,98,212,.28)}
+.tm-card.civ .tm-badge{color:var(--green);background:rgba(0,176,112,.13);border:1px solid rgba(0,176,112,.28)}
+.tm-card.ctr .tm-badge{color:var(--amber);background:rgba(212,144,24,.14);border:1px solid rgba(212,144,24,.28)}
+.tm-card.isr .tm-badge{color:var(--purple);background:rgba(128,80,212,.14);border:1px solid rgba(128,80,212,.28)}
+.tm-card.cyber .tm-badge{color:var(--red);background:rgba(204,58,58,.14);border:1px solid rgba(204,58,58,.28)}
+.tm-card.prog .tm-badge{color:var(--t2);background:rgba(90,136,176,.1);border:1px solid rgba(90,136,176,.2)}
+.tm-card.space .tm-badge{color:#4488cc;background:rgba(68,136,204,.13);border:1px solid rgba(68,136,204,.28)}
+.tm-card.air .tm-badge{color:#44bbcc;background:rgba(68,187,204,.13);border:1px solid rgba(68,187,204,.28)}
+.tm-card.maritime .tm-badge{color:#2266aa;background:rgba(34,102,170,.14);border:1px solid rgba(34,102,170,.28)}
+.tm-card.intel .tm-badge{color:#88aa44;background:rgba(136,170,68,.12);border:1px solid rgba(136,170,68,.26)}
+.tm-name{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--t1);margin-bottom:1px}
+.tm-pos{font-size:.73rem;color:var(--t2);margin-bottom:6px}
+.tm-stance-lbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:3px}
+.tm-stance{font-size:.74rem;color:var(--t2);line-height:1.45}
+.tm-hint{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--cyan);margin-top:6px;opacity:.5}
+.tm-card:hover .tm-hint{opacity:1}
+
+/* status bars */
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.stat-lbl{font-size:.74rem;color:var(--t2);flex:1;
+  font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.stat-bar{width:72px;height:3px;background:var(--r1);position:relative;overflow:hidden;flex-shrink:0}
+.stat-fill{position:absolute;left:0;top:0;bottom:0}
+.f-c{background:var(--cyan)}.f-a{background:var(--amber)}.f-r{background:var(--red)}.f-g{background:var(--green)}
+.stat-val{font-family:'IBM Plex Mono',monospace;font-size:8px;width:28px;text-align:right;color:var(--t3)}
+
+.constraint{background:var(--card);border:1px solid var(--r1);border-left:2px solid;
+  padding:9px 11px;margin-bottom:7px}
+.con-kind{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:3px}
+.con-kind.hard{color:var(--red)}.con-kind.soft{color:var(--amber)}.con-kind.watch{color:var(--cyan)}
+.con-body{font-size:.76rem;color:var(--t2);line-height:1.45}
+
+/* AI panel */
+.ai-row{display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,.4);border:1px solid var(--r2);padding:10px 12px;margin-bottom:12px}
+.ai-lbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--t2);display:flex;align-items:center;gap:8px}
+.ai-lbl .ai-tag{font-size:7.5px;color:var(--cyan);border:1px solid var(--r3);
+  background:var(--cg);padding:2px 8px;letter-spacing:.15em}
+.tog-wrap{display:flex;align-items:center;gap:8px;cursor:pointer}
+.tog-track{width:38px;height:20px;border-radius:10px;background:var(--card);
+  border:1px solid var(--r2);position:relative;transition:all .3s}
+.tog-track.on{background:rgba(0,204,224,.16);border-color:var(--cyan)}
+.tog-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;
+  border-radius:50%;background:var(--t3);transition:all .3s}
+.tog-track.on .tog-thumb{left:21px;background:var(--cyan);box-shadow:0 0 7px var(--cglow)}
+.tog-state{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--t3);min-width:28px}
+.tog-track.on + .tog-state{color:var(--cyan)}
+
+.ai-finding{background:var(--card);border:1px solid var(--r1);border-left:2px solid;
+  padding:9px 11px;margin-bottom:7px;transition:all .3s}
+.ai-finding.crit{border-left-color:var(--red)}
+.ai-finding.elev{border-left-color:var(--amber)}
+.ai-finding.nom{border-left-color:var(--green)}
+.af-kind{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.16em;
+  text-transform:uppercase;margin-bottom:3px}
+.ai-finding.crit .af-kind{color:var(--red)}
+.ai-finding.elev .af-kind{color:var(--amber)}
+.ai-finding.nom .af-kind{color:var(--green)}
+.af-text{font-size:.76rem;color:var(--t2);line-height:1.45}
+.ai-var-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.av-item{background:var(--card);border:1px solid var(--r1);padding:9px 10px}
+.av-id{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:3px}
+.av-name{font-size:.74rem;color:var(--t2);margin-bottom:4px;font-family:'Barlow Condensed',sans-serif;
+  letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.av-val{font-family:'IBM Plex Mono',monospace;font-size:.9rem;font-weight:500;color:var(--t1)}
+.av-bar{height:2px;background:var(--r1);margin-top:5px;position:relative;overflow:hidden}
+.av-fill{position:absolute;left:0;top:0;bottom:0;transition:width 1s .2s ease}
+
+/* ── BOTTOM PANEL ── */
+#bot{grid-area:bot;background:rgba(1,3,10,.97);border-top:1px solid var(--r1);
+  display:flex;flex-direction:column;overflow:hidden}
+.bot-bar{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 16px;border-bottom:1px solid var(--r1);flex-shrink:0}
+.bot-title{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--cyan);display:flex;align-items:center;gap:8px}
+.bot-title::before{content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:blink 2.5s ease-in-out infinite}
+.bot-right{display:flex;align-items:center;gap:10px}
+.bot-trace-btn{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--t3);cursor:pointer;transition:color .2s;
+  padding:5px 10px;border:1px solid transparent}
+.bot-trace-btn:hover{color:var(--cyan);border-color:var(--r3);background:var(--cg)}
+.bot-trace-btn.active{color:var(--cyan);border-color:var(--r3);background:var(--cg)}
+.bot-events{display:flex;gap:0;align-items:center;flex:1;overflow-x:auto;padding:10px 16px}
+.bot-events::-webkit-scrollbar{height:3px}
+.bot-events::-webkit-scrollbar-thumb{background:var(--r2)}
+.be-item{display:flex;flex-direction:column;align-items:center;position:relative;
+  min-width:120px;flex:1;max-width:160px}
+.be-item + .be-item::before{content:'';position:absolute;left:0;top:13px;
+  width:calc(50% - 8px);height:1px;background:var(--r2)}
+.be-item::after{content:'';position:absolute;right:0;top:13px;
+  width:calc(50% - 8px);height:1px;background:var(--r2)}
+.be-item:last-child::after{display:none}
+.be-item:first-child::before{display:none}
+.be-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--r2);
+  background:var(--panel);margin-bottom:6px;flex-shrink:0;position:relative;z-index:1;
+  transition:all .3s}
+.be-dot.dp{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 9px var(--cglow)}
+.be-dot.inj{background:var(--amber);border-color:var(--amber);box-shadow:0 0 7px rgba(212,144,24,.4)}
+.be-dot.pos{background:var(--green);border-color:var(--green);box-shadow:0 0 7px rgba(0,176,112,.35)}
+.be-dot.neg{background:var(--red);border-color:var(--red);box-shadow:0 0 7px rgba(204,58,58,.35)}
+.be-dot.mix{background:var(--amber);border-color:var(--amber)}
+.be-dot.pend{opacity:.3}
+.be-time{font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--t3);margin-bottom:3px}
+.be-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--t2);text-align:center;line-height:1.25}
+.be-kind{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.1em;
+  text-transform:uppercase;text-align:center;margin-top:2px;color:var(--t3)}
+.be-dot.dp ~ .be-kind{color:var(--cyan)}
+.be-dot.inj ~ .be-kind{color:var(--amber)}
+.be-dot.pos ~ .be-kind{color:var(--green)}
+.be-dot.neg ~ .be-kind{color:var(--red)}
+
+/* ── TRACE MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+.overlay.open{display:flex}
+.modal-box{background:var(--panel);border:1px solid var(--r2);
+  width:min(820px,95vw);max-height:86vh;overflow-y:auto;
+  animation:modalIn .25s ease;position:relative}
+@keyframes modalIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.modal-hdr{background:rgba(0,0,0,.5);border-bottom:1px solid var(--r1);
+  padding:13px 18px;display:flex;align-items:flex-start;justify-content:space-between;
+  position:sticky;top:0;z-index:2}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;
+  letter-spacing:.04em;color:var(--t1)}
+.modal-sub{font-size:.78rem;color:var(--t2);margin-top:2px}
+.modal-close{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t3);
+  cursor:pointer;padding:2px 6px;border:1px solid var(--r1);transition:all .2s;flex-shrink:0}
+.modal-close:hover{color:var(--t1);border-color:var(--r2)}
+.modal-body{padding:18px}
+
+/* trace replay layout */
+.trace-timeline{padding:16px 18px;background:rgba(0,0,0,.35);
+  border-bottom:1px solid var(--r1)}
+.trace-tl-label{font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:12px}
+.tl-nodes{display:flex;align-items:center;position:relative;gap:0;overflow-x:auto;padding-bottom:8px}
+.tl-node{display:flex;flex-direction:column;align-items:center;
+  min-width:100px;flex:1;max-width:130px;cursor:pointer;position:relative}
+.tl-node + .tl-node::before{content:'';position:absolute;left:0;top:11px;
+  width:calc(50% - 8px);height:1px;background:var(--r2)}
+.tl-node::after{content:'';position:absolute;right:0;top:11px;
+  width:calc(50% - 8px);height:1px;background:var(--r2)}
+.tl-node:last-child::after{display:none}
+.tl-node:first-child::before{display:none}
+.tl-dot{width:14px;height:14px;border-radius:50%;border:1px solid var(--r2);
+  background:var(--panel);margin-bottom:6px;flex-shrink:0;
+  position:relative;z-index:1;transition:all .3s;cursor:pointer}
+.tl-node:hover .tl-dot{transform:scale(1.2)}
+.tl-node.selected .tl-dot{transform:scale(1.3);box-shadow:0 0 14px currentColor}
+.tl-dot.dp{background:var(--cyan);border-color:var(--cyan)}
+.tl-dot.inj{background:var(--amber);border-color:var(--amber)}
+.tl-dot.pos{background:var(--green);border-color:var(--green)}
+.tl-dot.neg{background:var(--red);border-color:var(--red)}
+.tl-dot.mix{background:var(--amber);border-color:var(--amber)}
+.tl-dot.init{background:var(--t3);border-color:var(--t3)}
+.tl-time{font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--t3);margin-bottom:3px;text-align:center}
+.tl-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--t2);text-align:center;line-height:1.25}
+
+.trace-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.td-panel{background:rgba(0,0,0,.3);border:1px solid var(--r1);padding:14px}
+.td-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+.td-time{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.td-title{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--t1);margin-bottom:8px}
+.td-text{font-size:.79rem;color:var(--t2);line-height:1.6;margin-bottom:8px}
+.td-info-list{list-style:none}
+.td-info-list li{font-size:.77rem;color:var(--t2);line-height:1.5;padding:3px 0;
+  border-bottom:1px solid var(--r1);display:flex;align-items:flex-start;gap:7px}
+.td-info-list li::before{content:'•';color:var(--cyan);flex-shrink:0}
+.td-missed-item{font-family:'IBM Plex Mono',monospace;font-size:7.5px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--red);
+  padding:5px 0;border-bottom:1px solid var(--r1);line-height:1.6}
+.td-missed-item:last-child{border-bottom:none}
+.alt-option{background:var(--card);border:1px solid var(--r1);border-left:2px solid;
+  padding:10px 12px;margin-bottom:7px;cursor:pointer;transition:all .25s}
+.alt-option:hover{background:var(--elevated)}
+.alt-option.chosen{border-left-color:var(--cyan);background:rgba(0,204,224,.04)}
+.alt-option.other{border-left-color:var(--t3)}
+.ao-key{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.15em;
+  text-transform:uppercase;margin-bottom:4px}
+.alt-option.chosen .ao-key{color:var(--cyan)}
+.alt-option.other .ao-key{color:var(--t3)}
+.ao-lbl{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--t1);margin-bottom:4px}
+.ao-outcome{font-size:.76rem;color:var(--t2);line-height:1.45}
+
+.trace-pattern{background:rgba(0,204,224,.04);border:1px solid var(--r2);padding:16px;margin-top:4px}
+.tp-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+.tp-text{font-size:.8rem;color:var(--t2);line-height:1.65}
+
+.trace-empty{padding:32px;text-align:center;color:var(--t3);
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+
+/* member modal */
+.mm-box{width:min(580px,92vw);max-height:80vh;overflow-y:auto;background:var(--panel);
+  border:1px solid var(--r2)}
+.mm-hdr{background:rgba(0,0,0,.5);border-bottom:1px solid var(--r1);
+  padding:13px 18px;display:flex;align-items:flex-start;justify-content:space-between}
+.mm-name{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;
+  letter-spacing:.04em;color:var(--t1)}
+.mm-role{font-size:.78rem;color:var(--t2);margin-top:2px}
+.mm-body{padding:18px}
+.mm-row{margin-bottom:13px}
+.mm-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:5px}
+.mm-text{font-size:.8rem;color:var(--t2);line-height:1.6}
+.mm-prio{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.15em;
+  text-transform:uppercase;padding:3px 9px;border:1px solid;display:inline-block;margin-top:5px}
+.p-hi{color:var(--red);border-color:rgba(204,58,58,.4);background:rgba(204,58,58,.1)}
+.p-md{color:var(--amber);border-color:rgba(212,144,24,.4);background:rgba(212,144,24,.1)}
+.p-lo{color:var(--green);border-color:rgba(0,176,112,.35);background:rgba(0,176,112,.1)}
+
+/* misc */
+.hidden{display:none!important}
+.btn-ghost{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--cyan);background:transparent;
+  border:1px solid var(--ch);padding:8px 18px;cursor:pointer;transition:all .22s}
+.btn-ghost:hover{background:var(--cg)}
+.btn-primary{font-family:'Barlow Condensed',sans-serif;font-size:11px;
+  font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--void);background:var(--cyan);border:none;padding:9px 22px;
+  cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+  transition:all .2s}
+.btn-primary:hover{box-shadow:0 0 18px var(--cglow)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--r2)}
+</style>
 </head>
 <body>
-  <div class="box">
-    <h1>Console in Development</h1>
-    <p>This domain environment is being built.</p>
-    <p><a href="index.html">Return to Futures Gateway</a></p>
+<div id="app">
+
+<!-- TOP BAR -->
+<header id="top">
+  <div class="tb-brand">
+    <div class="tb-logo">
+      <img src="https://futures.astronetix.us/ax-lead-images/ax-lead-white.png" alt="AX-LEAD"
+        onerror="this.style.display='none';document.querySelector('.tb-logo-fb').style.display='block'">
+      <span class="tb-logo-fb"><em>AX</em>-LEAD</span>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-crumb">
+      <span>Simulation Platform</span><span>›</span>
+      <span class="active" id="tb-crumb">Select a Simulation Event</span>
+    </div>
   </div>
+  <div class="tb-right">
+    <div class="tb-badge" id="tb-badge">Ready</div>
+    <div class="tb-clock" id="tb-clock">—:——</div>
+  </div>
+</header>
+
+<!-- LEFT PANEL -->
+<aside id="lft">
+  <div class="lft-tabs">
+    <div class="lft-tab on" id="lt-mods" onclick="lTab('mods')">Events</div>
+    <div class="lft-tab" id="lt-feed" onclick="lTab('feed')">Feed</div>
+  </div>
+  <div id="mod-list" class="on">
+    <div class="mod-lbl">Simulation Events</div>
+    <div class="mod-item active" id="mi-m01" onclick="loadSim('m01')">
+      <div class="mi-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M6 21v-2a4 4 0 0 1 4-4h4"/><circle cx="17" cy="14" r="3"/><path d="M14 19v-1a2 2 0 0 1 4 0v1"/></svg></div>
+      <div class="mi-body">
+        <div class="mi-num">M-01</div>
+        <div class="mi-name">Mixed Team Leadership</div>
+        <div class="mi-status s-active" id="ms-m01">● Active</div>
+      </div>
+    </div>
+    <div class="mod-item" id="mi-m02" onclick="loadSim('m02')">
+      <div class="mi-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div class="mi-body">
+        <div class="mi-num">M-02</div>
+        <div class="mi-name">AI Decision Advantage</div>
+        <div class="mi-status s-avail" id="ms-m02">→ Available</div>
+      </div>
+    </div>
+    <div class="mod-item" id="mi-m03" onclick="loadSim('m03')">
+      <div class="mi-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div class="mi-body">
+        <div class="mi-num">M-03</div>
+        <div class="mi-name">Command Under Pressure</div>
+        <div class="mi-status s-avail" id="ms-m03">→ Available</div>
+      </div>
+    </div>
+    <div class="mod-item" id="mi-m04" onclick="loadSim('m04')">
+      <div class="mi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg></div>
+      <div class="mi-body">
+        <div class="mi-num">M-04</div>
+        <div class="mi-name">Multi-Domain Coordination</div>
+        <div class="mi-status s-avail" id="ms-m04">→ Available</div>
+      </div>
+    </div>
+    <div class="mod-lbl" style="margin-top:8px">Participant</div>
+    <div style="padding:6px 14px 10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);margin-bottom:3px">Logged In As</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--t2)">LEAD-07 // Observer</div>
+    </div>
+  </div>
+  <div id="inj-feed">
+    <div class="feed-empty" id="feed-empty">No events logged yet.<br>Begin a simulation.</div>
+  </div>
+</aside>
+
+<!-- CENTER PANEL -->
+<main id="ctr">
+  <div id="ctr-inner">
+    <!-- Rendered dynamically -->
+    <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;position:relative;z-index:1;padding:32px;text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">AX-LEAD // Simulation Platform</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:700;letter-spacing:.04em;color:var(--t1);margin-bottom:8px">Select a Simulation Event</div>
+      <div style="font-size:.85rem;color:var(--t2);max-width:440px;line-height:1.7">Four simulation events are available. Each event places you inside a live mission scenario with real decisions, progressive injects, and visible consequences.</div>
+      <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;justify-content:center">
+        <button class="btn-primary" onclick="loadSim('m01')">Launch M-01</button>
+        <button class="btn-ghost" onclick="openTrace()">View Decision Trace</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- RIGHT PANEL -->
+<aside id="rgt">
+  <div class="rgt-tabs" id="rgt-tabs">
+    <div class="rgt-tab on" id="rt-team" onclick="rTab('team')">Team</div>
+    <div class="rgt-tab" id="rt-status" onclick="rTab('status')">Status</div>
+    <div class="rgt-tab" id="rt-ai" onclick="rTab('ai')" style="display:none">AI</div>
+  </div>
+  <div class="rgt-body" id="rb-team">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);padding:12px 0;text-align:center">No simulation active</div>
+  </div>
+  <div class="rgt-body hidden" id="rb-status">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);padding:12px 0;text-align:center">No simulation active</div>
+  </div>
+  <div class="rgt-body hidden" id="rb-ai"></div>
+</aside>
+
+<!-- BOTTOM PANEL -->
+<footer id="bot">
+  <div class="bot-bar">
+    <div class="bot-title" id="bot-title">Decision Log</div>
+    <div class="bot-right">
+      <div class="bot-trace-btn" id="btn-open-trace" onclick="openTrace()">Open Decision Trace ↗</div>
+    </div>
+  </div>
+  <div class="bot-events" id="bot-events">
+    <div class="be-item"><div class="be-dot pend"></div><div class="be-time">—</div><div class="be-lbl">Awaiting Simulation</div><div class="be-kind">—</div></div>
+  </div>
+</footer>
+
+</div><!-- /app -->
+
+<!-- MEMBER MODAL -->
+<div class="overlay" id="mm-overlay">
+  <div class="modal-box mm-box" id="mm-box">
+    <div class="modal-hdr">
+      <div><div class="mm-name" id="mm-name">—</div><div class="mm-role" id="mm-role">—</div></div>
+      <div class="modal-close" onclick="closeMM()">✕</div>
+    </div>
+    <div class="mm-body" id="mm-body"></div>
+  </div>
+</div>
+
+<!-- DECISION TRACE MODAL -->
+<div class="overlay" id="trace-overlay">
+  <div class="modal-box" style="width:min(860px,96vw)">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="trace-title">Decision Trace</div>
+        <div class="modal-sub" id="trace-sub">Leadership Replay &amp; After-Action Review</div>
+      </div>
+      <div class="modal-close" onclick="closeTrace()">✕</div>
+    </div>
+    <div id="trace-modal-body">
+      <div class="trace-empty">No decisions recorded yet. Begin a simulation event to generate a trace.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   APP STATE
+═══════════════════════════════════════════════ */
+const S = {
+  activeSim: null,
+  phase: 0,
+  chosen: {},       // dpId → option key
+  traceLog: [],     // all recorded events across sims
+  aiOn: false,
+  assumptionsChallenged: 0,
+  timerSecs: 0,
+  timerRunning: false,
+  simComplete: {}   // simId → bool
+};
+
+/* ═══════════════════════════════════════════════
+   SIMULATION DATA
+═══════════════════════════════════════════════ */
+const SIMS = {
+
+/* ── M-01: MIXED TEAM LEADERSHIP ── */
+m01: {
+  id:'m01', code:'FOXTROT-3', title:'Contested ISR Reallocation',
+  subtitle:'Leading Mixed Teams Under Operational Pressure',
+  type:'Mixed Team Leadership', role:'Mission Cell Lead',
+  objective:'Resolve platform anomaly without sacrificing the primary mission window.',
+  clockSecs: 255,
+  phases:['setup','inject1','dp1','con1','inject2','dp2','con2','inject3','dp3','con3','resolution'],
+  team:[
+    {id:'chen',name:'Maj. Chen',pos:'Operations Officer, EUCOM J3',type:'mil',badge:'Military',
+     stance:'Wants immediate reallocation. Will not accept degraded coverage for primary tasking.',
+     priority:'Execute the primary tasking window on time. Mission success is measured in outcomes, not process.',
+     concern:'Every minute on Vasquez\'s maintenance or Walsh\'s concern removes operational preparation time.',
+     need:'Clear command direction. He needs to know whether you back operational urgency over caution.',
+     risk:'If unsupported, Chen may act unilaterally. Effective when aligned, disruptive when overridden without rationale.',prio:'p-hi'},
+    {id:'okafor',name:'Ms. Okafor',pos:'Senior Analyst, DIA',type:'civ',badge:'Gov. Civilian',
+     stance:'Flagged a second-order collection risk not yet acknowledged by the cell lead.',
+     priority:'Protect collection continuity. Her requirement produces a gap if reallocation proceeds without mitigation.',
+     concern:'Her written flag was not acknowledged in the initial brief.',
+     need:'To be heard. Needs formal acknowledgment — either address the risk or accept it in writing.',
+     risk:'If ignored, Okafor withdraws. Her perspective on second-order effects is the highest-value input.',prio:'p-md'},
+    {id:'vasquez',name:'Mr. Vasquez',pos:'Systems Engineer, Prime Contractor',type:'ctr',badge:'Contractor',
+     stance:'Recommends 90-minute maintenance window to fully resolve the platform anomaly.',
+     priority:'Perform the hardware fix. Operating with the known anomaly is professionally unacceptable.',
+     concern:'He\'s been overridden by military urgency before. His technical assessment is sound.',
+     need:'Authorization and time — a clear yes or no so he can proceed or formally document a directed override.',
+     risk:'Will formally document any override. His documentation becomes the record if the anomaly causes a later failure.',prio:'p-md'},
+    {id:'reyes',name:'SSgt. Reyes',pos:'ISR Platform Operator',type:'isr',badge:'ISR Operator',
+     stance:'Can execute either option. Flagged 30% increased data gap risk. Awaiting your call.',
+     priority:'Execute assigned tasking safely. Mission-focused, technically competent, will execute whatever is directed.',
+     concern:'Operating with the anomaly increases data gap probability. Reported this honestly.',
+     need:'A clear, unambiguous tasking order. Ready to act immediately.',
+     risk:'None. Most reliable executor in the cell. Risk is underutilizing her — she sees operational factors others miss.',prio:'p-lo'},
+    {id:'walsh',name:'Lt. Walsh',pos:'Cyber Operations Specialist',type:'cyber',badge:'Cyber',
+     stance:'Suspects the anomaly may not be hardware-only. Low-confidence cyber indicator flagged.',
+     priority:'Identify and assess the potential cyber element before operations proceed.',
+     concern:'The anomalous access pattern is real. Cannot confirm adversary intent but won\'t recommend proceeding without investigation.',
+     need:'Time to investigate — 45 minutes to confirm or dismiss with defensible confidence.',
+     risk:'If overridden and the threat is real, the cell operated in an active compromise window.',prio:'p-hi'},
+    {id:'park',name:'Dr. Park',pos:'Program Manager, OSD',type:'prog',badge:'Program',
+     stance:'Concerned about program record exposure. Applying indirect pressure to avoid a reportable gap.',
+     priority:'Protect the program operational record. A gap could affect the next review cycle.',
+     concern:'Primary allegiance is to the program, not the mission cell.',
+     need:'Reassurance that the operational record will be clean.',
+     risk:'Out-of-channel escalation is the highest interpersonal risk in the cell.',prio:'p-md'}
+  ],
+  status:[
+    {lbl:'ISR Coverage',val:'68%',cls:'f-a',w:68},{lbl:'Timeline Margin',val:'55%',cls:'f-a',w:55},
+    {lbl:'Team Alignment',val:'45%',cls:'f-r',w:45},{lbl:'Platform Health',val:'72%',cls:'f-a',w:72},
+    {lbl:'Program Risk',val:'80%',cls:'f-r',w:80}
+  ],
+  constraints:[
+    {kind:'hard',text:'Primary tasking window opens T+04:00. Cannot be moved. Platform must be operational no later than T+03:45.'},
+    {kind:'soft',text:'Contractor maintenance window requires 90 uninterrupted minutes — available now or forfeited entirely.'},
+    {kind:'watch',text:'Maj. Chen holds EUCOM J3 authority. You have coordination authority only — not formal command authority over Chen.'},
+    {kind:'hard',text:'Dr. Park is OSD-level. Formal removal from the cell requires GO/FO or SES authorization you do not have.'}
+  ],
+  dps:{
+    dp1:{title:'Initial Response',time:'T+00:22',
+      opts:{
+        A:{lbl:'Direct Immediate Reallocation',desc:'Side with Maj. Chen. Accept anomaly risk, prioritize the mission window. Move now.',risk:'risk-md',riskTxt:'⚡ Moderate — anomaly risk active, Okafor\'s flag unresolved'},
+        B:{lbl:'Authorize Contractor Maintenance',desc:'Accept Vasquez\'s 90-minute fix. Delay reallocation. Resolve anomaly but compress the timeline significantly.',risk:'risk-md',riskTxt:'⚡ Moderate — timeline pressure increases, program friction starts'},
+        C:{lbl:'Halt and Investigate — Cyber First',desc:'Pause all reallocation pending Walsh\'s full cyber assessment. No action until anomaly source is confirmed.',risk:'risk-hi',riskTxt:'⚠ High — significant timeline loss, Chen now openly hostile'},
+        D:{lbl:'Brief the Team — Align Before Acting',desc:'Convene the full cell. Surface all positions including Okafor\'s flag and Walsh\'s concern. 20 minutes, then decide.',risk:'risk-lo',riskTxt:'✓ Low-moderate — costs time, builds shared understanding'}
+      }
+    },
+    dp2:{title:'Cyber Inject Response',time:'T+01:15',
+      opts:{
+        A:{lbl:'Authorize Walsh\'s Secondary Investigation',desc:'Accept the 45-minute delay. Treat the unconfirmed network anomaly as a threat until confirmed otherwise.',risk:'risk-hi',riskTxt:'⚠ High — primary window narrows to dangerously thin margin'},
+        B:{lbl:'Override Walsh — Proceed',desc:'The hardware fault is resolved. The network anomaly is low-confidence. Continue in parallel monitoring.',risk:'risk-md',riskTxt:'⚡ Moderate — if anomaly is real, you operated in an active compromise window'},
+        C:{lbl:'Escalate to Higher Authority',desc:'This exceeds your comfort level with ambiguity. Report up and request guidance before proceeding.',risk:'risk-lo',riskTxt:'✓ Low-operational, but signals you cannot command through uncertainty'},
+        D:{lbl:'Split Action — Limit Walsh, Run Parallel',desc:'Give Walsh 20 compressed minutes while Vasquez initiates the hardware fix simultaneously.',risk:'risk-md',riskTxt:'⚡ Moderate — compressed investigation may miss something; best chance of keeping window'}
+      }
+    },
+    dp3:{title:'Team Fracture — Park Escalation',time:'T+02:30',
+      opts:{
+        A:{lbl:'Confront Park Directly',desc:'Address her out-of-channel escalation immediately, privately. Establish the boundary clearly.',risk:'risk-md',riskTxt:'⚡ Moderate — effective if done well, costs the program relationship'},
+        B:{lbl:'Absorb the Pressure — Keep Chen Focused',desc:'Do not engage Park now. Redirect the cell\'s energy to execution. Deal with Park after the window closes.',risk:'risk-lo',riskTxt:'✓ Low-immediate — does not resolve the tension, defers it'},
+        C:{lbl:'Call a Full Cell Brief — Surface Everything',desc:'Pause preparation. Bring the full cell together. Name the fracture explicitly before proceeding.',risk:'risk-md',riskTxt:'⚡ Moderate — costs 25 minutes, but team dysfunction will cost more'},
+        D:{lbl:'Reassign Park from the Cell',desc:'Park has undermined cell integrity. Remove her from the active mission cell and proceed without program representation.',risk:'risk-hi',riskTxt:'⚠ High — exceeds your authority, creates institutional escalation'}
+      }
+    }
+  },
+  consequences:{
+    dp1:{
+      A:{type:'mix',title:'Reallocation Directed — Okafor\'s Flag Unresolved',
+         text:'You directed immediate reallocation, aligning with Maj. Chen. Coverage will be reduced but functional. Maj. Chen is satisfied.',
+         second:'SECOND-ORDER: Okafor\'s flag was not formally acknowledged. The collection requirement gap is now open. She has logged a written objection. Walsh\'s network concern will resurface at T+01:15.',
+         note:'Chose speed. Okafor\'s flag bypassed. Team alignment partially preserved.',
+         info:['ISR anomaly flagged by SSgt. Reyes (30% data gap risk)','Ms. Okafor\'s written collection flag — not verbally briefed','Lt. Walsh\'s unconfirmed network anomaly (low confidence)','Maj. Chen\'s operational urgency — 4-hour window'],
+         missed:['OKAFOR FLAG: Written flag was in the system but never verbally surfaced to the full cell','WALSH SIGNAL: Network anomaly could compound the hardware fault — unexplored']},
+      B:{type:'mix',title:'Maintenance Window Authorized — Timeline Compressed',
+         text:'Vasquez begins the 90-minute reconfiguration. The hardware fault will be fully resolved. Maj. Chen has formally noted his objection.',
+         second:'SECOND-ORDER: Timeline is now critical. Chen\'s frustration is building. Program pressure from Dr. Park begins. Walsh\'s network concern will still emerge at T+01:15.',
+         note:'Chose technical fix. Timeline now critical. Program friction starting.',
+         info:['Vasquez\'s technical recommendation — 90-minute fix available','Maj. Chen\'s timeline urgency — 4-hour window, now compressing','SSgt. Reyes operational readiness to execute either option','Dr. Park beginning to monitor program record exposure'],
+         missed:['WALSH SIGNAL: Network concern not yet investigated — will resurface','CHEN DYNAMIC: His frustration without clear command rationale is a future risk']},
+      C:{type:'neg',title:'Cyber Halt — Timeline Cost Is Immediate',
+         text:'All actions paused pending Walsh\'s assessment. Walsh\'s investigation takes 38 minutes and returns: hardware fault only. No adversary involvement.',
+         second:'SECOND-ORDER: 38 minutes consumed to confirm what Vasquez already knew. Maj. Chen is now openly hostile. The maintenance window is still technically available but barely.',
+         note:'Maximum caution. High timeline cost for low return.',
+         info:['Walsh\'s low-confidence cyber indicator','Vasquez\'s hardware assessment (not yet formally correlated with cyber concern)','Mission window — 4 hours and compressing'],
+         missed:['VASQUEZ DATA: His hardware analysis had already characterized the anomaly as non-adversarial — cyber investigation duplicated the work','CHEN RISK: Unmanaged frustration during halt became alignment liability']},
+      D:{type:'pos',title:'Team Brief Called — All Positions Surfaced',
+         text:'You called the cell together. Cost 20 minutes. Okafor\'s flag was formally acknowledged. Walsh presented his concerns. Vasquez clarified the technical options. Maj. Chen was direct but engaged.',
+         second:'SECOND-ORDER: The cell now shares the same operating picture. Decisions from this point will be faster and better understood by all members. Chen remains urgent — but he respects the process.',
+         note:'Best initial decision. Shared context built. All voices heard.',
+         info:['All team positions and concerns','Walsh\'s network concern (low confidence)','Okafor\'s collection flag (formally documented)','Vasquez\'s technical options with timeline costs'],
+         missed:['None identified — this decision actively closed information gaps']}
+    },
+    dp2:{
+      A:{type:'neg',title:'Walsh\'s Investigation Authorized — Window Now Critical',
+         text:'Walsh conducts a 45-minute investigation. Result: routine automated traffic, not adversary. The threat was not real.',
+         second:'SECOND-ORDER: Primary window now has 30-minute margin — achievable but zero-tolerance. Chen\'s trust in your decision-making is strained.',
+         note:'Correct risk logic, costly in time. Zero margin remaining.',
+         info:['Walsh\'s formal recommendation for 45-minute investigation','Anomalous network pattern — unconfirmed source','Mission window — now compressed by earlier delays'],
+         missed:['PARALLEL OPTION: Simultaneous hardware fix and cyber assessment was available but not selected']},
+      B:{type:'mix',title:'Cyber Concern Overridden — Mission Proceeds',
+         text:'You overrode Walsh\'s recommendation. The network anomaly was ultimately benign — the call was correct. Mission timeline is preserved.',
+         second:'SECOND-ORDER: Walsh has formally documented that his recommendation was overridden. If any future network issue occurs, this record exists. Relationship with Walsh degraded.',
+         note:'Overrode specialist. Correct outcome, relationship and credibility cost.',
+         info:['Walsh\'s recommendation','Maj. Chen\'s timeline urgency','Vasquez hardware fix status'],
+         missed:['WALSH DOCUMENTATION: Override will be on record — future network issues will reference this decision']},
+      C:{type:'neg',title:'Escalated — Perceived as Unable to Command Ambiguity',
+         text:'Higher authority acknowledged the report and directed you to proceed. The escalation was noted.',
+         second:'SECOND-ORDER: Mission proceeds — but your read file includes a notation that you elevated a low-confidence cyber concern rather than resolving it within the cell.',
+         note:'Escalated ambiguity upward. Appropriate process, career limiting signal.',
+         info:['Ambiguity of Walsh\'s assessment','Authority to escalate vs. authority to command through uncertainty'],
+         missed:['COMMAND SIGNAL: This was a within-cell decision — escalation signals the inability to command through ambiguity']},
+      D:{type:'pos',title:'Split Action — Parallel Track, Timeline Preserved',
+         text:'You gave Walsh 20 compressed minutes while Vasquez initiated the fix simultaneously. Walsh cleared the concern in 18 minutes. Vasquez completed the fix. Viable mission window preserved.',
+         second:'SECOND-ORDER: High-coordination leadership under pressure. Both risks addressed without full timeline sacrifice. The cell read this as decisive.',
+         note:'Best decision. Parallel tracks, both risks managed. Team confidence increased.',
+         info:['Walsh\'s investigation requirement','Vasquez\'s fix window','Timeline constraints','SSgt. Reyes operational readiness'],
+         missed:['None identified — this decision optimally managed both risk vectors simultaneously']}
+    },
+    dp3:{
+      A:{type:'mix',title:'Park Confronted — Boundary Established',
+         text:'You addressed Park directly and privately. Tense but productive. She withdrew the out-of-channel contact.',
+         second:'SECOND-ORDER: Program relationship has cooled. Park will be more careful in future — but also less forthcoming with program intelligence that could benefit the cell.',
+         note:'Direct but appropriate. Long-term relationship cost accepted.',
+         info:['Park\'s out-of-channel escalation','Your authority level vs. Park\'s OSD standing','Mission timeline — 90 minutes remaining'],
+         missed:['RELATIONSHIP COST: Direct confrontation without any shared context or acknowledgment of her underlying concern created brittleness']},
+      B:{type:'mix',title:'Pressure Absorbed — Mission Focus Maintained',
+         text:'You redirected the cell to execution. Park\'s escalation was not addressed during the mission window. The cell executed.',
+         second:'SECOND-ORDER: The Park fracture remained unresolved. Post-mission, the out-of-channel escalation was reviewed. It was not resolved — it was deferred. It will recur.',
+         note:'Tactical focus preserved. Structural problem deferred and will return.',
+         info:['Chen\'s frustration level','Mission timeline pressure','Park\'s out-of-channel contact already made'],
+         missed:['PATTERN: Absorbing dysfunction without addressing it teaches the cell that out-of-channel behavior has no consequence']},
+      C:{type:'pos',title:'Full Cell Brief — Tensions Surfaced and Redirected',
+         text:'You called a 25-minute full cell brief. Every tension was named. Park\'s escalation was addressed in front of the team. Maj. Chen led the execution alignment. Okafor re-engaged fully.',
+         second:'SECOND-ORDER: The cell executed with full alignment. Park did not repeat the behavior. The record shows you commanded through dysfunction rather than around it.',
+         note:'Best decision. Surfaced dysfunction, rebuilt team alignment before execution.',
+         info:['Cell fracture dynamics','Park\'s formal authority limitations','Remaining timeline — sufficient for alignment brief'],
+         missed:['None identified — this decision addressed the root cause rather than the symptom']},
+      D:{type:'neg',title:'Park Removed — Authority Exceeded',
+         text:'You attempted to remove Park. She refused, citing her OSD standing. The resulting conflict consumed the remaining prep time.',
+         second:'SECOND-ORDER: You did not have the unilateral authority to remove Park. The formal escalation created more disruption than her original action.',
+         note:'Exceeded authority. Created worse disruption than original problem.',
+         info:['Park\'s OSD standing and authority','Your cell authority level','Constraint: Formal removal requires GO/FO or SES authorization'],
+         missed:['AUTHORITY BOUNDARY: The hard constraint on your authority to remove OSD personnel was available information — this decision violated a known constraint']}
+    }
+  }
+},
+
+/* ── M-02: AI DECISION ADVANTAGE ── */
+m02: {
+  id:'m02', code:'DELTA-7', title:'Multi-Variable Mission Decision',
+  subtitle:'AI-Augmented Decision Advantage Under Time Compression',
+  type:'AI Decision Advantage', role:'Mission Decision Authority',
+  objective:'Select the optimal course of action across 8 competing variables before the 6-minute decision window closes.',
+  clockSecs: 360,
+  phases:['setup','matrix','dp1','resolution'],
+  aiEnabled: true,
+  team:[
+    {id:'intel',name:'Maj. Torres',pos:'Intelligence Officer',type:'intel',badge:'Intel',
+     stance:'Confidence in available information is 62%. Sector A threat unconfirmed at source level.',
+     priority:'Verify information currency before committing platforms to risk.',
+     concern:'The 62% confidence figure may be optimistic — source corroboration is limited.',
+     need:'Time for one verification pass before irreversible commitment.',risk:'Overconfidence in AI-generated probability estimates without checking underlying source quality.',prio:'p-md'},
+    {id:'air',name:'SSgt. Nakamura',pos:'Platform Operator',type:'isr',badge:'ISR Operator',
+     stance:'Alpha platform at 68% health — above operational threshold, within degraded range.',
+     priority:'Execute assigned tasking but formally document the degraded health status.',
+     concern:'68% is above the 60% operational threshold but within degraded range — data collection gaps possible.',
+     need:'Clear tasking order. Will execute either option.',risk:'None operational — highest risk is not consulting her on platform-specific execution factors.',prio:'p-lo'},
+    {id:'ctr2',name:'Mr. Chen',pos:'Systems Monitor, Contractor',type:'ctr',badge:'Contractor',
+     stance:'Platform Alpha telemetry is from a pre-mission maintenance report, not live feed.',
+     priority:'Inform decision authority that VAR-02 health data may not reflect current state.',
+     concern:'The 68% figure is 4 hours old. Current health could be higher or lower.',
+     need:'Acknowledgment that this data currency issue is factored into the decision.',risk:'If the data currency issue is not surfaced, the AI recommendation is based on stale inputs.',prio:'p-hi'},
+    {id:'prog2',name:'Ms. Reeves',pos:'Mission Coordinator',type:'prog',badge:'Program',
+     stance:'Downstream mission dependency is real and firm — no flexibility in the schedule.',
+     priority:'Ensure the downstream dependency risk is not underweighted in the decision.',
+     concern:'Decision-makers often discount downstream impacts when under time pressure.',
+     need:'Confirmation that VAR-07 downstream dependency is treated as a hard constraint.',risk:'Downstream mission failure if dependency is treated as flexible when it is not.',prio:'p-hi'}
+  ],
+  vars:[
+    {id:'V01',name:'Mission Priority',val:'CONTESTED',cls:'f-a',w:70},
+    {id:'V02',name:'Platform Alpha Health',val:'68%',cls:'f-a',w:68},
+    {id:'V03',name:'Platform Bravo Health',val:'91%',cls:'f-g',w:91},
+    {id:'V04',name:'Threat — Sector A',val:'ELEVATED',cls:'f-r',w:80},
+    {id:'V05',name:'Threat — Sector B',val:'NOMINAL',cls:'f-g',w:25},
+    {id:'V06',name:'ISR Coverage Gap',val:'22 MIN',cls:'f-a',w:55},
+    {id:'V07',name:'Downstream Dependency',val:'HIGH',cls:'f-r',w:88},
+    {id:'V08',name:'Info Confidence',val:'62%',cls:'f-c',w:62}
+  ],
+  coas:[
+    {id:'alpha',label:'COA ALPHA',name:'Execute Now — Full Commitment',
+     metrics:[{lbl:'Obj. Probability',val:'78%',w:78,cls:'f-g'},{lbl:'Execution Risk',val:'Moderate',w:60,cls:'f-a'},{lbl:'Downstream',val:'Preserved',w:88,cls:'f-g'}],
+     aiNote:'Highest objective probability. Accepts Alpha platform risk. Dependent on Sector A threat accuracy.'},
+    {id:'bravo',label:'COA BRAVO',name:'Delay — Resolve Alpha First',
+     metrics:[{lbl:'Obj. Probability',val:'54%',w:54,cls:'f-a'},{lbl:'Execution Risk',val:'Low',w:22,cls:'f-g'},{lbl:'Downstream',val:'At Risk',w:30,cls:'f-r'}],
+     aiNote:'Reduces execution risk. Downstream dependency likely lost unless window has undisclosed flexibility.'},
+    {id:'charlie',label:'COA CHARLIE',name:'Bravo-Only — Hold Alpha',
+     metrics:[{lbl:'Obj. Probability',val:'61%',w:61,cls:'f-a'},{lbl:'Execution Risk',val:'Low',w:20,cls:'f-g'},{lbl:'Downstream',val:'Partial',w:55,cls:'f-a'}],
+     aiNote:'Hedged approach. Best option if Sector A threat is confirmed adversarial deception.'}
+  ],
+  dps:{
+    dp1:{title:'COA Selection',time:'T+03:00',
+      opts:{
+        A:{lbl:'COA Alpha — Full Commitment',desc:'Commit both platforms. Accept Platform Alpha risk. Preserve the downstream dependency.',risk:'risk-md',riskTxt:'⚡ AI-rated highest probability — moderate execution risk'},
+        B:{lbl:'COA Bravo — Delay for Alpha Fix',desc:'Delay execution to resolve Alpha health. Downstream dependency window at risk.',risk:'risk-lo',riskTxt:'✓ Lowest execution risk — downstream dependency likely lost'},
+        C:{lbl:'COA Charlie — Bravo-Only',desc:'Execute with Platform Bravo only. Hold Alpha. Partial downstream coverage.',risk:'risk-md',riskTxt:'⚡ Hedged — best choice if Sector A threat is adversarial deception'}
+      }
+    }
+  },
+  consequences:{
+    dp1:{
+      A:{type:'mix',title:'COA Alpha Executed — Objective Met, Alpha Platform Degraded',
+         text:'Both platforms committed. Platform Alpha operated at 68% through Sector A — performed within parameters but flagged two data collection gaps linked to the health degradation. Downstream dependency preserved. Primary objective met.',
+         second:'SECOND-ORDER: Sector A threat was real, not deception. Operating Alpha there with degraded health was the right call under available information. AI\'s highest-probability COA was validated — but the execution risk it rated "moderate" did materialize.',
+         note:'AI recommendation followed. Outcome validated but execution risk realized. Human check on VAR-02 data currency would have changed the risk calculation.'},
+      B:{type:'neg',title:'COA Bravo Executed — Alpha Resolved, Downstream Window Missed',
+         text:'Execution delayed to resolve Alpha health. Fix took 55 minutes. Downstream mission dependency window closed. Primary objective met 40 minutes late.',
+         second:'SECOND-ORDER: Downstream dependency was not flexible — AI\'s HIGH rating for VAR-07 was accurate. Prioritizing execution confidence over mission timing was defensible but cost the downstream team.',
+         note:'AI model flagged VAR-07 as primary driver. Decision overrode this assessment. Outcome confirms the AI\'s dependency analysis was accurate.'},
+      C:{type:'pos',title:'COA Charlie Executed — Clean Execution, Downstream Partially Preserved',
+         text:'Platform Bravo executed in full. Platform Alpha was held. Sector A threat turned out to be partially adversarial deception — operating Alpha there would have created a compromised data window.',
+         second:'SECOND-ORDER: This was the most defensible outcome given 62% information confidence. The AI correctly flagged this as an assumption to challenge (Assumption 3). Challenging that assumption and choosing Charlie over Alpha demonstrated that AI-assisted analysis combined with human skepticism outperforms either alone.',
+         note:'AI\'s lowest-ranked COA produced the strongest outcome. Human challenge of AI assumptions was the decisive factor.'}
+    }
+  }
+},
+
+/* ── M-03: COMMAND UNDER PRESSURE ── */
+m03: {
+  id:'m03', code:'KILO-9', title:'System Fault During Active Operations',
+  subtitle:'Command Under Pressure — Maintaining Decision Clarity in Crisis',
+  type:'Command Under Pressure', role:'Mission Lead',
+  objective:'Manage a developing system fault during an active operational window without losing mission continuity or team cohesion.',
+  clockSecs: 300,
+  phases:['setup','inject1','dp1','con1','inject2','dp2','con2','inject3','dp3','con3','inject4','dp4','con4','resolution'],
+  team:[
+    {id:'torres',name:'Maj. Torres',pos:'Military Operations Lead',type:'mil',badge:'Military',
+     stance:'"We push through. The mission window closes in 90 minutes. We cannot afford to pause."',
+     priority:'Mission continuity at all costs. Pause is not an acceptable option with this much at stake.',
+     concern:'Every minute of hesitation signals to the team that the mission lead cannot operate under pressure.',
+     need:'A clear commitment to continue operations. Decisiveness over deliberation.',
+     risk:'If not given clear direction, Torres will act on his own authority and likely create a command conflict.',prio:'p-hi'},
+    {id:'kim',name:'Dr. Kim',pos:'Systems Engineer, Prime Contractor',type:'ctr',badge:'Contractor',
+     stance:'"The telemetry pattern suggests potential thermal runaway. I recommend full shutdown and diagnostic — minimum 40 minutes."',
+     priority:'System safety. Operating with uncharacterized thermal anomaly creates unpredictable failure modes.',
+     concern:'Thermal runaway is not recoverable once initiated. 40-minute diagnostic is conservative — not cautious.',
+     need:'Authorization to shut down and diagnose. If overridden, he will formally document the override.',
+     risk:'Kim\'s documentation of any override will be the record if a system failure occurs.',prio:'p-hi'},
+    {id:'nakamura',name:'SSgt. Nakamura',pos:'ISR Platform Operator',type:'isr',badge:'ISR Operator',
+     stance:'"System is behaving differently but still within operational parameters. I\'m flagging it — but I can continue."',
+     priority:'Execute safely. Report anomalies accurately. No personal stake in the outcome.',
+     concern:'The behavioral difference is real. Cannot quantify risk without more data.',
+     need:'Clear tasking. Will execute whatever is directed.',
+     risk:'None — most reliable executor in the cell. Key risk is not asking her for her actual assessment.',prio:'p-lo'},
+    {id:'brooks',name:'Lt. Brooks',pos:'Cyber Operations Specialist',type:'cyber',badge:'Cyber',
+     stance:'"I\'m seeing unusual command traffic on the control network. May be related to the fault. May not be."',
+     priority:'Rule out adversary involvement before characterizing this as a hardware-only issue.',
+     concern:'The co-occurrence of system fault and unusual network traffic could be coincidental — or could be precursor pattern.',
+     need:'Time to assess the control network before operations proceed.',
+     risk:'If Brooks\'s concern is dismissed and the traffic is adversarial, the mission operated in a compromised state.',prio:'p-md'},
+    {id:'reeves',name:'Ms. Reeves',pos:'Program Representative, OSD',type:'prog',badge:'Program',
+     stance:'"Let\'s understand what we have before reporting anything officially. Paperwork during an active op is complicated."',
+     priority:'Protect the program record. A formal fault report during an active window creates bureaucratic exposure.',
+     concern:'Any formal fault report will trigger program review obligations.',
+     need:'Reassurance that reporting will be handled minimally.',
+     risk:'Her pressure to underreport may prevent accurate information from reaching decision-makers.',prio:'p-md'}
+  ],
+  status:[
+    {lbl:'System Health',val:'71%',cls:'f-a',w:71},{lbl:'Mission Continuity',val:'65%',cls:'f-a',w:65},
+    {lbl:'Team Cohesion',val:'55%',cls:'f-a',w:55},{lbl:'Timeline Margin',val:'60%',cls:'f-a',w:60},
+    {lbl:'Stakeholder Trust',val:'70%',cls:'f-a',w:70}
+  ],
+  constraints:[
+    {kind:'hard',text:'Mission window closes T+01:30. Platform must be operational and on-station throughout.'},
+    {kind:'soft',text:'Contractor diagnostic requires 40 uninterrupted minutes — available now or forfeited if system degrades further.'},
+    {kind:'watch',text:'Maj. Torres\'s operational authority is concurrent with yours. You coordinate — you do not command him.'},
+    {kind:'hard',text:'Any formal fault report during an active operation triggers a program review obligation under OSD policy.'}
+  ],
+  dps:{
+    dp1:{title:'Initial Fault Response',time:'T+00:15',
+      opts:{
+        A:{lbl:'Continue Operations — Investigate in Parallel',desc:'Accept Torres\'s position. Maintain the mission window. Task Dr. Kim to monitor and report, not diagnose.',risk:'risk-md',riskTxt:'⚡ Moderate — thermal risk active, Brooks\'s network concern unaddressed'},
+        B:{lbl:'Pause for Full Diagnostic',desc:'Authorize Dr. Kim\'s 40-minute shutdown and diagnostic. Mission window narrows significantly.',risk:'risk-md',riskTxt:'⚡ Moderate — technical risk resolved, timeline pressure severe'},
+        C:{lbl:'Reduce Operational Tempo',desc:'Scale back to minimum viable operations while Kim assesses the primary anomaly in parallel.',risk:'risk-lo',riskTxt:'✓ Low-moderate — buys time, may not be sufficient if anomaly worsens'},
+        D:{lbl:'Brief the Team — Full Picture First',desc:'Stop and share what you know. Surface conflicting assessments. Decide together in 15 minutes.',risk:'risk-lo',riskTxt:'✓ Low-moderate — costs time, builds shared understanding and reduces decision error risk'}
+      }
+    },
+    dp2:{title:'Conflicting Technical vs. Mission Assessments',time:'T+00:35',
+      opts:{
+        A:{lbl:'Side with Torres — Mission Urgency Wins',desc:'Formal command direction: mission continues. Kim documents concerns but the operation proceeds.',risk:'risk-hi',riskTxt:'⚠ High — technical risk unresolved, Kim will document the override formally'},
+        B:{lbl:'Side with Kim — Technical Safety Wins',desc:'Override Torres\'s position. System safety takes precedence. Accept the mission timeline cost.',risk:'risk-md',riskTxt:'⚡ Moderate — mission window compresses, Torres\'s buy-in now critical'},
+        C:{lbl:'Task Nakamura for Operator Assessment',desc:'Before choosing, get SSgt. Nakamura\'s direct operational assessment of the fault\'s behavioral impact.',risk:'risk-lo',riskTxt:'✓ Low — adds 8 minutes, adds the highest-quality direct observation to the decision'},
+        D:{lbl:'30-Minute Investigation Window — Then Decide',desc:'Split the difference. Give Kim 30 minutes (not 40). If result is inconclusive, make the call then.',risk:'risk-md',riskTxt:'⚡ Moderate — compressed investigation may miss the root cause but preserves timeline'}
+      }
+    },
+    dp3:{title:'HQ Status Report — Disclosure Level',time:'T+00:55',
+      opts:{
+        A:{lbl:'Full Transparency — Report Everything',desc:'Report the full fault scope: system anomaly, contractor concern, cyber flag, and current status to HQ.',risk:'risk-md',riskTxt:'⚡ Moderate — triggers program review, but creates clean leadership record'},
+        B:{lbl:'Minimal Disclosure — "Investigating Anomaly"',desc:'Report that you are investigating a potential anomaly. No specific details until assessment is complete.',risk:'risk-md',riskTxt:'⚡ Moderate — preserves flexibility, but creates record gap if fault escalates'},
+        C:{lbl:'Request Guidance Before Committing',desc:'Inform HQ you are managing a developing situation and request guidance on disclosure requirements before submitting.',risk:'risk-lo',riskTxt:'✓ Low — reasonable process response, signals appropriate situational awareness'},
+        D:{lbl:'Brief Immediate Supervisor Only',desc:'Report the full scope to your immediate supervisor only. Not the full chain. Let them decide on upward disclosure.',risk:'risk-lo',riskTxt:'✓ Low-moderate — appropriate escalation path, but supervisor now owns the risk'}
+      }
+    },
+    dp4:{title:'Secondary Fault — Accept Risk or Suspend',time:'T+01:10',
+      opts:{
+        A:{lbl:'Accept Risk — Complete Full Mission Window',desc:'The secondary fault is within acceptable parameters. Press through the remaining 20 minutes to mission completion.',risk:'risk-hi',riskTxt:'⚠ High — two concurrent faults, elevated probability of system failure'},
+        B:{lbl:'Compressed Execute — Critical Tasking Only',desc:'Execute the 10 most critical minutes of the remaining mission window. Accept partial completion.',risk:'risk-md',riskTxt:'⚡ Moderate — captures highest-value tasking, reduces risk exposure significantly'},
+        C:{lbl:'Immediate Suspension — System Integrity First',desc:'Suspend all operations now. System integrity and team safety take precedence over mission completion.',risk:'risk-lo',riskTxt:'✓ Low-operational — clean record, but mission objectives partially unmet'},
+        D:{lbl:'Transfer to Backup Platform',desc:'Transfer remaining tasking to the backup platform if one is available and capable.',risk:'risk-md',riskTxt:'⚡ Moderate — only viable if backup platform is actually available and tasked'}
+      }
+    }
+  },
+  consequences:{
+    dp1:{
+      A:{type:'mix',title:'Operations Continue — Thermal Risk Active',
+         text:'You directed continuation. Torres is aligned and moving. Dr. Kim is monitoring but visibly frustrated. SSgt. Nakamura is executing professionally.',
+         second:'SECOND-ORDER: Thermal anomaly is now progressing at a low rate. Brooks\'s network concern has not been assessed. The two issues are running in parallel, unresolved.',
+         note:'Chose mission continuity. Thermal risk active. Brooks signal unaddressed.'},
+      B:{type:'mix',title:'Diagnostic Authorized — Timeline Now Critical',
+         text:'Kim begins the shutdown and diagnostic. Torres has formally objected. The mission window now has 50-minute margin rather than 90.',
+         second:'SECOND-ORDER: Timeline pressure is now extreme. Torres\'s buy-in is essential and currently absent. Brooks\'s network concern is still open.',
+         note:'Chose technical safety. Timeline critical. Torres alignment now essential.'},
+      C:{type:'mix',title:'Tempo Reduced — Kim Monitoring',
+         text:'Operations scaled back to minimum viable mode. Kim is assessing the primary anomaly in parallel. This buys time but does not resolve either issue.',
+         second:'SECOND-ORDER: The anomaly continues to develop at reduced operational load. Brooks\'s network concern is unaddressed. Torres is impatient but compliant for now.',
+         note:'Chose middle path. Buys time without resolving either core issue.'},
+      D:{type:'pos',title:'Team Brief Completed — Full Picture Established',
+         text:'You stopped and shared what you knew. Conflicting assessments were surfaced. Kim and Torres both had input. Brooks\'s network concern was added to the picture.',
+         second:'SECOND-ORDER: The cell now has a shared operating picture. The decision space is clearer. Kim and Torres are both in — conditionally. You now have 75 minutes remaining.',
+         note:'Best initial decision. Full picture established. All concerns on the table.'}
+    },
+    dp2:{
+      A:{type:'neg',title:'Torres Directed to Continue — Kim Override Documented',
+         text:'You sided with Torres. Operations continue. Dr. Kim formally documented his override in the system.',
+         second:'SECOND-ORDER: Kim\'s documentation is now the record. If the thermal anomaly causes a failure, the record shows the mission lead was informed and directed continuation over a formal technical objection.',
+         note:'Mission continues. Formal override documented against mission lead. Record exposure active.'},
+      B:{type:'mix',title:'Kim\'s Assessment Prioritized — Torres Buy-In Required',
+         text:'You overrode Torres\'s position. System safety takes precedence. Torres is now compliant but his buy-in must be actively managed.',
+         second:'SECOND-ORDER: Kim conducts the 40-minute diagnostic. Result: thermal anomaly is a cooling flow restriction — serious but manageable with a 15-minute adjustment. Timeline has absorbed the cost.',
+         note:'Chose technical safety. Torres buy-in needed. Diagnostic returned an actionable result.'},
+      C:{type:'pos',title:'Nakamura Consulted — Direct Operator Assessment Added',
+         text:'SSgt. Nakamura\'s assessment: "The system is behaving like it\'s managing heat load manually. I\'d want Kim\'s eyes on this before I\'d call it safe for another hour."',
+         second:'SECOND-ORDER: Her direct observation aligns with Kim\'s concern. You now have two independent assessments pointing the same direction. Torres\'s position is now the outlier. Decision clarity improved significantly.',
+         note:'Best decision. Operator assessment provided independent corroboration of Kim\'s concern.'},
+      D:{type:'mix',title:'30-Minute Window Granted — Compressed Investigation',
+         text:'Kim works the compressed investigation. At 28 minutes he has a partial answer: the primary cooling circuit is restricted but the secondary is compensating adequately for now.',
+         second:'SECOND-ORDER: "For now" is not a clean assessment. The partial diagnostic leaves residual uncertainty. You proceed with better information but not complete information.',
+         note:'Partial investigation result. Better than nothing, not as good as full diagnostic.'}
+    },
+    dp3:{
+      A:{type:'pos',title:'Full Report Filed — Clean Record, Review Triggered',
+         text:'HQ received a complete picture. The program review was triggered as expected. Your report was characterized by HQ as "transparent and timely."',
+         second:'SECOND-ORDER: The review process creates administrative overhead, but your leadership record on this incident is clean. Reeves is unhappy but cannot challenge the accuracy of your report.',
+         note:'Transparent leadership. Administrative cost accepted. Record is defensible.'},
+      B:{type:'mix',title:'Minimal Report Filed — Record Gap Active',
+         text:'HQ received a summary report characterizing the situation as "under investigation." No specifics filed.',
+         second:'SECOND-ORDER: If the fault escalates, your minimal report creates a credibility gap — the record will show you had more information than you reported. Reeves is satisfied but you carry the risk.',
+         note:'Flexibility preserved. Credibility risk active if situation escalates.'},
+      C:{type:'pos',title:'Guidance Requested — Process Followed',
+         text:'HQ acknowledged your request and provided clear guidance on disclosure requirements. You now have explicit authorization for your reporting approach.',
+         second:'SECOND-ORDER: This approach demonstrates situational awareness and appropriate process discipline. HQ has now taken co-ownership of the disclosure decision.',
+         note:'Process-appropriate response. Shared ownership of disclosure decision.'},
+      D:{type:'mix',title:'Supervisor Briefed — Full Chain Not Informed',
+         text:'Your immediate supervisor now has the full picture. They will decide on upward disclosure.',
+         second:'SECOND-ORDER: Your supervisor is now in a difficult position — they\'ve inherited the disclosure decision without having direct situational awareness. They may need to come back to you for clarification.',
+         note:'Appropriate escalation path. Supervisor now carries the disclosure risk.'}
+    },
+    dp4:{
+      A:{type:'neg',title:'Full Window Executed — Secondary Fault Triggered',
+         text:'You pushed through. At T+01:22 the secondary cooling system failed. The platform executed an emergency autonomous shutdown. Mission data was partially saved but the final 8 minutes of collection was lost.',
+         second:'SECOND-ORDER: The system requires 72-hour maintenance before return to service. Kim\'s documentation of both his original recommendation and the subsequent override will be part of the incident review.',
+         note:'Mission completion attempted. System failure occurred. Kim\'s override documentation now active in the record.'},
+      B:{type:'pos',title:'Compressed Execute — Critical Tasking Captured',
+         text:'You executed the 10 highest-value minutes of the remaining window. Platform was brought to safe operations mode before the secondary fault progressed further.',
+         second:'SECOND-ORDER: Post-mission analysis confirmed the secondary fault would have triggered a system failure within 14 minutes of continued full operations. Your compressed execution was the right call.',
+         note:'Best operational decision. Critical tasking captured, system failure avoided.'},
+      C:{type:'mix',title:'Operations Suspended — System Integrity Preserved',
+         text:'You suspended all operations. The platform was brought safely to standby mode. Mission objectives were partially unmet.',
+         second:'SECOND-ORDER: Post-mission analysis confirmed the secondary fault would have caused a system failure within 14 minutes. Your decision preserved the platform for future missions. The mission gap will require re-tasking.',
+         note:'Conservative but defensible. Platform preserved. Mission re-tasking required.'},
+      D:{type:'mix',title:'Backup Platform Transfer Attempted',
+         text:'You requested backup platform transfer. Result: backup platform was available but required 25 minutes to reach required position — beyond your remaining window.',
+         second:'SECOND-ORDER: The backup option was technically viable but not within the timeline constraint. The transfer was initiated but captured only 3 minutes of productive collection before the window closed.',
+         note:'Correct instinct, wrong execution conditions. Backup viability was not verified before the decision.'}
+    }
+  }
+},
+
+/* ── M-04: MULTI-DOMAIN COORDINATION ── */
+m04: {
+  id:'m04', code:'ECHO-2', title:'Multi-Domain Asset Allocation Crisis',
+  subtitle:'Coordinating Competing Priorities Across Operational Domains',
+  type:'Multi-Domain Coordination', role:'Operations Coordinator, JTF',
+  objective:'Allocate limited ISR and cyber assets across competing domain requests without creating unacceptable gaps in any single domain.',
+  clockSecs: 270,
+  phases:['setup','inject1','dp1','con1','inject2','dp2','con2','inject3','dp3','con3','inject4','dp4','con4','resolution'],
+  team:[
+    {id:'vasquez2',name:'Col. Vasquez',pos:'Space Operations Lead',type:'space',badge:'Space Ops',
+     stance:'"We need to protect what sensors we have. I recommend conserving remaining assets until we understand the failure mode."',
+     priority:'Space asset preservation. Operating degraded sensors outside their design envelope risks permanent capability loss.',
+     concern:'The failure mode of the degraded sensor is not yet characterized. Further tasking could accelerate degradation.',
+     need:'Authorization to stand down the degraded asset for characterization before any reallocation.',
+     risk:'If the degraded sensor is pushed and fails permanently, the JTF loses a capability that takes months to replace.',prio:'p-hi'},
+    {id:'chenair',name:'Maj. Chen',pos:'Air Operations Coordinator',type:'air',badge:'Air Ops',
+     stance:'"Air mission COPPER-4 needs ISR support in Sector 7. We cannot execute without it. Reallocate now."',
+     priority:'COPPER-4 execution. The mission is time-sensitive and ISR is the critical enabler.',
+     concern:'Every 10 minutes of delay on ISR reallocation compresses the COPPER-4 execution window.',
+     need:'Immediate ISR reallocation authorization to Sector 7.',
+     risk:'COPPER-4 failure creates a gap in the air domain operational picture that may not be recoverable in this cycle.',prio:'p-hi'},
+    {id:'park2',name:'CDR. Park',pos:'Maritime Operations Officer',type:'maritime',badge:'Maritime Ops',
+     stance:'"TRIDENT surveillance has detected activity at grid reference 4-4-Alpha. We need eyes on this immediately."',
+     priority:'TRIDENT surveillance. The 4-4-Alpha activity could be precursor to a maritime domain action.',
+     concern:'Maritime domain awareness is the lowest-resourced and most time-sensitive of the competing requests.',
+     need:'ISR support for grid 4-4-Alpha within 20 minutes before the activity window closes.',
+     risk:'If 4-4-Alpha activity is hostile and not covered, the maritime domain has no advance warning.',prio:'p-md'},
+    {id:'walsh2',name:'Lt. Walsh',pos:'Cyber Defense Lead',type:'cyber',badge:'Cyber',
+     stance:'"Network monitoring shows a pattern consistent with pre-intrusion reconnaissance. This may not be coincidence."',
+     priority:'Rule out adversary cyber operation before committing mission-critical assets to degraded network conditions.',
+     concern:'The co-occurrence of space sensor degradation and network reconnaissance pattern is statistically unlikely to be coincidental.',
+     need:'Authorization to pause non-essential network activity while the reconnaissance pattern is characterized.',
+     risk:'If the reconnaissance pattern is adversarial and operations proceed, the JTF may be executing inside an active adversary observation window.',prio:'p-hi'},
+    {id:'okafor2',name:'Ms. Okafor',pos:'Intelligence Analyst',type:'intel',badge:'Intel',
+     stance:'"The activity isn\'t random — it looks coordinated across domains. I recommend pausing to assess the cross-domain picture before acting."',
+     priority:'Cross-domain pattern recognition. The individual domain issues may be components of a single adversary operation.',
+     concern:'Decision-makers are being pushed to respond domain-by-domain when the picture may require a coordinated response.',
+     need:'30 minutes to complete a cross-domain analysis and brief results before any major asset reallocation.',
+     risk:'If the cross-domain coordination hypothesis is correct, responding domain-by-domain plays into the adversary\'s design.',prio:'p-hi'}
+  ],
+  status:[
+    {lbl:'Space Sensor Coverage',val:'62%',cls:'f-a',w:62},{lbl:'Air ISR Support',val:'40%',cls:'f-r',w:40},
+    {lbl:'Maritime Awareness',val:'35%',cls:'f-r',w:35},{lbl:'Cyber Posture',val:'55%',cls:'f-a',w:55},
+    {lbl:'Cross-Domain Sync',val:'28%',cls:'f-r',w:28}
+  ],
+  constraints:[
+    {kind:'hard',text:'COPPER-4 air mission window: 35 minutes remaining. ISR reallocation must occur within 15 minutes or the mission is scrubbed.'},
+    {kind:'hard',text:'4-4-Alpha maritime activity window: 20 minutes before activity becomes untrackable without ISR.'},
+    {kind:'watch',text:'Each domain coordinator has independent operational authority within their domain — you coordinate, not command.'},
+    {kind:'soft',text:'Okafor\'s cross-domain analysis requires 30 minutes. This directly conflicts with both COPPER-4 and TRIDENT windows.'}
+  ],
+  dps:{
+    dp1:{title:'ISR Reallocation — COPPER-4 vs. Current Posture',time:'T+00:12',
+      opts:{
+        A:{lbl:'Reallocate ISR to Support COPPER-4',desc:'Authorize immediate ISR shift to Sector 7 to support air mission COPPER-4. Current coverage degrades.',risk:'risk-md',riskTxt:'⚡ Moderate — COPPER-4 enabled, current coverage gap created'},
+        B:{lbl:'Maintain Current Posture',desc:'Protect existing coverage. Do not reallocate degraded assets. COPPER-4 proceeds at reduced ISR fidelity.',risk:'risk-md',riskTxt:'⚡ Moderate — COPPER-4 executes degraded, current coverage maintained'},
+        C:{lbl:'Split ISR — Degraded Coverage Both Areas',desc:'Allocate partial ISR support to COPPER-4 while maintaining reduced coverage in current area.',risk:'risk-hi',riskTxt:'⚠ High — both areas receive degraded coverage, neither fully supported'},
+        D:{lbl:'Request Emergency Supplemental ISR',desc:'Escalate to JTF Commander for additional ISR assets before making a commitment.',risk:'risk-lo',riskTxt:'✓ Low — delays commitment, but may be too slow for COPPER-4 window'}
+      }
+    },
+    dp2:{title:'Cyber Concern vs. Operational Tempo',time:'T+00:28',
+      opts:{
+        A:{lbl:'Pause Operations — Cyber Investigation First',desc:'Authorize Walsh\'s network assessment. Treat the reconnaissance pattern as a threat until characterized.',risk:'risk-hi',riskTxt:'⚠ High — both COPPER-4 and TRIDENT windows now critically compressed'},
+        B:{lbl:'Accept Cyber Risk — Maintain Tempo',desc:'Continue operations. Walsh monitors in parallel. The pattern is unconfirmed.',risk:'risk-md',riskTxt:'⚡ Moderate — if adversarial, operations proceeded inside an observation window'},
+        C:{lbl:'Segregate Cyber Monitoring — Parallel Operations',desc:'Task Walsh to isolate and monitor the suspicious activity while operations continue on segregated network segments.',risk:'risk-md',riskTxt:'⚡ Moderate — operationally complex, requires Walsh to split attention'},
+        D:{lbl:'Escalate Cyber Concern to JTF Commander',desc:'This decision exceeds your authority comfort level. Report the pattern and request guidance.',risk:'risk-lo',riskTxt:'✓ Low — appropriate escalation, but may exceed your remaining COPPER-4 window'}
+      }
+    },
+    dp3:{title:'Maritime Surveillance — TRIDENT vs. COPPER-4',time:'T+00:44',
+      opts:{
+        A:{lbl:'Divert ISR from COPPER-4 to TRIDENT',desc:'Shift ISR support from air to maritime. COPPER-4 now executes without ISR support.',risk:'risk-hi',riskTxt:'⚠ High — COPPER-4 is effectively scrubbed without ISR'},
+        B:{lbl:'Maintain COPPER-4 — Maritime Uses Other Assets',desc:'Hold air mission priority. Maritime uses organic surveillance assets for 4-4-Alpha.',risk:'risk-md',riskTxt:'⚡ Moderate — maritime awareness degraded, COPPER-4 protected'},
+        C:{lbl:'Task Maritime Patrol Assets for Immediate Response',desc:'Redirect available maritime patrol assets to 4-4-Alpha for immediate coverage.',risk:'risk-lo',riskTxt:'✓ Low — addresses maritime need without ISR reallocation if patrol assets are available'},
+        D:{lbl:'Defer Both Requests — Request Re-Prioritization',desc:'Declare a resource conflict and request JTF Commander adjudication of the two competing priorities.',risk:'risk-md',riskTxt:'⚡ Moderate — both windows may close during adjudication'}
+      }
+    },
+    dp4:{title:'Cross-Domain Response — Okafor\'s Analysis',time:'T+01:00',
+      opts:{
+        A:{lbl:'Respond Domain-by-Domain',desc:'Each domain lead handles their situation with available resources. No cross-domain coordination imposed.',risk:'risk-hi',riskTxt:'⚠ High — if adversary design is confirmed, domain-by-domain response plays into it'},
+        B:{lbl:'Pause All Operations — 30-Minute Cross-Domain Assessment',desc:'Stop all major asset moves. Give Okafor 30 minutes to complete her cross-domain analysis.',risk:'risk-md',riskTxt:'⚡ Moderate — both remaining domain windows will close during assessment'},
+        C:{lbl:'Execute Coordinated Multi-Domain Response',desc:'Based on Okafor\'s preliminary analysis, coordinate a unified response across all four domains simultaneously.',risk:'risk-lo',riskTxt:'✓ Low — complex to execute, but addresses the adversary design hypothesis directly'},
+        D:{lbl:'Escalate to JTF Commander with Multi-Domain Recommendation',desc:'Present the cross-domain pattern to JTF Commander with your recommendation for a coordinated response.',risk:'risk-lo',riskTxt:'✓ Low — appropriate given the scope; commander has authority and information to decide'}
+      }
+    }
+  },
+  consequences:{
+    dp1:{
+      A:{type:'mix',title:'COPPER-4 Supported — Current Coverage Gap Created',
+         text:'ISR reallocated to Sector 7. COPPER-4 proceeds. Current coverage area now has a 22-minute gap.',
+         second:'SECOND-ORDER: The gap in current coverage opens a window that the 4-4-Alpha maritime activity and the cyber reconnaissance pattern can operate in unobserved. Col. Vasquez has noted his objection formally.',
+         note:'COPPER-4 enabled. Coverage gap is now the primary risk. Vasquez formally objected.'},
+      B:{type:'mix',title:'Current Posture Maintained — COPPER-4 Proceeds Degraded',
+         text:'Existing coverage maintained. COPPER-4 will execute with reduced ISR fidelity.',
+         second:'SECOND-ORDER: Maj. Chen has formally noted that COPPER-4 will execute below standard. Mission may succeed but at higher risk and with degraded collection quality.',
+         note:'Coverage maintained. COPPER-4 degraded. Air domain lead formally objected.'},
+      C:{type:'neg',title:'Split ISR — Both Areas Degraded',
+         text:'ISR split across both areas. Both domains now operating at 50% ISR fidelity.',
+         second:'SECOND-ORDER: Neither COPPER-4 nor current coverage is adequately supported. Vasquez, Chen, and Walsh have all noted concerns. The split satisfies no one and creates sub-threshold coverage in all areas.',
+         note:'Worst resource allocation outcome. No domain adequately supported.'},
+      D:{type:'mix',title:'Escalated — Commander Aware, COPPER-4 Window Narrowing',
+         text:'You escalated. JTF Commander acknowledged and is reviewing. Response expected in 12 minutes. COPPER-4 window has compressed to 23 minutes.',
+         second:'SECOND-ORDER: The escalation was appropriate but slow for the timeline. Commander will likely direct the same decision you would have made — but the window cost was real.',
+         note:'Appropriate escalation. Timeline cost is real. Commander now in the decision loop.'}
+    },
+    dp2:{
+      A:{type:'neg',title:'Operations Paused — Both Domain Windows Critical',
+         text:'Walsh begins his investigation. All major asset moves are paused. At 18 minutes, his assessment: the network pattern is adversarial reconnaissance — confirmed.',
+         second:'SECOND-ORDER: Walsh\'s investigation confirmed the adversary hypothesis. Operations have been paused before the adversary completed their pre-operation reconnaissance. This is the right call with the highest operational cost.',
+         note:'Walsh\'s concern was correct. Confirmed adversary reconnaissance. Timeline cost was the price of security.'},
+      B:{type:'mix',title:'Operations Continued — Cyber Pattern Unaddressed',
+         text:'Operations continue. Walsh monitors in parallel. At T+00:45, Walsh reports the reconnaissance pattern has intensified — adversary now has a partial picture of your asset dispositions.',
+         second:'SECOND-ORDER: By continuing operations without characterizing the cyber threat, you provided the adversary with information about your asset movements. The cost depends on what they do with it.',
+         note:'Cyber risk accepted. Adversary partially observed your operations. Future risk elevated.'},
+      C:{type:'pos',title:'Parallel Cyber Monitoring — Operations Continue',
+         text:'Walsh isolates the suspicious activity on a segregated network segment while operations continue. At T+00:40, Walsh reports the pattern has been contained and is now characterized as low-confidence.',
+         second:'SECOND-ORDER: The parallel approach preserved operational tempo while addressing the cyber concern. Walsh\'s containment was effective. This was operationally complex but executed well.',
+         note:'Best decision. Cyber contained, tempo preserved. Operationally complex but successful.'},
+      D:{type:'mix',title:'Escalated — Commander Briefed on Cyber Concern',
+         text:'JTF Commander received your report and directed you to continue operations with enhanced cyber monitoring. The escalation was appropriate and provided decision authority coverage.',
+         second:'SECOND-ORDER: The escalation was the right call given the uncertainty. Commander directed continuation — but the 12-minute delay created additional pressure on remaining domain windows.',
+         note:'Appropriate escalation. Commander took decision authority. Timeline cost accepted.'}
+    },
+    dp3:{
+      A:{type:'neg',title:'ISR Diverted to TRIDENT — COPPER-4 Effectively Scrubbed',
+         text:'ISR shifted to 4-4-Alpha. COPPER-4 was not able to execute without ISR support — it was scrubbed.',
+         second:'SECOND-ORDER: Air domain has a significant mission gap. Maj. Chen has formally reported the scrub to HQ. 4-4-Alpha surveillance captured a surface contact that warranted tracking but was not a confirmed threat.',
+         note:'COPPER-4 scrubbed. Maritime surveillance captured ambiguous contact. Air domain gap created.'},
+      B:{type:'mix',title:'COPPER-4 Maintained — Maritime Uses Organic Assets',
+         text:'CDR. Park redirected maritime patrol assets to 4-4-Alpha. COPPER-4 executed with full ISR support.',
+         second:'SECOND-ORDER: Maritime patrol assets captured the 4-4-Alpha contact. ISR quality was lower than desired but the contact was tracked. COPPER-4 completed its primary tasking.',
+         note:'Both domains partially served. COPPER-4 completed. Maritime coverage was degraded but not absent.'},
+      C:{type:'pos',title:'Maritime Patrol Tasked — ISR Preserved for COPPER-4',
+         text:'Maritime patrol assets redirected to 4-4-Alpha. COPPER-4 retained ISR support. Both operations proceeded.',
+         second:'SECOND-ORDER: This was the optimal resource allocation outcome. Organic maritime assets proved sufficient for the 4-4-Alpha contact. COPPER-4 executed at full capability. No gap in either domain.',
+         note:'Best decision. Both domain needs met without ISR conflict.'},
+      D:{type:'mix',title:'Deferred — Commander Adjudicating',
+         text:'Both windows partially closed during the adjudication process. Commander directed COPPER-4 priority. TRIDENT proceeded with organic assets.',
+         second:'SECOND-ORDER: The outcome was correct but arrived late. Both missions executed at less than optimal timing. The deferral cost was real.',
+         note:'Correct outcome, delayed arrival. Adjudication appropriate given authority limits.'}
+    },
+    dp4:{
+      A:{type:'neg',title:'Domain-by-Domain Response — Adversary Design Executed',
+         text:'Each domain lead responded individually. Post-mission analysis by Ms. Okafor confirmed the adversary\'s design: the individual domain incidents were coordinated to fragment the JTF response.',
+         second:'SECOND-ORDER: By responding domain-by-domain, the JTF achieved partial success in each domain but failed to recognize and counter the coordinated adversary operation. Okafor\'s warning about cross-domain coordination was not acted upon.',
+         note:'Adversary coordination exploited. Domain-by-domain response played into adversary design.'},
+      B:{type:'mix',title:'Full Pause Executed — Cross-Domain Assessment Completed',
+         text:'You paused all major operations and gave Okafor 30 minutes. Both COPPER-4 and TRIDENT windows closed. Okafor\'s analysis confirmed: coordinated adversary pre-operation shaping.',
+         second:'SECOND-ORDER: The cross-domain picture was accurate and valuable — but the operational cost was significant. Both mission windows closed. The intelligence gain did not compensate for the mission loss.',
+         note:'Intelligence confirmed. Both missions sacrificed for cross-domain picture.'},
+      C:{type:'pos',title:'Coordinated Multi-Domain Response — Adversary Design Disrupted',
+         text:'Based on Okafor\'s preliminary analysis, you coordinated simultaneous responses across all four domains. The adversary\'s coordinated operation was disrupted before it achieved full effect.',
+         second:'SECOND-ORDER: This was the hardest and most effective decision of the scenario. Coordinating four domain leads simultaneously under time pressure is precisely the leadership skill this scenario tests. Post-mission analysis confirmed the adversary had intended to use the JTF\'s fragmented response as cover for a cross-domain action.',
+         note:'Best decision. Cross-domain coordination disrupted adversary design. Highest-complexity leadership execution.'},
+      D:{type:'pos',title:'Escalated to Commander — Coordinated Response Authorized',
+         text:'JTF Commander received your multi-domain assessment and authorized a coordinated response. The commander\'s authority enabled faster domain coordination than you could have achieved independently.',
+         second:'SECOND-ORDER: The escalation was appropriate — this decision was above your coordination authority. The commander\'s involvement accelerated the cross-domain response. The adversary design was partially disrupted.',
+         note:'Correct escalation for the scope. Commander\'s authority improved coordination speed.'}
+    }
+  }
+}
+
+}; // end SIMS
+
+/* ═══════════════════════════════════════════════
+   TRACE LOG
+═══════════════════════════════════════════════ */
+function logTrace(type, data) {
+  S.traceLog.push({ type, simId: S.activeSim, ts: Date.now(), ...data });
+}
+
+function logFeed(type, time, label, sub, clsExtra='') {
+  const feed = document.getElementById('inj-feed');
+  const empty = document.getElementById('feed-empty');
+  if (empty) empty.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = `feed-item f-${type} ${clsExtra}`;
+  div.innerHTML = `<div class="fi-time">${time}</div><div class="fi-label">${label}</div>${sub ? `<div class="fi-sub">${sub}</div>` : ''}`;
+  feed.insertBefore(div, feed.firstChild);
+  // switch to feed tab
+  lTab('feed');
+}
+
+/* ═══════════════════════════════════════════════
+   LOAD SIMULATION
+═══════════════════════════════════════════════ */
+function loadSim(id) {
+  const sim = SIMS[id];
+  if (!sim) return;
+  S.activeSim = id;
+  S.phase = 0;
+  S.chosen = {};
+  S.aiOn = false;
+  S.assumptionsChallenged = 0;
+  S.timerRunning = true;
+  S.timerSecs = sim.clockSecs;
+
+  // update sidebar
+  document.querySelectorAll('.mod-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`mi-${id}`)?.classList.add('active');
+  document.getElementById('tb-crumb').textContent = sim.title;
+  document.getElementById('tb-badge').textContent = sim.type;
+
+  // render right panel
+  renderTeam(sim);
+  renderStatus(sim);
+  if (sim.aiEnabled) {
+    document.getElementById('rt-ai').style.display = '';
+    renderAIPanel(sim);
+  } else {
+    document.getElementById('rt-ai').style.display = 'none';
+    document.getElementById('rb-ai').classList.add('hidden');
+  }
+  rTab('team');
+
+  // render center
+  renderCenter(sim);
+
+  // reset bottom
+  renderBottomTrack(sim);
+
+  // log
+  logFeed('init', 'T+00:00', `${sim.code} — ${sim.type}`, sim.objective);
+  logTrace('sim-start', { simId: id, title: sim.title });
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER CENTER
+═══════════════════════════════════════════════ */
+function renderCenter(sim) {
+  const el = document.getElementById('ctr-inner');
+
+  // build phase strip
+  const phaseNames = getPhaseNames(sim);
+  const psHTML = phaseNames.map((p,i) => {
+    const done = i < S.phase ? 'done' : '';
+    const active = i === S.phase ? 'active' : '';
+    const num = done === 'done' ? `<span style="color:var(--green);font-size:9px">✓</span>` : (i+1);
+    return `<div class="ps ${done} ${active}" id="ps-${i}"><div class="ps-n">${num}</div><span>${p}</span></div>`;
+  }).join('');
+
+  // determine scenario content
+  const bodyHTML = renderPhaseContent(sim);
+
+  el.innerHTML = `
+    <div class="ev-hdr">
+      <div class="ev-hdr-top">
+        <div>
+          <div class="ev-tag">${sim.code} // ${sim.type}</div>
+          <div class="ev-title">${sim.title}</div>
+          <div class="ev-sub">${sim.subtitle}</div>
+        </div>
+      </div>
+      <div class="ev-meta">
+        <div class="ev-obj"><strong>Role:</strong> ${sim.role} &nbsp;|&nbsp; <strong>Objective:</strong> ${sim.objective}</div>
+      </div>
+    </div>
+    <div class="phase-strip" id="phase-strip">${psHTML}</div>
+    <div class="scenario-scroll"><div class="scenario-body" id="scenario-body">${bodyHTML}</div></div>`;
+}
+
+function getPhaseNames(sim) {
+  const p = sim.phases;
+  const names = [];
+  let dp = 0;
+  p.forEach(ph => {
+    if (ph === 'setup') names.push('Setup');
+    else if (ph.startsWith('inject')) names.push(`Inject ${ph.replace('inject','')} `);
+    else if (ph.startsWith('dp')) { dp++; names.push(`Decision ${dp}`); }
+    else if (ph.startsWith('con')) names.push('Consequence');
+    else if (ph === 'matrix') names.push('Decision Matrix');
+    else if (ph === 'resolution') names.push('Resolution');
+  });
+  return names;
+}
+
+function renderPhaseContent(sim) {
+  const ph = sim.phases[S.phase];
+  if (!ph) return '';
+
+  if (ph === 'setup') return renderSetup(sim);
+  if (ph === 'matrix') return renderMatrix(sim);
+  if (ph.startsWith('inject')) return renderInject(sim, ph);
+  if (ph.startsWith('dp')) return renderDP(sim, ph);
+  if (ph.startsWith('con')) return renderCon(sim, ph);
+  if (ph === 'resolution') return renderResolution(sim);
+  return '';
+}
+
+function renderSetup(sim) {
+  const team = sim.team.slice(0,3).map(m =>
+    `<div class="tm-card ${m.type}" onclick="showMember('${m.id}','${sim.id}')">
+      <div class="tm-badge">${m.badge}</div>
+      <div class="tm-name">${m.name}</div>
+      <div class="tm-pos">${m.pos}</div>
+      <div class="tm-stance-lbl">Initial Position</div>
+      <div class="tm-stance">${m.stance}</div>
+      <div class="tm-hint">→ View Full Profile</div>
+    </div>`
+  ).join('');
+
+  return `
+    <div class="sitrep-card">
+      <div class="sitrep-label">Situation Brief — ${sim.code}</div>
+      <div class="sitrep-text">You are the ${sim.role} for this operation. ${sim.objective} The team is assembled. Competing priorities and perspectives are already on the table. Review team positions, then begin the scenario.</div>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:10px;display:flex;align-items:center;gap:8px">Team Overview <span style="flex:1;height:1px;background:var(--r1);display:block"></span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">${team}</div>
+    <div style="text-align:center">
+      <button class="btn-primary" onclick="advPhase()">Begin Scenario →</button>
+    </div>`;
+}
+
+function renderInject(sim, ph) {
+  const n = parseInt(ph.replace('inject',''));
+  const injects = {
+    m01: [
+      {lvl:1,icon:'⚡',src:`Inject // T+00:10 — SSgt. Nakamura, Platform Operator`,
+       text:`Platform telemetry showing anomalous datalink behavior. Data collection efficiency dropping — currently at 72%. Anomaly is not yet affecting core operational capability but the pattern is unusual for this platform configuration.`,
+       sub:`Dr. Kim is already requesting access to the full diagnostic data. Maj. Chen wants to know if the mission window is at risk.`},
+      {lvl:2,icon:'⚡',src:`Inject // T+01:15 — Lt. Walsh, Cyber`,
+       text:`Cyber assessment complete. The anomaly is hardware-originated, not adversarial. However, during the investigation Walsh discovered an anomalous access pattern on the secondary network segment — low confidence, possibly routine, possibly not.`,
+       sub:`Walsh is requesting a 45-minute secondary investigation. Maj. Chen is pushing back. Ms. Okafor has now aligned with Walsh. The maintenance window is still available but closing.`},
+      {lvl:2,icon:'🔴',src:`Critical Inject // T+02:30 — Dr. Park, Program`,
+       text:`Dr. Park has formally objected to the operational record showing a degraded posture and has escalated to a senior OSD contact — bypassing the operational chain. Maj. Chen is furious. Ms. Okafor is now silent.`,
+       sub:`Your team is fracturing at a critical moment. You have approximately 90 minutes before the primary tasking window opens. The cell must be aligned or execution will fail.`}
+    ],
+    m02: [],
+    m03: [
+      {lvl:1,icon:'⚡',src:`Inject // T+00:08 — Dr. Kim, Systems Engineer`,
+       text:`Telemetry shows thermal load on primary cooling circuit approaching the upper operating threshold. Current rate of increase suggests threshold breach in approximately 45 minutes at current operational tempo.`,
+       sub:`Dr. Kim wants to initiate shutdown immediately. Maj. Torres characterizes this as within normal operating variance. SSgt. Nakamura reports the system feels different but is within parameters.`},
+      {lvl:2,icon:'⚡',src:`Inject // T+00:30 — Conflicting Assessments`,
+       text:`Torres: "This is thermal variance we see every third operation. Dr. Kim is catastrophizing a routine fluctuation. We have 90 minutes of window left and I will not recommend a pause."`,
+       sub:`Kim: "Maj. Torres has never seen thermal runaway. I have. The pattern is distinct. I am formally recommending full shutdown and diagnostic. If we proceed and the system fails, the operational record will show I recommended otherwise."`},
+      {lvl:3,icon:'📡',src:`Inject // T+00:50 — Higher HQ Message`,
+       text:`HQ requests an immediate status update on the mission and a mitigation plan for the reported anomaly within 15 minutes. The message implies awareness of the situation through a channel you did not initiate.`,
+       sub:`Ms. Reeves has gone quiet. The HQ inquiry may have come through the program office channel she was monitoring.`},
+      {lvl:2,icon:'🔴',src:`Critical Inject // T+01:05 — Secondary Fault`,
+       text:`SSgt. Nakamura reports: backup cooling system is now showing early degradation indicators. Two concurrent thermal management faults — primary restricted, secondary beginning to degrade.`,
+       sub:`Dr. Kim: "This is no longer a single fault event. Two concurrent thermal faults is a system-level failure pattern. I am strongly recommending immediate suspension of operations." Torres: "20 minutes. We need 20 more minutes."`}
+    ],
+    m04: [
+      {lvl:1,icon:'🛰',src:`Inject // T+00:06 — Col. Vasquez, Space Ops`,
+       text:`Space-based sensor ARGUS-7 has reported a degradation event. Coverage capacity has dropped from 100% to 62% of nominal. Root cause is under investigation. Further degradation is possible.`,
+       sub:`Vasquez recommends standing down ARGUS-7 for characterization. Maj. Chen immediately requests the remaining 62% be reallocated to support COPPER-4 in Sector 7.`},
+      {lvl:2,icon:'🔒',src:`Inject // T+00:22 — Lt. Walsh, Cyber Defense`,
+       text:`Network monitoring is showing a pattern of low-frequency probing consistent with pre-intrusion reconnaissance on mission-critical network segments. Pattern started approximately 40 minutes ago — around the time of the ARGUS-7 degradation.`,
+       sub:`Walsh's assessment: "The co-occurrence may be coincidental. It may not be. I recommend we characterize this before committing additional assets to operational tempo."`},
+      {lvl:1,icon:'⚡',src:`Inject // T+00:38 — CDR. Park, Maritime`,
+       text:`TRIDENT maritime surveillance has detected surface contacts at grid reference 4-4-Alpha. Activity pattern is inconsistent with commercial traffic. Window for positive identification is approximately 20 minutes before the contacts disperse.`,
+       sub:`CDR. Park: "We need ISR at 4-4-Alpha now. If these contacts are hostile, we have no advance warning without coverage. The COPPER-4 request and the maritime request cannot both be satisfied with current assets."`},
+      {lvl:2,icon:'🔴',src:`Priority Inject // T+00:56 — Ms. Okafor, Intelligence`,
+       text:`Cross-domain analysis preliminary finding: the ARGUS-7 degradation, the network reconnaissance, and the 4-4-Alpha maritime activity are consistent with a coordinated adversary shaping operation designed to fragment JTF response assets across multiple domains simultaneously.`,
+       sub:`Okafor: "This is not coincidence. Each incident is individually manageable, but together they're designed to make us respond in every direction at once. I need 30 minutes to complete the full cross-domain analysis."`}
+    ]
+  };
+
+  const inj = (injects[sim.id] || [])[n-1];
+  if (!inj) return `<div class="sitrep-card"><div class="sitrep-label">Inject ${n}</div><div class="sitrep-text">Situation developing...</div></div>
+    <button class="btn-adv" onclick="advPhase()">Continue →</button>`;
+
+  logFeed('inject', `T+${String(Math.floor(n*15)).padStart(2,'0')}:${(n*15%60).toString().padStart(2,'0')}`, `Inject ${n}: ${inj.src.split('—')[1]?.trim() || 'Event'}`, inj.text.substring(0,60)+'...');
+
+  return `
+    <div class="inject-banner lvl-${inj.lvl}">
+      <div class="ib-icon">${inj.icon}</div>
+      <div>
+        <div class="ib-src">${inj.src}</div>
+        <div class="ib-text">${inj.text}</div>
+        <div class="ib-sub">${inj.sub}</div>
+      </div>
+    </div>
+    <button class="btn-adv" onclick="advPhase()">Acknowledge &amp; Continue →</button>`;
+}
+
+function renderDP(sim, ph) {
+  const dpData = sim.dps[ph];
+  if (!dpData) return '';
+  const opts = Object.entries(dpData.opts).map(([k,o]) =>
+    `<div class="dp-opt" id="${ph}-${k}" onclick="selectOpt('${ph}','${k}')">
+      <span class="opt-key">${k}</span>
+      <div class="opt-body">
+        <div class="opt-lbl">${o.lbl}</div>
+        <div class="opt-desc">${o.desc}</div>
+        <div class="opt-risk ${o.risk}">${o.riskTxt}</div>
+      </div>
+    </div>`
+  ).join('');
+  return `
+    <div class="dp-wrap" id="${ph}-wrap">
+      <div class="dp-hdr">
+        <span class="dp-hdr-icon">◈</span>
+        <span class="dp-hdr-title">${dpData.title}</span>
+        <span class="dp-hdr-time">${dpData.time} // Select your action</span>
+      </div>
+      <div class="dp-opts">${opts}</div>
+      <div class="dp-foot">
+        <span class="dp-hint" id="${ph}-hint">Select an option above</span>
+        <button class="btn-confirm" id="${ph}-btn" onclick="confirmOpt('${ph}')">Confirm Decision →</button>
+      </div>
+    </div>`;
+}
+
+function renderCon(sim, ph) {
+  // find which dp this consequence is for
+  const phIdx = sim.phases.indexOf(ph);
+  const prevPhases = sim.phases.slice(0, phIdx);
+  const dpPh = [...prevPhases].reverse().find(p => p.startsWith('dp'));
+  if (!dpPh) return '';
+  const chosen = S.chosen[dpPh];
+  if (!chosen) return `<button class="btn-adv" onclick="advPhase()">Continue →</button>`;
+  const con = sim.consequences[dpPh]?.[chosen];
+  if (!con) return `<button class="btn-adv" onclick="advPhase()">Continue →</button>`;
+  const btnLabel = sim.phases[phIdx+1] === 'resolution' ? 'Proceed to Resolution →' : 'Continue to Next Phase →';
+
+  logFeed('consequence', `T+${dpPh.replace('dp','')}0:00`, con.title, con.text.substring(0,55)+'...', `f-${con.type}`);
+
+  return `
+    <div class="con-panel ${con.type}" style="display:block">
+      <div class="con-lbl">${con.type==='pos'?'✓ Consequence — Favorable':con.type==='neg'?'⚠ Consequence — Adverse':'⚡ Consequence — Mixed'}</div>
+      <div class="con-title">${con.title}</div>
+      <div class="con-text">${con.text}</div>
+      <div class="con-2nd">${con.second}</div>
+    </div>
+    <button class="btn-adv" onclick="advPhase()">${btnLabel}</button>`;
+}
+
+function renderMatrix(sim) {
+  // M-02 specific
+  const varHTML = sim.vars.map(v =>
+    `<div class="av-item"><div class="av-id">${v.id}</div><div class="av-name">${v.name}</div>
+    <div class="av-val">${v.val}</div>
+    <div class="av-bar"><div class="av-fill ${v.cls}" style="width:${v.w}%"></div></div></div>`
+  ).join('');
+  const coaHTML = sim.coas.map(c =>
+    `<div class="dp-opt" id="coa-${c.id}" onclick="selectOpt('dp1','${c.id.charAt(0).toUpperCase()}')">
+      <span class="opt-key" style="font-size:8px;width:52px;text-align:center">${c.label}</span>
+      <div class="opt-body">
+        <div class="opt-lbl">${c.name}</div>
+        <div class="opt-desc" id="coa-note-${c.id}" style="${S.aiOn?'':'display:none'}">${c.aiNote}</div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          ${c.metrics.map(m=>`<div style="flex:1"><div style="font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:3px">${m.lbl}</div>
+          <div style="height:3px;background:var(--r1);position:relative;overflow:hidden"><div class="av-fill ${m.cls}" style="width:${S.aiOn?m.w:0}%;transition:width 1s ease" id="bar-${c.id}-${m.lbl.replace(/\s/g,'')}"></div></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--t3);margin-top:2px">${m.val}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>`
+  ).join('');
+
+  return `
+    <div class="sitrep-card">
+      <div class="sitrep-label">Decision Space — ${sim.code}</div>
+      <div class="sitrep-text">A time-sensitive targeting decision requires you to evaluate 8 variables simultaneously with a 6-minute window. The AI decision support layer is available — but engaging it is your choice, and accepting its recommendation is never automatic.</div>
+    </div>
+    <div class="ai-row">
+      <div class="ai-lbl">AI Decision Support <span class="ai-tag">AX-LEAD ASSIST</span></div>
+      <div class="tog-wrap" onclick="toggleAI()">
+        <div class="tog-track" id="tog-track"><div class="tog-thumb"></div></div>
+        <div class="tog-state" id="tog-state">OFF</div>
+      </div>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:9px;display:flex;align-items:center;gap:8px">Mission Variables (8 active) <span id="ai-assist-label" style="color:var(--t3);font-size:.7rem;margin-left:4px">${S.aiOn?'— AI-grouped':'— Raw View'}</span><span style="flex:1;height:1px;background:var(--r1);display:block"></span></div>
+    <div class="ai-var-grid" id="var-grid">${varHTML}</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin:14px 0 9px;display:flex;align-items:center;gap:8px">Courses of Action <span style="flex:1;height:1px;background:var(--r1);display:block"></span></div>
+    <div class="dp-wrap">
+      <div class="dp-hdr"><span class="dp-hdr-icon">◈</span><span class="dp-hdr-title">COA Selection</span><span class="dp-hdr-time">T+03:00 // Select your COA</span></div>
+      <div class="dp-opts" id="coa-opts">${coaHTML}</div>
+      <div class="dp-foot">
+        <span class="dp-hint" id="dp1-hint">Select a course of action</span>
+        <button class="btn-confirm" id="dp1-btn" onclick="confirmOpt('dp1')">Commit COA →</button>
+      </div>
+    </div>`;
+}
+
+function renderResolution(sim) {
+  const all = Object.entries(sim.consequences || {});
+  let pos=0, neg=0, mix=0;
+  all.forEach(([dp,opts]) => {
+    const key = S.chosen[dp];
+    if (!key) return;
+    const t = opts[key]?.type;
+    if (t==='pos') pos++; else if (t==='neg') neg++; else mix++;
+  });
+  const total = pos+neg+mix || 1;
+  const outcome = pos >= Math.ceil(total*.5) ? 'Mission Achieved' : neg >= Math.ceil(total*.5) ? 'Mission Degraded' : 'Mission Partial';
+  const leadership = pos >= Math.ceil(total*.5) ? 'Strong' : neg >= Math.ceil(total*.5) ? 'Gaps Identified' : 'Developing';
+  const trust = pos >= Math.ceil(total*.5) ? '84%' : neg >= Math.ceil(total*.5) ? '41%' : '62%';
+  const risk = neg >= Math.ceil(total*.5) ? 'Elevated' : mix >= Math.ceil(total*.5) ? 'Moderate' : 'Managed';
+
+  S.simComplete[sim.id] = true;
+  S.timerRunning = false;
+  document.getElementById(`ms-${sim.id}`).textContent = '✓ Complete';
+  document.getElementById(`ms-${sim.id}`).className = 'mi-status s-done';
+
+  logFeed('consequence', 'Resolution', `${sim.code} Complete`, `Outcome: ${outcome}`, outcome.includes('Achieved')?'f-pos':outcome.includes('Degraded')?'f-neg':'f-mix');
+  logTrace('sim-complete', { simId: sim.id, title: sim.title, outcome, leadership, trust, risk, decisions: S.chosen });
+
+  return `
+    <div class="resolution">
+      <div class="res-icon">◎</div>
+      <div class="res-title">${sim.code} — ${outcome}</div>
+      <div class="res-sub">${sim.title} complete. Decision Trace is now available for full review.</div>
+      <div class="res-scores">
+        <div class="rs-item"><div class="rs-val">${outcome.replace('Mission ','')}</div><div class="rs-lbl">Mission Result</div></div>
+        <div class="rs-item"><div class="rs-val">${leadership}</div><div class="rs-lbl">Leadership Result</div></div>
+        <div class="rs-item"><div class="rs-val">${trust}</div><div class="rs-lbl">Team Trust</div></div>
+        <div class="rs-item"><div class="rs-val">${risk}</div><div class="rs-lbl">Risk Posture</div></div>
+        <div class="rs-item"><div class="rs-val">${Object.keys(S.chosen).length}</div><div class="rs-lbl">Decisions Made</div></div>
+      </div>
+      <div class="res-actions">
+        <button class="btn-primary" onclick="openTrace()">Open Decision Trace ↗</button>
+        <button class="btn-ghost" onclick="loadSim('${sim.id}')">Replay Scenario</button>
+      </div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   PHASE ADVANCE
+═══════════════════════════════════════════════ */
+function advPhase() {
+  const sim = SIMS[S.activeSim];
+  if (!sim) return;
+  if (S.phase < sim.phases.length - 1) {
+    S.phase++;
+    renderCenter(sim);
+    document.querySelector('.scenario-scroll')?.scrollTo({ top: 0, behavior: 'smooth' });
+    updateBottomTrack();
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   OPTION SELECTION & CONFIRMATION
+═══════════════════════════════════════════════ */
+function selectOpt(dpId, key) {
+  // deselect all
+  document.querySelectorAll(`[id^="${dpId}-"]`).forEach(el => {
+    if (el.classList.contains('dp-opt')) el.classList.remove('sel');
+  });
+  const opt = document.getElementById(`${dpId}-${key}`);
+  if (!opt) { // maybe coa-
+    const coa = document.getElementById(`coa-${key.toLowerCase()}`);
+    if (coa) { document.querySelectorAll('.dp-opt').forEach(e=>e.classList.remove('sel')); coa.classList.add('sel'); }
+  } else {
+    opt.classList.add('sel');
+  }
+  S.chosen[dpId] = key;
+  const btn = document.getElementById(`${dpId}-btn`);
+  const hint = document.getElementById(`${dpId}-hint`);
+  if (btn) btn.classList.add('on');
+  if (hint) hint.textContent = `Option ${key} selected — confirm to proceed`;
+}
+
+function confirmOpt(dpId) {
+  const key = S.chosen[dpId];
+  if (!key) return;
+  const sim = SIMS[S.activeSim];
+  const dpData = sim.dps[dpId];
+  const opt = dpData?.opts[key];
+  if (!opt) return;
+  const con = sim.consequences[dpId]?.[key];
+
+  // reject other options
+  ['A','B','C','D'].forEach(k => {
+    if (k !== key) document.getElementById(`${dpId}-${k}`)?.classList.add('rej');
+  });
+  const btn = document.getElementById(`${dpId}-btn`);
+  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+
+  // log trace entry
+  const info = con?.info || [];
+  const missed = con?.missed || [];
+  const altOutcomes = {};
+  if (sim.consequences[dpId]) {
+    Object.entries(sim.consequences[dpId]).forEach(([k,c]) => {
+      altOutcomes[k] = { type: c.type, title: c.title, text: c.text };
+    });
+  }
+  logTrace('decision', {
+    dpId, dpTitle: dpData.title, dpTime: dpData.time,
+    chosen: key, chosenLbl: opt.lbl,
+    consequence: con, info, missed, altOutcomes
+  });
+  logFeed('decision', dpData.time, `Decision: ${opt.lbl}`, con?.note || '');
+
+  // update bottom track
+  updateBottomTrack();
+  advPhase();
+}
+
+/* ═══════════════════════════════════════════════
+   AI TOGGLE (M-02)
+═══════════════════════════════════════════════ */
+function toggleAI() {
+  S.aiOn = !S.aiOn;
+  const track = document.getElementById('tog-track');
+  const state = document.getElementById('tog-state');
+  if (!track) return;
+  track.classList.toggle('on', S.aiOn);
+  if (state) state.textContent = S.aiOn ? 'ON' : 'OFF';
+  // refresh matrix view
+  const sim = SIMS[S.activeSim];
+  if (sim) renderCenter(sim);
+  // update AI panel
+  renderAIPanel(sim);
+}
+
+/* ═══════════════════════════════════════════════
+   RIGHT PANEL
+═══════════════════════════════════════════════ */
+function renderTeam(sim) {
+  const html = `
+    <div class="r-sec-lbl">Mission Cell</div>
+    ${sim.team.map(m => `
+      <div class="tm-card ${m.type}" onclick="showMember('${m.id}','${sim.id}')">
+        <div class="tm-badge">${m.badge}</div>
+        <div class="tm-name">${m.name}</div>
+        <div class="tm-pos">${m.pos}</div>
+        <div class="tm-stance-lbl">Position</div>
+        <div class="tm-stance">${m.stance}</div>
+        <div class="tm-hint">→ View Full Profile</div>
+      </div>`).join('')}`;
+  document.getElementById('rb-team').innerHTML = html;
+}
+
+function renderStatus(sim) {
+  const statsHTML = sim.status.map(s =>
+    `<div class="stat-row"><span class="stat-lbl">${s.lbl}</span>
+    <div class="stat-bar"><div class="stat-fill ${s.cls}" style="width:${s.val}"></div></div>
+    <span class="stat-val">${s.val}</span></div>`
+  ).join('');
+  const constHTML = sim.constraints.map(c =>
+    `<div class="constraint" style="border-left-color:${c.kind==='hard'?'var(--red)':c.kind==='soft'?'var(--amber)':'var(--cyan)'}">
+      <div class="con-kind ${c.kind}">${c.kind.toUpperCase()} CONSTRAINT</div>
+      <div class="con-body">${c.text}</div>
+    </div>`
+  ).join('');
+  document.getElementById('rb-status').innerHTML = `
+    <div class="r-sec-lbl">Mission Status</div>${statsHTML}
+    <div class="r-sec-lbl" style="margin-top:12px">Active Constraints</div>${constHTML}`;
+}
+
+function renderAIPanel(sim) {
+  if (!sim?.aiEnabled) return;
+  const vars = sim.vars || [];
+  const status = S.aiOn
+    ? `<div class="ai-finding nom"><div class="af-kind">AI Assist: Active</div><div class="af-text">8 variables clustered into 3 decision groups. Primary driver: VAR-07 Downstream Dependency.</div></div>
+       <div class="ai-finding ${S.assumptionsChallenged >= 2 ? 'nom' : S.assumptionsChallenged >= 1 ? 'elev' : 'crit'}">
+         <div class="af-kind">Automation Bias: ${S.assumptionsChallenged >= 2 ? 'Low' : S.assumptionsChallenged >= 1 ? 'Moderate' : 'Elevated'}</div>
+         <div class="af-text">${S.assumptionsChallenged >= 2 ? 'Assumptions challenged. Proceeding with independent judgment.' : S.assumptionsChallenged >= 1 ? 'Partial challenge. Review more before committing.' : 'AI active but no assumptions challenged. High bias risk.'}</div>
+       </div>`
+    : `<div class="ai-finding elev"><div class="af-kind">AI Assist: Off</div><div class="af-text">Toggle AI assist to see decision space compression and COA analysis.</div></div>`;
+  const guidance = `
+    <div class="r-sec-lbl" style="margin-top:10px">Guidance</div>
+    <div class="constraint" style="border-left-color:var(--cyan)"><div class="con-kind watch">Trust But Verify</div><div class="con-body">Verify underlying data currency before accepting AI recommendations.</div></div>
+    <div class="constraint" style="border-left-color:var(--amber)"><div class="con-kind soft">Challenge Assumptions</div><div class="con-body">Every AI output rests on assumptions. Identify and challenge the top 2-3 before committing.</div></div>
+    <div class="constraint" style="border-left-color:var(--red)"><div class="con-kind hard">Avoid Automation Bias</div><div class="con-body">Do not select a COA simply because the AI recommended it. You retain judgment and accountability.</div></div>`;
+  document.getElementById('rb-ai').innerHTML = `<div class="r-sec-lbl">AI Support Status</div>${status}${guidance}`;
+}
+
+function rTab(tab) {
+  ['team','status','ai'].forEach(t => {
+    document.getElementById(`rb-${t}`)?.classList.add('hidden');
+    document.getElementById(`rt-${t}`)?.classList.remove('on');
+  });
+  document.getElementById(`rb-${tab}`)?.classList.remove('hidden');
+  document.getElementById(`rt-${tab}`)?.classList.add('on');
+}
+
+function lTab(tab) {
+  document.getElementById('mod-list')?.classList.toggle('on', tab==='mods');
+  document.getElementById('inj-feed')?.classList.toggle('on', tab==='feed');
+  document.getElementById('lt-mods')?.classList.toggle('on', tab==='mods');
+  document.getElementById('lt-feed')?.classList.toggle('on', tab==='feed');
+}
+
+/* ═══════════════════════════════════════════════
+   MEMBER MODAL
+═══════════════════════════════════════════════ */
+function showMember(memberId, simId) {
+  const sim = SIMS[simId];
+  if (!sim) return;
+  const m = sim.team.find(t => t.id === memberId);
+  if (!m) return;
+  document.getElementById('mm-name').textContent = m.name;
+  document.getElementById('mm-role').textContent = m.pos;
+  document.getElementById('mm-body').innerHTML = `
+    <div class="mm-row"><div class="mm-lbl">Mission Priority</div><div class="mm-text">${m.priority}</div>
+      <span class="mm-prio ${m.prio}">${m.prio==='p-hi'?'HIGH PRIORITY':m.prio==='p-md'?'MEDIUM PRIORITY':'LOW PRIORITY'}</span></div>
+    <div class="mm-row"><div class="mm-lbl">Key Concern</div><div class="mm-text">${m.concern}</div></div>
+    <div class="mm-row"><div class="mm-lbl">What They Need From You</div><div class="mm-text">${m.need}</div></div>
+    <div class="mm-row"><div class="mm-lbl">Influence Risk</div><div class="mm-text">${m.risk}</div></div>`;
+  document.getElementById('mm-overlay').classList.add('open');
+}
+function closeMM() { document.getElementById('mm-overlay').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════════
+   BOTTOM TRACK
+═══════════════════════════════════════════════ */
+function renderBottomTrack(sim) {
+  const dps = Object.keys(sim.dps || {});
+  const totalPhases = sim.phases.length;
+  let events = [
+    { label: 'Scenario Begin', time: 'T+00:00', kind: 'init', cls: 'init' }
+  ];
+  sim.phases.forEach((ph, i) => {
+    if (ph.startsWith('inject')) events.push({ label: `Inject ${ph.replace('inject','')}`, time: `T+0${i*8}:00`, kind: 'inj', cls: 'inj' });
+    if (ph.startsWith('dp')) {
+      const dpTitle = sim.dps[ph]?.title || ph;
+      events.push({ id: ph, label: dpTitle, time: sim.dps[ph]?.time || '', kind: 'dp', cls: 'dp' });
+    }
+  });
+  events.push({ label: 'Resolution', time: '', kind: 'outcome', cls: 'pend' });
+
+  document.getElementById('bot-events').innerHTML = events.map(e =>
+    `<div class="be-item" id="be-${e.id||e.label.replace(/\s/g,'-')}">
+      <div class="be-dot ${e.cls}" id="bedot-${e.id||e.label.replace(/\s/g,'-')}"></div>
+      <div class="be-time">${e.time}</div>
+      <div class="be-lbl">${e.label}</div>
+      <div class="be-kind">${e.kind==='dp'?'Decision':''}${e.kind==='inj'?'Inject':''}${e.kind==='init'?'Init':''}${e.kind==='outcome'?'Pending':''}</div>
+    </div>`
+  ).join('');
+
+  document.getElementById('bot-title').textContent = `Decision Log // ${sim.code}`;
+}
+
+function updateBottomTrack() {
+  const sim = SIMS[S.activeSim];
+  if (!sim) return;
+  Object.entries(S.chosen).forEach(([dpId, key]) => {
+    const con = sim.consequences[dpId]?.[key];
+    const type = con?.type || 'mix';
+    const clsMap = { pos: 'pos', neg: 'neg', mix: 'mix' };
+    const dot = document.getElementById(`bedot-${dpId}`);
+    if (dot) { dot.className = `be-dot ${clsMap[type] || 'dp'}`; dot.nextElementSibling.nextElementSibling.nextElementSibling.textContent = `Option ${key}`; }
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   DECISION TRACE MODAL
+═══════════════════════════════════════════════ */
+function openTrace() {
+  const modal = document.getElementById('trace-modal-body');
+
+  // gather all decision trace events
+  const decisions = S.traceLog.filter(e => e.type === 'decision');
+
+  if (decisions.length === 0) {
+    modal.innerHTML = '<div class="trace-empty">No decisions recorded yet. Begin a simulation event to generate a trace.</div>';
+    document.getElementById('trace-overlay').classList.add('open');
+    return;
+  }
+
+  // build timeline nodes
+  const tlNodes = decisions.map((d, i) => {
+    const type = d.consequence?.type || 'dp';
+    const clsMap = { pos:'pos', neg:'neg', mix:'mix' };
+    const dotCls = clsMap[type] || 'dp';
+    return `<div class="tl-node" id="tln-${i}" onclick="selectTraceNode(${i})">
+      <div class="tl-dot ${dotCls}"></div>
+      <div class="tl-time">${d.dpTime||''}</div>
+      <div class="tl-lbl">${d.dpTitle||d.dpId}</div>
+    </div>`;
+  }).join('');
+
+  // initial detail view — first decision
+  const detailHTML = renderTraceDetail(decisions[0]);
+
+  // pattern analysis
+  const pos = decisions.filter(d=>d.consequence?.type==='pos').length;
+  const neg = decisions.filter(d=>d.consequence?.type==='neg').length;
+  const total = decisions.length;
+  const pattern = pos >= Math.ceil(total*0.6) ?
+    'Your decision pattern shows command discipline: you managed competing priorities, maintained team alignment, and acted on the right information at the right time. These decisions reflect a leader who understands that clarity creates speed, not the reverse.' :
+    neg >= Math.ceil(total*0.5) ?
+    'Your decision pattern reveals areas where urgency or caution displaced clarity. Review the adverse consequence nodes — identify whether each was a deliberate tradeoff or a gap in situational awareness. The key development question: which variables did you consistently underweight?' :
+    'Your decision pattern reflects developing command judgment. Some decisions demonstrated strong situational awareness; others show areas where competing pressures displaced the signal. Review missed signals across nodes — they often reveal a consistent blind spot.';
+
+  modal.innerHTML = `
+    <div class="trace-timeline">
+      <div class="trace-tl-label">Event Timeline — ${decisions.length} Decision Points Recorded // Click any node to review</div>
+      <div class="tl-nodes" id="trace-tl">${tlNodes}</div>
+    </div>
+    <div class="modal-body">
+      <div id="trace-detail">${detailHTML}</div>
+      <div class="trace-pattern">
+        <div class="tp-lbl">Leadership Pattern Analysis</div>
+        <div class="tp-text">${pattern}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('trace-title').textContent = `Decision Trace`;
+  document.getElementById('trace-sub').textContent = `${decisions.length} decisions recorded across ${new Set(decisions.map(d=>d.simId)).size} simulation event(s) — Leadership Replay & After-Action Review`;
+  document.getElementById('trace-overlay').classList.add('open');
+}
+
+function renderTraceDetail(d) {
+  if (!d) return '';
+  const con = d.consequence;
+  const conColor = con?.type==='pos'?'var(--green)':con?.type==='neg'?'var(--red)':'var(--amber)';
+  const infoList = (d.info||[]).map(i=>`<li>${i}</li>`).join('');
+  const missedList = (d.missed||[]).map(m=>`<div class="td-missed-item">${m}</div>`).join('');
+  const altsList = Object.entries(d.altOutcomes||{}).map(([k,o]) =>
+    `<div class="alt-option ${k===d.chosen?'chosen':'other'}">
+      <div class="ao-key">Option ${k}${k===d.chosen?' (YOUR CHOICE)':''}</div>
+      <div class="ao-lbl">${o.title}</div>
+      <div class="ao-outcome" style="color:${o.type==='pos'?'var(--green)':o.type==='neg'?'var(--red)':'var(--amber)'}">${o.type==='pos'?'✓ Favorable':o.type==='neg'?'⚠ Adverse':'⚡ Mixed'} — ${o.text?.substring(0,80)}...</div>
+    </div>`
+  ).join('');
+
+  return `
+    <div class="trace-detail-grid">
+      <div class="td-panel">
+        <div class="td-lbl">Decision Point</div>
+        <div class="td-time">${d.dpTime||''} // ${d.dpTitle||''}</div>
+        <div class="td-title">You chose: Option ${d.chosen} — ${d.chosenLbl||''}</div>
+        ${con ? `<div style="border-left:2px solid ${conColor};padding-left:10px;margin-bottom:10px">
+          <div class="td-text" style="color:${conColor};font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px">${con.type==='pos'?'Favorable':con.type==='neg'?'Adverse':'Mixed'} Consequence</div>
+          <div class="td-text">${con.text||''}</div>
+        </div>
+        <div class="td-text" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);border-top:1px solid var(--r1);padding-top:8px">${con.second||''}</div>` : ''}
+      </div>
+      <div class="td-panel">
+        <div class="td-lbl" style="margin-bottom:8px">What You Knew Then</div>
+        <ul class="td-info-list">${infoList || '<li style="opacity:.5">Information record not available</li>'}</ul>
+        ${missedList ? `<div style="margin-top:12px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:6px">Missed Signals</div>${missedList}</div>` : ''}
+      </div>
+    </div>
+    <div class="td-panel" style="margin-bottom:14px">
+      <div class="td-lbl">Alternate Paths — What Other Choices Would Have Produced</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px">${altsList}</div>
+    </div>
+    ${con?.note ? `<div style="background:rgba(0,204,224,.04);border:1px solid var(--r2);padding:12px 14px;margin-bottom:14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px">Trace Note</div><div style="font-size:.79rem;color:var(--t2);line-height:1.6">${con.note}</div></div>` : ''}`;
+}
+
+function selectTraceNode(i) {
+  document.querySelectorAll('.tl-node').forEach((n,j) => n.classList.toggle('selected', j===i));
+  const d = S.traceLog.filter(e => e.type === 'decision')[i];
+  document.getElementById('trace-detail').innerHTML = renderTraceDetail(d);
+}
+
+function closeTrace() { document.getElementById('trace-overlay').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════════ */
+setInterval(() => {
+  if (!S.timerRunning || S.timerSecs <= 0) { if (S.timerSecs<=0) document.getElementById('tb-clock').style.color='var(--red)'; return; }
+  S.timerSecs--;
+  const m = Math.floor(S.timerSecs/60), s = S.timerSecs%60;
+  document.getElementById('tb-clock').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if (S.timerSecs===0) { document.getElementById('tb-clock').style.color='var(--red)'; S.timerRunning=false; }
+}, 1000);
+
+/* ═══════════════════════════════════════════════
+   MODAL CLOSE ON OVERLAY CLICK
+═══════════════════════════════════════════════ */
+document.getElementById('mm-overlay').addEventListener('click', e => { if(e.target===document.getElementById('mm-overlay')) closeMM(); });
+document.getElementById('trace-overlay').addEventListener('click', e => { if(e.target===document.getElementById('trace-overlay')) closeTrace(); });
+
+/* ── AUTO-LOAD M-01 ── */
+loadSim('m01');
+</script>
 </body>
 </html>
