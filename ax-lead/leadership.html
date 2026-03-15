@@ -286,7 +286,7 @@ body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font
 .btn-adv{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--cyan);background:transparent;
   border:1px solid var(--ch);padding:8px 20px;cursor:pointer;transition:all .22s;
-  margin-top:12px;display:inline-block}
+  margin-top:12px;display:inline-block;position:relative;z-index:10;pointer-events:auto}
 .btn-adv:hover{background:var(--cg)}
 
 .resolution{background:rgba(0,0,0,.5);border:1px solid var(--r2);padding:28px;
@@ -570,7 +570,7 @@ body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font
   font-weight:700;letter-spacing:.15em;text-transform:uppercase;
   color:var(--void);background:var(--cyan);border:none;padding:9px 22px;
   cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
-  transition:all .2s}
+  transition:all .2s;position:relative;z-index:10;pointer-events:auto}
 .btn-primary:hover{box-shadow:0 0 18px var(--cglow)}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -1421,9 +1421,471 @@ body { font-size: 14px; }
   transform: scale(0.98) !important;
   pointer-events: none;
 }
-/* Hide confirm button — card click IS the confirmation */
-.btn-confirm { display: none !important; }
+/* Hide confirm in standard DP cards — card click IS the confirmation.
+   The matrix COA commit button (#dp1-btn) is NOT hidden. */
+.dp-wrap .btn-confirm { display: none !important; }
+/* Matrix commit button IS visible — it\'s the only way to advance M02 */
+#dp1-btn {
+  display: inline-block !important;
+  opacity: .35;
+  pointer-events: none;
+  transition: opacity .2s, box-shadow .2s;
+}
+#dp1-btn.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+#dp1-btn.on:hover { box-shadow: 0 0 18px var(--cglow); }
 .dp-hint { opacity: 0.55; }
+
+
+/* ══ WELCOME / MISSION BRIEF OVERLAY ══ */
+#welcome-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,3,10,.88);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  transition: opacity .38s ease;
+}
+#welcome-overlay.out { opacity: 0; pointer-events: none; }
+
+#welcome-box {
+  width: min(760px, 96vw);
+  max-height: 94vh;
+  overflow-y: auto;
+  background: #071d2c;
+  border: 1px solid rgba(0,204,224,.2);
+  position: relative;
+  animation: wbIn .4s cubic-bezier(.18,0,.08,1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,204,224,.18) transparent;
+}
+@keyframes wbIn {
+  from { opacity:0; transform:translateY(18px) scale(.978); }
+  to   { opacity:1; transform:translateY(0)    scale(1); }
+}
+/* Cyan glow line across top */
+#welcome-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px; z-index: 1;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(0,204,224,.5) 20%,
+    rgba(0,204,224,.95) 50%, rgba(0,204,224,.5) 80%, transparent 100%);
+}
+
+/* ── Logo band ── */
+.wb-logo-band {
+  background: rgba(0,5,14,.7);
+  padding: 32px 36px 26px;
+  display: flex; flex-direction: column; align-items: center;
+  border-bottom: 1px solid rgba(0,204,224,.1);
+  text-align: center;
+  position: relative;
+}
+.wb-logo-img {
+  height: 110px;
+  display: block;
+  filter: drop-shadow(0 0 14px rgba(0,204,224,.55)) drop-shadow(0 0 36px rgba(0,204,224,.24));
+  margin-bottom: 26px;
+  transition: filter .3s;
+}
+.wb-logo-img:hover {
+  filter: drop-shadow(0 0 20px rgba(0,204,224,.8)) drop-shadow(0 0 44px rgba(0,204,224,.35));
+}
+/* Divider under logo */
+.wb-logo-div {
+  width: 200px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,204,224,.45), transparent);
+  margin-bottom: 22px;
+}
+.wb-title { display: none; }
+.wb-subtitle {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .98rem; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-bottom: 8px;
+}
+.wb-tagline {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--cyan); opacity: .6;
+}
+
+/* ── Body ── */
+.wb-body {
+  padding: 26px 36px 0;
+}
+.wb-sec {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--cyan); opacity: .72;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 9px;
+}
+.wb-sec::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(0,204,224,.22), transparent);
+}
+.wb-purpose {
+  font-size: .94rem; color: #a8cde0; line-height: 1.72;
+  margin-bottom: 26px;
+}
+
+/* Scenario type grid */
+.wb-types {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-bottom: 26px;
+}
+.wb-type-card {
+  background: rgba(0,8,20,.5);
+  border: 1px solid rgba(0,204,224,.1);
+  border-left: 2px solid rgba(0,204,224,.3);
+  padding: 11px 14px;
+  transition: border-left-color .2s, background .2s;
+}
+.wb-type-card:hover {
+  border-left-color: var(--cyan);
+  background: rgba(0,204,224,.04);
+}
+.wb-type-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .88rem; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: #cce4f5;
+  margin-bottom: 3px;
+}
+.wb-type-desc {
+  font-size: .78rem; color: #6898b8; line-height: 1.5;
+}
+
+/* How it works list */
+.wb-how {
+  list-style: none; margin-bottom: 26px;
+}
+.wb-how li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,204,224,.06);
+  font-size: .88rem; color: #8fb8d4; line-height: 1.5;
+}
+.wb-how li:last-child { border-bottom: none; }
+.wb-how li::before {
+  content: '◈'; color: var(--cyan); opacity: .6; flex-shrink: 0;
+  font-size: 9px; margin-top: 3px;
+}
+
+/* Bottom two-card row */
+.wb-row2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 26px;
+}
+.wb-card {
+  background: rgba(0,8,22,.55);
+  border: 1px solid rgba(0,204,224,.12);
+  padding: 15px 17px;
+}
+.wb-card-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--cyan); opacity: .68; margin-bottom: 8px;
+}
+.wb-card-text {
+  font-size: .86rem; color: #9ec6dc; line-height: 1.62;
+}
+.wb-card-text em { color: #eaf4ff; font-style: normal; font-weight: 600; }
+
+/* ── Footer ── */
+.wb-foot {
+  padding: 20px 36px 28px;
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(0,204,224,.08);
+  position: relative; z-index: 2;
+  pointer-events: auto;
+}
+.wb-btn-primary {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12.5px; font-weight: 700; letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #020a12; background: var(--cyan);
+  border: none; padding: 12px 30px; cursor: pointer;
+  pointer-events: auto; position: relative; z-index: 3;
+  clip-path: polygon(7px 0%, 100% 0%, calc(100% - 7px) 100%, 0% 100%);
+  transition: box-shadow .2s, background .2s;
+}
+.wb-btn-primary:hover { box-shadow: 0 0 26px rgba(0,204,224,.42); background: #18dff0; }
+.wb-btn-ghost {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--t2); background: transparent;
+  border: 1px solid rgba(0,204,224,.22); padding: 11px 22px;
+  cursor: pointer; pointer-events: auto; position: relative; z-index: 3;
+  transition: color .2s, border-color .2s;
+}
+.wb-btn-ghost:hover { color: var(--t1); border-color: rgba(0,204,224,.44); }
+.wb-replay {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--t3); cursor: pointer; margin-left: auto;
+  padding: 4px 0; border-bottom: 1px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.wb-replay:hover { color: var(--t2); border-bottom-color: var(--t3); }
+
+
+/* ══ TEAM REACTION FEED ITEMS ══ */
+.feed-item.f-reaction {
+  border-left-color: var(--t3);
+  background: rgba(0,8,20,.55);
+}
+.feed-item.f-reaction.r-agree    { border-left-color: var(--green); }
+.feed-item.f-reaction.r-concern  { border-left-color: var(--amber); }
+.feed-item.f-reaction.r-warn     { border-left-color: var(--red); }
+.feed-item.f-reaction.r-disagree { border-left-color: #c040c0; }
+.feed-item.f-reaction.r-status   { border-left-color: var(--cyan); }
+.feed-item.f-reaction.r-trust    { border-left-color: var(--blue); }
+
+.feed-item.f-reaction .fi-time { color: var(--t3); }
+.feed-item.f-reaction.r-agree    .fi-time { color: var(--green); }
+.feed-item.f-reaction.r-concern  .fi-time { color: var(--amber); }
+.feed-item.f-reaction.r-warn     .fi-time { color: var(--red); }
+.feed-item.f-reaction.r-disagree .fi-time { color: #c040c0; }
+.feed-item.f-reaction.r-status   .fi-time { color: var(--cyan); }
+
+/* Member name label */
+.fi-member {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+  margin-bottom: 3px; font-weight: 600;
+}
+.feed-item.f-reaction.r-agree    .fi-member { color: var(--green); }
+.feed-item.f-reaction.r-concern  .fi-member { color: var(--amber); }
+.feed-item.f-reaction.r-warn     .fi-member { color: var(--red); }
+.feed-item.f-reaction.r-disagree .fi-member { color: #c040c0; }
+.feed-item.f-reaction.r-status   .fi-member { color: var(--cyan); }
+.feed-item.f-reaction             .fi-member { color: var(--t2); }
+
+/* Reaction message text — slightly more emphasis than sub text */
+.fi-reaction-text {
+  font-size: .82rem; color: #9cc8de; line-height: 1.52;
+  font-style: italic;
+}
+/* Trust shift indicator */
+.fi-trust-shift {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase;
+  margin-top: 5px; opacity: .7;
+}
+.fi-trust-shift.up  { color: var(--green); }
+.fi-trust-shift.dn  { color: var(--red); }
+
+
+
+
+
+/* ══ SCENARIO SELECTION OVERLAY ══ */
+#sel-overlay {
+  position: fixed; inset: 0; z-index: 490;
+  background: rgba(0,3,10,.92);
+  backdrop-filter: blur(10px);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+#sel-overlay.open { display: flex; }
+#sel-overlay.out  { opacity: 0; pointer-events: none; }
+
+#sel-box {
+  width: min(900px, 97vw);
+  max-height: 94vh;
+  overflow-y: auto;
+  background: #071d2c;
+  border: 1px solid rgba(0,204,224,.2);
+  position: relative;
+  animation: wbIn .38s cubic-bezier(.2,0,.1,1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,204,224,.18) transparent;
+}
+#sel-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px; z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(0,204,224,.7) 30%, rgba(0,204,224,.95) 55%, rgba(0,204,224,.4) 80%, transparent);
+}
+
+/* Header */
+.sel-hdr {
+  background: rgba(0,5,14,.6);
+  padding: 24px 32px 20px;
+  border-bottom: 1px solid rgba(0,204,224,.1);
+}
+.sel-kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--cyan); opacity: .75; margin-bottom: 7px;
+  display: flex; align-items: center; gap: 9px;
+}
+.sel-kicker::before { content:''; width:18px; height:1px; background:var(--cyan); box-shadow:0 0 6px var(--cyan); }
+.sel-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+  font-weight: 700; letter-spacing: .04em; color: #eaf4ff;
+  margin-bottom: 5px;
+}
+.sel-sub { font-size: .88rem; color: var(--t2); line-height: 1.5; }
+
+/* Cards grid */
+.sel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  padding: 24px 32px;
+}
+
+/* Scenario card */
+.ss-card {
+  background: rgba(0,8,22,.55);
+  border: 1px solid rgba(0,204,224,.12);
+  border-top: 2px solid rgba(0,204,224,.2);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color .2s, background .2s, transform .15s;
+  position: relative;
+  overflow: hidden;
+}
+.ss-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(0,204,224,.0);
+  transition: background .2s;
+  pointer-events: none;
+}
+.ss-card:hover {
+  border-color: rgba(0,204,224,.38);
+  border-top-color: var(--cyan);
+  background: rgba(0,12,30,.7);
+  transform: translateY(-2px);
+}
+.ss-card:hover::before { background: rgba(0,204,224,.03); }
+.ss-card.selected {
+  border-color: var(--cyan);
+  border-top-color: var(--cyan);
+  background: rgba(0,204,224,.06);
+  box-shadow: 0 0 0 1px rgba(0,204,224,.15), 0 4px 20px rgba(0,0,0,.5);
+}
+
+/* Card top accent (type color) */
+.ss-card-accent {
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.ss-card.selected .ss-card-accent { opacity: 1; }
+
+.ss-card-body { padding: 16px 18px; }
+
+.ss-scenario-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--t3); margin-bottom: 5px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ss-selected-badge {
+  font-size: 8px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--cyan); display: none;
+}
+.ss-card.selected .ss-selected-badge { display: inline; }
+
+.ss-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.1rem; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: #d8edf8;
+  margin-bottom: 4px; line-height: 1.15;
+  transition: color .2s;
+}
+.ss-card:hover .ss-card-title,
+.ss-card.selected .ss-card-title { color: #eaf4ff; }
+
+.ss-card-desc {
+  font-size: .83rem; color: #6898b8; line-height: 1.58;
+  margin-bottom: 14px;
+}
+
+.ss-meta {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.ss-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7.5px; letter-spacing: .13em; text-transform: uppercase;
+  padding: 3px 9px; border: 1px solid;
+}
+.ss-tag.difficulty-int  { color: var(--cyan);  border-color: rgba(0,204,224,.28); background: rgba(0,204,224,.07); }
+.ss-tag.difficulty-adv  { color: var(--amber); border-color: rgba(212,144,24,.3);  background: rgba(212,144,24,.08); }
+.ss-tag.difficulty-fnd  { color: var(--green); border-color: rgba(0,176,112,.3);   background: rgba(0,176,112,.07); }
+.ss-tag.duration        { color: var(--t2);    border-color: rgba(90,136,176,.22); background: transparent; }
+.ss-tag.focus           { color: #88aacc;      border-color: rgba(100,140,180,.2); background: transparent; }
+
+.ss-card-select-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--t2); background: transparent;
+  border: 1px solid rgba(0,204,224,.2);
+  padding: 7px 14px; cursor: pointer; width: 100%;
+  transition: color .18s, border-color .18s, background .18s;
+}
+.ss-card-select-btn:hover {
+  color: var(--cyan); border-color: rgba(0,204,224,.45);
+  background: rgba(0,204,224,.05);
+}
+.ss-card.selected .ss-card-select-btn {
+  color: var(--cyan); border-color: var(--cyan);
+  background: rgba(0,204,224,.07);
+}
+
+/* Footer */
+.sel-foot {
+  padding: 18px 32px 26px;
+  display: flex; align-items: center; gap: 12px;
+  border-top: 1px solid rgba(0,204,224,.08);
+  flex-wrap: wrap;
+}
+.sel-launch-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: .15em;
+  text-transform: uppercase;
+  color: #020a12; background: var(--cyan);
+  border: none; padding: 13px 32px; cursor: pointer;
+  clip-path: polygon(7px 0%, 100% 0%, calc(100% - 7px) 100%, 0% 100%);
+  transition: box-shadow .2s, background .2s, opacity .2s;
+  opacity: .3; pointer-events: none;
+}
+.sel-launch-btn.active { opacity: 1; pointer-events: auto; }
+.sel-launch-btn.active:hover { box-shadow: 0 0 26px rgba(0,204,224,.42); background: #18dff0; }
+.sel-tour-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--t2); background: transparent;
+  border: 1px solid rgba(0,204,224,.22); padding: 12px 22px;
+  cursor: pointer; opacity: .3; pointer-events: none;
+  transition: color .18s, border-color .18s, opacity .18s;
+}
+.sel-tour-btn.active { opacity: 1; pointer-events: auto; }
+.sel-tour-btn.active:hover { color: var(--t1); border-color: rgba(0,204,224,.44); }
+.sel-back {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--t3); cursor: pointer; margin-left: auto;
+  padding: 4px 0; border-bottom: 1px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.sel-back:hover { color: var(--t2); border-bottom-color: var(--t3); }
+.sel-selected-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--t3);
+}
+.sel-selected-lbl strong { color: var(--cyan); font-weight: normal; }
 
 </style>
 </head>
@@ -1461,12 +1923,12 @@ body { font-size: 14px; }
   </div>
   <div id="mod-list" class="on">
     <div class="mod-lbl">Simulation Events</div>
-    <div class="mod-item active" id="mi-m01" onclick="loadSim('m01')">
+    <div class="mod-item" id="mi-m01" onclick="loadSim('m01')">
       <div class="mi-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M6 21v-2a4 4 0 0 1 4-4h4"/><circle cx="17" cy="14" r="3"/><path d="M14 19v-1a2 2 0 0 1 4 0v1"/></svg></div>
       <div class="mi-body">
         <div class="mi-num">M-01</div>
         <div class="mi-name">Mixed Team Leadership</div>
-        <div class="mi-status s-active" id="ms-m01">● Active</div>
+        <div class="mi-status s-avail" id="ms-m01">→ Available</div>
       </div>
     </div>
     <div class="mod-item" id="mi-m02" onclick="loadSim('m02')">
@@ -1499,8 +1961,8 @@ body { font-size: 14px; }
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--t2)">LEAD-07 // Observer</div>
     </div>
     <div style="padding:4px 14px 12px">
-      <div onclick="openTutorial()" style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--t3);cursor:pointer;padding:7px 10px;border:1px solid var(--r1);display:flex;align-items:center;gap:7px;transition:all .2s" onmouseover="this.style.color='var(--cyan)';this.style.borderColor='var(--r3)'" onmouseout="this.style.color='var(--t3)';this.style.borderColor='var(--r1)'">
-        <span style="font-size:12px">◎</span> Replay Interface Tour
+      <div onclick="openScenarioSelect({launchWithTour:true})" style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--t3);cursor:pointer;padding:7px 10px;border:1px solid var(--r1);display:flex;align-items:center;gap:7px;transition:all .2s" onmouseover="this.style.color='var(--cyan)';this.style.borderColor='var(--r3)'" onmouseout="this.style.color='var(--t3)';this.style.borderColor='var(--r1)'">
+        <span style="font-size:12px">◎</span> Scenario Selection + Tour
       </div>
     </div>
   </div>
@@ -1561,6 +2023,105 @@ body { font-size: 14px; }
 </footer>
 
 </div><!-- /app -->
+
+
+<!-- WELCOME / MISSION BRIEF OVERLAY -->
+<div id="welcome-overlay">
+  <div id="welcome-box">
+
+    <!-- Logo + Title band -->
+    <div class="wb-logo-band">
+      <img class="wb-logo-img"
+           src="https://futures.astronetix.us/ax-lead-images/ax-lead-white.png"
+           alt="AX-LEAD"
+           onerror="this.style.display='none'">
+      <div class="wb-logo-div"></div>
+      <div class="wb-subtitle">Operational Leadership Simulation</div>
+      <div class="wb-tagline">Military &nbsp;·&nbsp; Government &nbsp;·&nbsp; Mission-Support Leaders</div>
+    </div>
+
+    <!-- Body -->
+    <div class="wb-body">
+
+      <!-- Section 1: Purpose -->
+      <div class="wb-sec">Platform Purpose</div>
+      <p class="wb-purpose">AX-LEAD places leaders inside evolving mission scenarios where operational pressure, technical complexity, and team dynamics collide. These simulations develop judgment, communication discipline, and decision-making under uncertainty across mixed military, government, and contractor teams. Each scenario introduces evolving operational conditions that require leaders to assess risk, balance competing priorities, and maintain mission effectiveness.</p>
+
+      <!-- Section 2: Scenario types -->
+      <div class="wb-sec">Available Simulation Events</div>
+      <div class="wb-types">
+        <div class="wb-type-card">
+          <div class="wb-type-name">Mixed Team Leadership</div>
+          <div class="wb-type-desc">Lead military, civilian, and contractor personnel through a contested ISR decision under operational pressure.</div>
+        </div>
+        <div class="wb-type-card">
+          <div class="wb-type-name">AI Decision Advantage</div>
+          <div class="wb-type-desc">Navigate a complex multi-variable decision matrix with AI-assisted analysis while maintaining independent judgment.</div>
+        </div>
+        <div class="wb-type-card">
+          <div class="wb-type-name">Command Under Pressure</div>
+          <div class="wb-type-desc">Manage a developing system fault during an active mission window with conflicting recommendations and hard time constraints.</div>
+        </div>
+        <div class="wb-type-card">
+          <div class="wb-type-name">Multi-Domain Coordination</div>
+          <div class="wb-type-desc">Allocate limited ISR and cyber assets across competing space, air, maritime, and cyber domain requests simultaneously.</div>
+        </div>
+      </div>
+
+      <!-- Section 3: How it works -->
+      <div class="wb-sec">How the Simulation Works</div>
+      <ul class="wb-how">
+        <li>Operational injects arrive as the scenario develops — each one changes the situation</li>
+        <li>Team members present different perspectives, priorities, and recommendations</li>
+        <li>You select leadership actions that shape the mission trajectory</li>
+        <li>Each decision affects mission health, team alignment, and operational risk</li>
+        <li>Scenarios evolve dynamically — later injects respond to your earlier decisions</li>
+        <li>After the scenario, the Decision Trace lets you replay and review every choice</li>
+      </ul>
+
+      <!-- Section 4+5: Success + Mindset -->
+      <div class="wb-row2">
+        <div class="wb-card">
+          <div class="wb-card-lbl">What Success Looks Like</div>
+          <div class="wb-card-text">Effective leaders maintain <em>mission progress</em> while managing operational risk, preserving team cohesion, and adapting to new information as the situation evolves. Not all missions end cleanly. <em>Disciplined decisions under pressure</em> is the standard.</div>
+        </div>
+        <div class="wb-card">
+          <div class="wb-card-lbl">Mindset for This Simulation</div>
+          <div class="wb-card-text">Treat this as a <em>mission run, not a quiz.</em> Expect tradeoffs, incomplete information, and evolving consequences. There is rarely a perfect option — only the best call available with what you know at the time.</div>
+        </div>
+      </div>
+
+    </div><!-- /wb-body -->
+
+    <!-- Footer -->
+    <div class="wb-foot">
+      <button class="wb-btn-primary" onclick="welcomeStartTour()">Start Guided Tour</button>
+      <button class="wb-btn-ghost"   onclick="welcomeSkipTour()">Skip Tour — Enter Simulation</button>
+      <span class="wb-replay"        onclick="welcomeReplay()">↺ Replay Intro + Tour</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCENARIO SELECTION OVERLAY -->
+<div id="sel-overlay">
+  <div id="sel-box">
+    <div class="sel-hdr">
+      <div class="sel-kicker">AX-LEAD // Simulation Environment</div>
+      <div class="sel-title">Select a Leadership Challenge</div>
+      <div class="sel-sub">Choose the simulation event you want to run. Each scenario trains a different dimension of operational leadership.</div>
+    </div>
+    <div class="sel-grid" id="sel-grid">
+      <!-- Rendered by JS -->
+    </div>
+    <div class="sel-foot">
+      <button class="sel-launch-btn" id="sel-launch-btn" onclick="selLaunch()">Launch Scenario →</button>
+      <button class="sel-tour-btn" id="sel-tour-btn" onclick="selLaunchWithTour()">Start with Guided Tour</button>
+      <span class="sel-selected-lbl" id="sel-selected-lbl">No scenario selected</span>
+      <span class="sel-back" onclick="selBack()">← Back to Intro</span>
+    </div>
+  </div>
+</div>
 
 <!-- GUIDED TOUR SYSTEM -->
 <div id="tour-backdrop"></div>
@@ -1940,7 +2501,7 @@ m02:{
   subtitle:'AI-Augmented Decision Advantage Under Time Compression',
   type:'AI Decision Advantage',role:'Mission Decision Authority',
   objective:'Select the optimal course of action across 8 competing variables before the 6-minute decision window closes.',
-  clockSecs:360,phases:['setup','matrix','dp1','resolution'],aiEnabled:true,
+  clockSecs:360,phases:['setup','matrix','resolution'],aiEnabled:true,
   team:[
     {id:'intel',name:'Maj. Torres',pos:'Intelligence Officer',type:'intel',badge:'Intel',stance:'Confidence in available information is 62%. Sector A threat unconfirmed at source level.',priority:'Verify information currency before committing platforms to risk.',concern:'The 62% confidence figure may be optimistic.',need:'Time for one verification pass before irreversible commitment.',risk:'Overconfidence in AI-generated probability estimates without checking underlying source quality.',prio:'p-md'},
     {id:'air',name:'SSgt. Nakamura',pos:'Platform Operator',type:'isr',badge:'ISR Operator',stance:'Alpha platform at 68% health — above operational threshold, within degraded range.',priority:'Execute assigned tasking but formally document the degraded health status.',concern:'68% is above the 60% threshold but data collection gaps possible.',need:'Clear tasking order.',risk:'None operational.',prio:'p-lo'},
@@ -2038,18 +2599,436 @@ function logFeed(type, time, label, sub, clsExtra='') {
 }
 
 /* ═══════════════════════════════════════════════
+   TEAM REACTION ENGINE
+═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   TEAM REACTION ENGINE
+   Generates staggered character messages in the
+   Event Feed after each leadership decision.
+═══════════════════════════════════════════════ */
+
+/* ── MEMBER BEHAVIOR PROFILES ── */
+const MEMBER_PROFILES = {
+  /* M-01 */
+  chen: {
+    name:'Maj. Chen', abbr:'MAJ CHEN',
+    role:'mil', badge:'Military',
+    priority:'missionContinuity',    // which MS key they watch most
+    riskTol:'medium',
+    comStyle:'direct',
+    trustKey:'chen'
+  },
+  okafor: {
+    name:'Ms. Okafor', abbr:'MS OKAFOR',
+    role:'civ', badge:'Intel',
+    priority:'threatConfidence',
+    riskTol:'low',
+    comStyle:'analytical',
+    trustKey:'okafor'
+  },
+  vasquez: {
+    name:'Mr. Vasquez', abbr:'MR VASQUEZ',
+    role:'ctr', badge:'Contractor',
+    priority:'platformHealth',
+    riskTol:'low',
+    comStyle:'technical',
+    trustKey:'vasquez'
+  },
+  reyes: {
+    name:'SSgt. Reyes', abbr:'SSGT REYES',
+    role:'isr', badge:'ISR',
+    priority:'missionContinuity',
+    riskTol:'medium',
+    comStyle:'tactical',
+    trustKey:'reyes'
+  },
+  walsh: {
+    name:'Lt. Walsh', abbr:'LT WALSH',
+    role:'cyber', badge:'Cyber',
+    priority:'threatConfidence',
+    riskTol:'low',
+    comStyle:'analytical',
+    trustKey:'walsh'
+  },
+  park: {
+    name:'Dr. Park', abbr:'DR PARK',
+    role:'prog', badge:'Program',
+    priority:'stakeholderTrust',
+    riskTol:'low',
+    comStyle:'institutional',
+    trustKey:'park'
+  },
+  /* M-03 */
+  torres: {
+    name:'Maj. Torres', abbr:'MAJ TORRES',
+    role:'mil', badge:'Military',
+    priority:'missionContinuity',
+    riskTol:'high',
+    comStyle:'direct',
+    trustKey:'torres'
+  },
+  kim: {
+    name:'Dr. Kim', abbr:'DR KIM',
+    role:'ctr', badge:'Contractor',
+    priority:'platformHealth',
+    riskTol:'low',
+    comStyle:'technical',
+    trustKey:'kim'
+  },
+  nakamura: {
+    name:'SSgt. Nakamura', abbr:'SSGT NAKAMURA',
+    role:'isr', badge:'ISR',
+    priority:'missionContinuity',
+    riskTol:'medium',
+    comStyle:'tactical',
+    trustKey:'nakamura'
+  },
+  brooks: {
+    name:'Lt. Brooks', abbr:'LT BROOKS',
+    role:'cyber', badge:'Cyber',
+    priority:'threatConfidence',
+    riskTol:'low',
+    comStyle:'analytical',
+    trustKey:'brooks'
+  },
+  reeves: {
+    name:'Ms. Reeves', abbr:'MS REEVES',
+    role:'prog', badge:'Program',
+    priority:'stakeholderTrust',
+    riskTol:'low',
+    comStyle:'institutional',
+    trustKey:'reeves'
+  },
+  /* M-04 */
+  vasquez2: {
+    name:'Col. Vasquez', abbr:'COL VASQUEZ',
+    role:'space', badge:'Space Ops',
+    priority:'platformHealth',
+    riskTol:'low',
+    comStyle:'technical',
+    trustKey:'vasquez2'
+  },
+  chenair: {
+    name:'Maj. Chen', abbr:'MAJ CHEN',
+    role:'air', badge:'Air Ops',
+    priority:'missionContinuity',
+    riskTol:'medium',
+    comStyle:'direct',
+    trustKey:'chenair'
+  },
+  park2: {
+    name:'CDR. Park', abbr:'CDR PARK',
+    role:'maritime', badge:'Maritime',
+    priority:'missionContinuity',
+    riskTol:'medium',
+    comStyle:'tactical',
+    trustKey:'park2'
+  },
+  walsh2: {
+    name:'Lt. Walsh', abbr:'LT WALSH',
+    role:'cyber', badge:'Cyber',
+    priority:'threatConfidence',
+    riskTol:'low',
+    comStyle:'analytical',
+    trustKey:'walsh2'
+  },
+  okafor2: {
+    name:'Ms. Okafor', abbr:'MS OKAFOR',
+    role:'intel', badge:'Intel',
+    priority:'threatConfidence',
+    riskTol:'low',
+    comStyle:'analytical',
+    trustKey:'okafor2'
+  }
+};
+
+/* ── REACTION LIBRARY ──
+   Each key matches: simId_dpId_optKey_memberId  (or simId_dpId_optKey for any-member)
+   Falls back to generic logic if no specific line exists.
+   type: 'agree'|'concern'|'warn'|'disagree'|'status'|'trust'
+   trustDelta: shown as indicator (cosmetic — actual trust is in TM_DELTAS)
+─────────────────────────────────────────────────────────────────────── */
+const REACTION_LINES = {
+  /* ── M-01 DP1 ── */
+  'm01_dp1_A_chen':    { type:'agree',    msg:'"About time. We stay on mission."',          trustDelta:+1 },
+  'm01_dp1_A_okafor':  { type:'warn',     msg:'"My collection flag is still unresolved."',   trustDelta:-1 },
+  'm01_dp1_A_walsh':   { type:'concern',  msg:'"Anomaly source unconfirmed. Proceeding at risk."', trustDelta:-1 },
+  'm01_dp1_B_vasquez': { type:'agree',    msg:'"Understood. Beginning the 90-minute procedure."', trustDelta:+1 },
+  'm01_dp1_B_chen':    { type:'disagree', msg:'"We are burning the mission window. Noted."',  trustDelta:-1 },
+  'm01_dp1_C_walsh':   { type:'status',   msg:'"Initiating full cyber assessment. Stand by."', trustDelta:+1 },
+  'm01_dp1_C_chen':    { type:'warn',     msg:'"This will cost us the timeline."',             trustDelta:-2 },
+  'm01_dp1_D_okafor':  { type:'agree',    msg:'"Finally. My flag is on the table now."',       trustDelta:+2 },
+  'm01_dp1_D_chen':    { type:'status',   msg:'"Understood. I\'ll hold for 20. Then we move."', trustDelta:+1 },
+  'm01_dp1_D_vasquez': { type:'agree',    msg:'"I can walk through the technical options."',   trustDelta:+1 },
+
+  /* ── M-01 DP2 ── */
+  'm01_dp2_A_walsh':   { type:'agree',    msg:'"Initiating secondary network assessment. Will report in 45."', trustDelta:+2 },
+  'm01_dp2_A_chen':    { type:'warn',     msg:'"Window margin is now critical. You have 45 minutes."', trustDelta:-2 },
+  'm01_dp2_B_walsh':   { type:'disagree', msg:'"Override noted. I\'m documenting this assessment for the record."', trustDelta:-3 },
+  'm01_dp2_B_chen':    { type:'agree',    msg:'"Good call. Keeping the window viable."',       trustDelta:+1 },
+  'm01_dp2_C_chen':    { type:'disagree', msg:'"You escalated a low-confidence cyber flag. HQ will note that."', trustDelta:-2 },
+  'm01_dp2_C_reyes':   { type:'status',   msg:'"Platform ready. Awaiting tasking order."',     trustDelta:0 },
+  'm01_dp2_D_walsh':   { type:'agree',    msg:'"Twenty minutes, compressed. I\'ll work fast."', trustDelta:+1 },
+  'm01_dp2_D_vasquez': { type:'status',   msg:'"Initiating hardware fix in parallel. Timeline is workable."', trustDelta:+1 },
+
+  /* ── M-01 DP3 ── */
+  'm01_dp3_A_park':    { type:'concern',  msg:'"That conversation will not be forgotten."',    trustDelta:-2 },
+  'm01_dp3_A_chen':    { type:'agree',    msg:'"Good. She knows where the line is now."',      trustDelta:+1 },
+  'm01_dp3_B_okafor':  { type:'concern',  msg:'"The issue isn\'t gone. It\'s deferred."',        trustDelta:-1 },
+  'm01_dp3_B_chen':    { type:'status',   msg:'"Refocusing on execution. Let\'s get it done."', trustDelta:+1 },
+  'm01_dp3_C_chen':    { type:'agree',    msg:'"Alright. Let\'s name it and move."',            trustDelta:+2 },
+  'm01_dp3_C_okafor':  { type:'agree',    msg:'"I\'m back in. What do you need from me?"',     trustDelta:+3 },
+  'm01_dp3_D_park':    { type:'warn',     msg:'"I have standing here. This is not over."',     trustDelta:-4 },
+  'm01_dp3_D_reyes':   { type:'concern',  msg:'"Operational prep time is now gone."',          trustDelta:-2 },
+
+  /* ── M-02 DP1 ── */
+  'm02_dp1_A_intel':   { type:'status',   msg:'"Proceeding with 62% confidence. Sector A commitment is live."', trustDelta:0 },
+  'm02_dp1_A_ctr2':    { type:'warn',     msg:'"Platform Alpha telemetry is still 4 hours old. That\'s your risk."', trustDelta:-1 },
+  'm02_dp1_B_prog2':   { type:'warn',     msg:'"Downstream dependency window will close during the delay."', trustDelta:-2 },
+  'm02_dp1_B_air':     { type:'agree',    msg:'"Alpha will be fully resolved. Mission proceeds at lower risk."', trustDelta:+1 },
+  'm02_dp1_C_intel':   { type:'status',   msg:'"Sector A threat pattern holds. Bravo-Only is the safer call."', trustDelta:+1 },
+  'm02_dp1_C_ctr2':    { type:'agree',    msg:'"Holding Alpha was the right read on data currency."', trustDelta:+2 },
+
+  /* ── M-03 DP1 ── */
+  'm03_dp1_A_torres':  { type:'agree',    msg:'"Staying on mission. Let\'s execute."',          trustDelta:+2 },
+  'm03_dp1_A_kim':     { type:'warn',     msg:'"Thermal progression continues. I\'m documenting my recommendation."', trustDelta:-2 },
+  'm03_dp1_B_torres':  { type:'disagree', msg:'"Formally objecting. Mission window is burning."', trustDelta:-2 },
+  'm03_dp1_B_kim':     { type:'agree',    msg:'"Acknowledged. Initiating full diagnostic."',   trustDelta:+2 },
+  'm03_dp1_C_torres':  { type:'concern',  msg:'"Reduced tempo isn\'t a plan. It\'s a delay."',  trustDelta:-1 },
+  'm03_dp1_C_nakamura':{ type:'status',   msg:'"Operating at minimum viable. Ready when you are."', trustDelta:0 },
+  'm03_dp1_D_kim':     { type:'agree',    msg:'"Good. All data on the table. This helps."',   trustDelta:+1 },
+  'm03_dp1_D_brooks':  { type:'status',   msg:'"Network concern now formally on record."',    trustDelta:+1 },
+
+  /* ── M-03 DP2 ── */
+  'm03_dp2_A_kim':     { type:'warn',     msg:'"Override documented. For the record."',        trustDelta:-3 },
+  'm03_dp2_A_torres':  { type:'agree',    msg:'"Mission continues. Good call."',               trustDelta:+2 },
+  'm03_dp2_B_torres':  { type:'disagree', msg:'"Formally disagree with this priority call."',  trustDelta:-2 },
+  'm03_dp2_B_kim':     { type:'agree',    msg:'"Proceeding with diagnostic. I\'ll brief results."', trustDelta:+2 },
+  'm03_dp2_C_nakamura':{ type:'status',   msg:'"The system is compensating manually. Kim\'s assessment matches what I\'m seeing."', trustDelta:+2 },
+  'm03_dp2_D_kim':     { type:'concern',  msg:'"Partial result only. Root cause still uncharacterized."', trustDelta:-1 },
+
+  /* ── M-03 DP3 ── */
+  'm03_dp3_A_reeves':  { type:'disagree', msg:'"Formal report will trigger review obligations. Flagging this."', trustDelta:-1 },
+  'm03_dp3_A_brooks':  { type:'agree',    msg:'"Full transparency was the right call."',       trustDelta:+1 },
+  'm03_dp3_B_reeves':  { type:'agree',    msg:'"Minimal disclosure is appropriate here."',     trustDelta:+1 },
+  'm03_dp3_C_torres':  { type:'status',   msg:'"HQ has the picture. We continue."',            trustDelta:0 },
+  'm03_dp3_D_torres':  { type:'status',   msg:'"Supervisor is informed. Good."',               trustDelta:0 },
+
+  /* ── M-03 DP4 ── */
+  'm03_dp4_A_kim':     { type:'warn',     msg:'"Two concurrent faults. This is not advisable."', trustDelta:-3 },
+  'm03_dp4_A_nakamura':{ type:'status',   msg:'"Proceeding. Monitoring closely."',             trustDelta:0 },
+  'm03_dp4_B_kim':     { type:'agree',    msg:'"Compressed window was the right call. Good."', trustDelta:+2 },
+  'm03_dp4_C_kim':     { type:'agree',    msg:'"Suspension confirmed. System integrity preserved."', trustDelta:+2 },
+  'm03_dp4_D_nakamura':{ type:'concern',  msg:'"Backup platform required 25 minutes. Window closed."', trustDelta:-1 },
+
+  /* ── M-04 DP1 ── */
+  'm04_dp1_A_chenair': { type:'agree',    msg:'"COPPER-4 ISR support confirmed. Proceeding."', trustDelta:+2 },
+  'm04_dp1_A_vasquez2':{ type:'concern',  msg:'"Degraded asset is now tasked. Failure risk noted."', trustDelta:-1 },
+  'm04_dp1_B_chenair': { type:'disagree', msg:'"COPPER-4 will execute below threshold. Noted."', trustDelta:-2 },
+  'm04_dp1_C_vasquez2':{ type:'warn',     msg:'"Neither area is adequately supported. This creates gaps everywhere."', trustDelta:-2 },
+  'm04_dp1_D_chenair': { type:'concern',  msg:'"Every minute in adjudication closes my window."', trustDelta:-1 },
+
+  /* ── M-04 DP2 ── */
+  'm04_dp2_A_walsh2':  { type:'agree',    msg:'"Initiating full network assessment. Stand by."', trustDelta:+2 },
+  'm04_dp2_A_park2':   { type:'warn',     msg:'"TRIDENT window is now critical."',              trustDelta:-1 },
+  'm04_dp2_B_walsh2':  { type:'concern',  msg:'"Pattern intensity increasing. Monitoring."',   trustDelta:-1 },
+  'm04_dp2_C_walsh2':  { type:'agree',    msg:'"Segregated monitoring active. Proceeding."',   trustDelta:+2 },
+  'm04_dp2_D_walsh2':  { type:'status',   msg:'"Escalation submitted. Awaiting commander guidance."', trustDelta:0 },
+
+  /* ── M-04 DP3 ── */
+  'm04_dp3_A_chenair': { type:'warn',     msg:'"COPPER-4 is scrubbed. That\'s a mission gap."', trustDelta:-3 },
+  'm04_dp3_A_park2':   { type:'agree',    msg:'"4-4-Alpha covered. Contact being tracked."',   trustDelta:+1 },
+  'm04_dp3_B_park2':   { type:'concern',  msg:'"Organic assets are lower fidelity. We\'ll manage."', trustDelta:-1 },
+  'm04_dp3_C_park2':   { type:'agree',    msg:'"Maritime patrol assets redirected. 4-4-Alpha coverage active."', trustDelta:+2 },
+  'm04_dp3_C_chenair': { type:'agree',    msg:'"COPPER-4 ISR support maintained. Good call."', trustDelta:+2 },
+
+  /* ── M-04 DP4 ── */
+  'm04_dp4_A_okafor2': { type:'warn',     msg:'"Domain-by-domain responses are playing into the adversary design."', trustDelta:-3 },
+  'm04_dp4_B_chenair': { type:'warn',     msg:'"COPPER-4 window closed during pause."',        trustDelta:-2 },
+  'm04_dp4_B_okafor2': { type:'agree',    msg:'"Cross-domain analysis complete. Adversary coordination confirmed."', trustDelta:+2 },
+  'm04_dp4_C_okafor2': { type:'agree',    msg:'"Coordinated response is disrupting the adversary\'s shaping operation."', trustDelta:+3 },
+  'm04_dp4_D_okafor2': { type:'agree',    msg:'"Commander has the cross-domain picture. Good escalation call."', trustDelta:+1 }
+};
+
+/* ── GENERIC FALLBACK REACTIONS ──
+   Fired when no specific line exists for a member+decision combo.
+   Keyed by: comStyle + whether their priority MS key went up/down
+── */
+const GENERIC_REACTIONS = {
+  direct: {
+    up:   [ '"On track."', '"Good."', '"That\'s the call."', '"Understood. Moving."' ],
+    down: [ '"That\'s a problem."', '"We\'re losing ground here."', '"Noted — but I don\'t like it."' ],
+    neutral: [ '"Standing by."', '"Ready to execute."', '"Acknowledged."' ]
+  },
+  analytical: {
+    up:   [ '"Data picture improves with this decision."', '"Confidence trend is positive."', '"Assessment updated."' ],
+    down: [ '"Risk indicators remain elevated."', '"Signal unresolved."', '"Confidence insufficient for this call."' ],
+    neutral: [ '"Continuing analysis."', '"No new data to add."', '"Assessment unchanged."' ]
+  },
+  technical: {
+    up:   [ '"System stability improving."', '"Technical risk within bounds."', '"Proceeding within parameters."' ],
+    down: [ '"Technical risk is outside normal operating range."', '"Stability concern documented."', '"Override noted in record."' ],
+    neutral: [ '"Monitoring telemetry."', '"No change in system state."', '"Standing by on technical status."' ]
+  },
+  tactical: {
+    up:   [ '"Sensors nominal. Ready to execute."', '"ISR coverage maintained."', '"Platform is go."' ],
+    down: [ '"Coverage degraded. Flagging data gap risk."', '"Sensor fidelity below threshold."', '"Operational parameters constrained."' ],
+    neutral: [ '"Awaiting tasking."', '"Platform ready."', '"Standing by."' ]
+  },
+  institutional: {
+    up:   [ '"Program record is clean."', '"This aligns with program requirements."', '"No reportable gaps at this time."' ],
+    down: [ '"Program exposure is increasing."', '"This may require a program record entry."', '"Documentation concern noted."' ],
+    neutral: [ '"Monitoring."', '"No formal flag at this time."', '"Acknowledged."' ]
+  }
+};
+
+/* ── TRUST SHIFT LABEL ── */
+function trustShiftLabel(delta) {
+  if(delta > 1)  return { cls:'up', txt:`Trust ▲ +${delta}` };
+  if(delta < -1) return { cls:'dn', txt:`Trust ▼ ${delta}` };
+  return null;
+}
+
+/* ── SIMULATE ELAPSED CLOCK ── */
+function reactionTimestamp(dpTime, offsetSec) {
+  // Parse T+HH:MM format
+  if(!dpTime || !dpTime.startsWith('T+')) return dpTime || 'T+??:??';
+  const parts = dpTime.replace('T+','').split(':');
+  let totalSec = parseInt(parts[0]||0)*60 + parseInt(parts[1]||0) + offsetSec;
+  const m = Math.floor(totalSec/60);
+  const s = totalSec%60;
+  return `T+${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+/* ── LOG REACTION TO FEED ── */
+function logReaction(memberId, type, msg, trustDelta, timestamp) {
+  const feed = document.getElementById('inj-feed');
+  if(!feed) return;
+  const profile = MEMBER_PROFILES[memberId];
+  const abbr = profile?.abbr || memberId.toUpperCase();
+  const ts = trustShiftLabel(trustDelta||0);
+  const div = document.createElement('div');
+  div.className = `feed-item f-reaction r-${type}`;
+  div.style.animation = 'slideIn .3s ease';
+  div.innerHTML =
+    `<div class="fi-time">${timestamp}</div>` +
+    `<div class="fi-member">${abbr}</div>` +
+    `<div class="fi-reaction-text">${msg}</div>` +
+    (ts ? `<div class="fi-trust-shift ${ts.cls}">${ts.txt}</div>` : '');
+  feed.insertBefore(div, feed.firstChild);
+  // Don't auto-switch to feed — decision already does that
+}
+
+/* ── MAIN: FIRE REACTIONS AFTER A DECISION ── */
+function fireTeamReactions(simId, dpId, optKey, dpTime) {
+  const sim = SIMS[simId];
+  if(!sim) return;
+
+  // Gather active team members for this sim
+  const members = sim.team.map(m => m.id);
+  const changes = S._lastChanges || [];
+
+  // Build a candidate pool: [ {memberId, type, msg, trustDelta, priority} ]
+  const pool = [];
+
+  members.forEach(mid => {
+    const profile = MEMBER_PROFILES[mid];
+    if(!profile) return;
+
+    // 1. Check for a scripted specific line
+    const specKey = `${simId}_${dpId}_${optKey}_${mid}`;
+    const spec = REACTION_LINES[specKey];
+
+    if(spec) {
+      pool.push({ memberId: mid, type: spec.type, msg: spec.msg, trustDelta: spec.trustDelta, priority: 10 });
+      return;
+    }
+
+    // 2. Generic fallback — only fire for members whose priority stat changed
+    const priorityStat = profile.priority;
+    const change = changes.find(c => c.stat === priorityStat);
+    if(!change) return; // this member's domain unaffected — skip
+
+    const style = profile.comStyle || 'direct';
+    const dir = change.delta > 3 ? 'up' : change.delta < -3 ? 'down' : 'neutral';
+    const lines = GENERIC_REACTIONS[style]?.[dir] || GENERIC_REACTIONS.direct[dir];
+    if(!lines || !lines.length) return;
+
+    const msg = lines[Math.floor(Math.random() * lines.length)];
+    // Trust delta for generic is small
+    const td = change.delta > 0 ? 1 : change.delta < 0 ? -1 : 0;
+    pool.push({ memberId: mid, type: dir==='up'?'agree':dir==='down'?'concern':'status', msg, trustDelta: td, priority: 3 });
+  });
+
+  if(!pool.length) return;
+
+  // Sort: scripted first (priority 10), then by absolute trust impact
+  pool.sort((a,b) => b.priority - a.priority || Math.abs(b.trustDelta) - Math.abs(a.trustDelta));
+
+  // Keep 2–4 reactions, ensuring variety (no duplicate members)
+  const seen = new Set();
+  const final = [];
+  for(const r of pool) {
+    if(seen.has(r.memberId)) continue;
+    seen.add(r.memberId);
+    final.push(r);
+    if(final.length >= 4) break;
+  }
+  // Minimum 2 if available
+  const toFire = final.slice(0, Math.max(2, Math.min(final.length, 4)));
+
+  // Stagger delivery: 900ms, 1800ms, 2700ms, 3600ms
+  toFire.forEach((r, i) => {
+    const delay = 900 + i * 850;
+    const ts = reactionTimestamp(dpTime, 8 + i * 12);
+    setTimeout(() => {
+      logReaction(r.memberId, r.type, r.msg, r.trustDelta, ts);
+    }, delay);
+  });
+}
+
+
+
+/* ═══════════════════════════════════════════════
    LOAD SIM
 ═══════════════════════════════════════════════ */
+function clearFeed() {
+  const feed = document.getElementById('inj-feed');
+  if(!feed) return;
+  // Remove all feed-item elements, keep the feed-empty placeholder
+  Array.from(feed.querySelectorAll('.feed-item')).forEach(el => el.remove());
+  const empty = document.getElementById('feed-empty');
+  if(empty) { empty.style.display = ''; }
+}
+
 function loadSim(id) {
   const sim = SIMS[id]; if (!sim) return;
   closeTutorial();
+  clearFeed();   // scope feed to this scenario only
   S.activeSim=id; S.phase=0; S.chosen={}; S._deciding=false;
   S.aiOn=false; S.assumptionsChallenged=0;
   S.timerRunning=true; S.timerSecs=sim.clockSecs;
   S._lastChanges = null;
   initVariability(); initMissionState(id); initTeamState(id);
-  document.querySelectorAll('.mod-item').forEach(el=>el.classList.remove('active'));
-  document.getElementById(`mi-${id}`)?.classList.add('active');
+  // Update nav: remove active from all modules and reset their status labels
+  document.querySelectorAll('.mod-item').forEach(el => {
+    el.classList.remove('active');
+    const statusEl = el.querySelector('.mi-status');
+    if(statusEl && !statusEl.classList.contains('s-done')) {
+      statusEl.className = 'mi-status s-avail';
+      statusEl.textContent = '→ Available';
+    }
+  });
+  // Mark new module as active
+  const newNavItem = document.getElementById(`mi-${id}`);
+  if(newNavItem) {
+    newNavItem.classList.add('active');
+    const statusEl = newNavItem.querySelector('.mi-status');
+    if(statusEl && !statusEl.classList.contains('s-done')) {
+      statusEl.className = 'mi-status s-active';
+      statusEl.textContent = '● Active';
+    }
+  }
   document.getElementById('tb-crumb').textContent = sim.title;
   document.getElementById('tb-badge').textContent = sim.type;
   document.getElementById('tb-clock').style.color = '';
@@ -2234,7 +3213,7 @@ function renderMatrix(sim) {
   </div>`).join('');
   return `<div class="sitrep-card"><div class="sitrep-label">Decision Space — ${sim.code}</div><div class="sitrep-text">A time-sensitive targeting decision requires you to evaluate 8 variables simultaneously with a 6-minute window. The AI decision support layer is available — but engaging it is your choice, and accepting its recommendation is never automatic.</div></div>
   <div class="ai-row"><div class="ai-lbl">AI Decision Support <span class="ai-tag">AX-LEAD ASSIST</span></div>
-  <div class="tog-wrap" onclick="toggleAI()"><div class="tog-track" id="tog-track"><div class="tog-thumb"></div></div><div class="tog-state" id="tog-state">OFF</div></div></div>
+  <div class="tog-wrap" onclick="toggleAI()"><div class="tog-track ${S.aiOn?'on':''}" id="tog-track"><div class="tog-thumb"></div></div><div class="tog-state" id="tog-state">${S.aiOn?'ON':'OFF'}</div></div></div>
   <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:9px;display:flex;align-items:center;gap:8px">Mission Variables (8 active)<span style="flex:1;height:1px;background:var(--r1);display:block"></span></div>
   <div class="ai-var-grid">${varHTML}</div>
   <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin:14px 0 9px;display:flex;align-items:center;gap:8px">Courses of Action<span style="flex:1;height:1px;background:var(--r1);display:block"></span></div>
@@ -2283,6 +3262,8 @@ function renderResolution(sim) {
 ═══════════════════════════════════════════════ */
 function advPhase() {
   const sim=SIMS[S.activeSim]; if(!sim) return;
+  console.log('advPhase', sim.phases[S.phase], '→', sim.phases[S.phase+1], '| sim:', S.activeSim);
+  S._deciding = false;
   if(S.phase<sim.phases.length-1){ S.phase++; renderCenter(sim); document.querySelector('.scenario-scroll')?.scrollTo({top:0,behavior:'smooth'}); updateBottomTrack(); }
 }
 
@@ -2290,8 +3271,8 @@ function advPhase() {
    OPTION SELECTION & CONFIRMATION
 ═══════════════════════════════════════════════ */
 function selectOpt(dpId, key) {
-  // Guard: if already processing a decision, ignore
-  if(S._deciding) return;
+  console.log('selectOpt', dpId, key, '| _deciding:', S._deciding);
+  if(S._deciding) { console.warn('selectOpt blocked — _deciding=true'); return; }
   S._deciding = true;
 
   // Resolve card element (handle COA variant)
@@ -2313,11 +3294,28 @@ function selectOpt(dpId, key) {
   // Trigger expand+glow animation on selected card
   selEl.classList.add('confirming');
 
-  // After animation completes, run the full confirm logic
-  setTimeout(() => {
-    S._deciding = false;
-    confirmOpt(dpId);
-  }, 340);
+  // For the matrix phase (M02), the user must explicitly click Commit COA.
+  // For all other decision phases, auto-advance after the animation.
+  const sim = SIMS[S.activeSim];
+  const currentPhase = sim?.phases[S.phase];
+  const isMatrix = currentPhase === 'matrix';
+
+  if(isMatrix) {
+    // Un-confirming the animation after it plays — keep card selected, wait for button click
+    setTimeout(() => {
+      S._deciding = false;
+      selEl.classList.remove('confirming');
+      // Activate the commit button
+      const btn = document.getElementById('dp1-btn');
+      if(btn) btn.classList.add('on');
+    }, 340);
+  } else {
+    // Standard DP: auto-advance after animation
+    setTimeout(() => {
+      S._deciding = false;
+      confirmOpt(dpId);
+    }, 340);
+  }
 }
 
 function confirmOpt(dpId) {
@@ -2344,6 +3342,9 @@ function confirmOpt(dpId) {
   logTrace('decision',{dpId,dpTitle:dpData.title,dpTime:dpData.time,chosen:key,chosenLbl:opt.lbl,consequence:con,info,missed,altOutcomes,stateSnapshot:{...S.MS},stateChanges:changes});
   logFeed('decision',dpData.time,`Decision: ${opt.lbl}`,con?.note||'');
 
+  // Fire staggered team reactions
+  fireTeamReactions(sim.id, dpId, key, dpData.time);
+
   updateBottomTrack();
   advPhase();
 }
@@ -2352,11 +3353,45 @@ function confirmOpt(dpId) {
    AI TOGGLE
 ═══════════════════════════════════════════════ */
 function toggleAI() {
-  S.aiOn=!S.aiOn;
-  const track=document.getElementById('tog-track'); const state=document.getElementById('tog-state');
-  if(!track) return;
-  track.classList.toggle('on',S.aiOn); if(state) state.textContent=S.aiOn?'ON':'OFF';
-  const sim=SIMS[S.activeSim]; if(sim){renderCenter(sim);renderAIPanel(sim);}
+  S.aiOn = !S.aiOn;
+  console.log('AI toggle changed', S.aiOn);
+  const track = document.getElementById('tog-track');
+  const state  = document.getElementById('tog-state');
+  if(track) track.classList.toggle('on', S.aiOn);
+  if(state) state.textContent = S.aiOn ? 'ON' : 'OFF';
+  // Update opt-desc visibility (AI notes)
+  document.querySelectorAll('.opt-desc').forEach(el => {
+    el.style.display = S.aiOn ? '' : 'none';
+  });
+  // Update COA metric bar widths
+  const sim = SIMS[S.activeSim];
+  if(sim && sim.coas) {
+    sim.coas.forEach(coa => {
+      coa.metrics.forEach((m, mi) => {
+        const bar = document.querySelector(`#coa-opts #coa-${coa.id} .av-fill:nth-child(${mi+1}), #coa-opts #coa-${coa.id} div[style*="transition"] .av-fill`);
+        // simpler: query all av-fill inside each coa card
+      });
+    });
+    // Redraw just the coa-opts grid
+    const coaOpts = document.getElementById('coa-opts');
+    if(coaOpts) {
+      const chosen = S.chosen['dp1'];
+      const coaHTML = sim.coas.map(cc=>`<div class="dp-opt${chosen===cc.id.charAt(0).toUpperCase()?' sel':''}" id="coa-${cc.id}" onclick="selectOpt('dp1','${cc.id.charAt(0).toUpperCase()}')">
+        <span class="opt-key" style="font-size:8px;width:52px;text-align:center">${cc.label}</span>
+        <div class="opt-body">
+          <div class="opt-lbl">${cc.name}</div>
+          <div class="opt-desc" style="${S.aiOn?'':'display:none'}">${cc.aiNote}</div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            ${cc.metrics.map(m=>`<div style="flex:1"><div style="font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:3px">${m.lbl}</div>
+            <div style="height:3px;background:var(--r1);overflow:hidden"><div class="av-fill ${m.cls}" style="width:${S.aiOn?m.w:0}%;transition:width .8s ease"></div></div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--t3);margin-top:2px">${m.val}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>`).join('');
+      coaOpts.innerHTML = coaHTML;
+    }
+  }
+  if(sim) renderAIPanel(sim);
 }
 
 /* ═══════════════════════════════════════════════
@@ -2643,6 +3678,194 @@ function openScorecard(simId){
 /* ═══════════════════════════════════════════════
    TUTORIAL
 ═══════════════════════════════════════════════ */
+
+/* ══ WELCOME + SCENARIO SELECTION FLOW ══ */
+
+/* SCENARIO METADATA — drives the selection screen */
+const SCENARIO_META = [
+  {
+    simId: 'm01',
+    num: 'M-01 // FOXTROT-3',
+    title: 'Mixed Team Leadership',
+    desc: 'Lead military personnel, government civilians, and contractors through a contested ISR decision under operational pressure. Managing competing priorities across institutional boundaries.',
+    difficulty: 'int', difficultyLabel: 'Intermediate',
+    duration: '10–14 min',
+    focus: 'Team Alignment'
+  },
+  {
+    simId: 'm02',
+    num: 'M-02 // DELTA-7',
+    title: 'AI Decision Advantage',
+    desc: 'Navigate a complex multi-variable decision matrix with AI-assisted analysis. Toggle AI support on and off. Maintain leadership judgment rather than delegating it to the machine.',
+    difficulty: 'int', difficultyLabel: 'Intermediate',
+    duration: '8–10 min',
+    focus: 'Human–Machine Judgment'
+  },
+  {
+    simId: 'm03',
+    num: 'M-03 // KILO-9',
+    title: 'Command Under Pressure',
+    desc: 'Manage a developing system fault during an active mission window. Conflicting technical and operational recommendations. Four decision points under severe time constraint.',
+    difficulty: 'adv', difficultyLabel: 'Advanced',
+    duration: '12–16 min',
+    focus: 'Decision Speed'
+  },
+  {
+    simId: 'm04',
+    num: 'M-04 // ECHO-2',
+    title: 'Multi-Domain Coordination',
+    desc: 'Allocate limited ISR and cyber assets across competing space, air, maritime, and cyber domain requests. Respond to a potential coordinated adversary shaping operation.',
+    difficulty: 'adv', difficultyLabel: 'Advanced',
+    duration: '12–16 min',
+    focus: 'Operational Integration'
+  }
+];
+
+let S_selectedScenario = null;
+
+/* ── Welcome overlay ── */
+function welcomeClose() {
+  const el = document.getElementById('welcome-overlay');
+  if(!el) return;
+  el.classList.add('out');
+  setTimeout(() => { el.style.display = 'none'; el.classList.remove('out'); }, 400);
+  console.log('welcome brief closed');
+}
+
+function welcomeStartTour() {
+  welcomeClose();
+  // Open scenario selection, then the user can choose to start with tour
+  setTimeout(() => {
+    openScenarioSelect({ launchWithTour: true });
+  }, 400);
+}
+
+function welcomeSkipTour() {
+  welcomeClose();
+  setTimeout(() => {
+    openScenarioSelect({ launchWithTour: false });
+  }, 400);
+}
+
+function welcomeReplay() {
+  selClose();
+  const el = document.getElementById('welcome-overlay');
+  if(!el) return;
+  el.style.display = 'flex';
+  el.classList.remove('out');
+}
+
+/* ── Scenario Selection overlay ── */
+let _selTourMode = false;
+
+function openScenarioSelect(opts) {
+  _selTourMode = (opts && opts.launchWithTour) || false;
+  // Render cards
+  const grid = document.getElementById('sel-grid');
+  if(!grid) return;
+  grid.innerHTML = SCENARIO_META.map((sc, i) => {
+    const diffCls = 'difficulty-' + sc.difficulty;
+    const selectedCls = (S_selectedScenario === sc.simId) ? 'selected' : '';
+    return `<div class="ss-card ${selectedCls}" id="ss-card-${sc.simId}" onclick="selSelectCard('${sc.simId}')">
+      <div class="ss-card-accent"></div>
+      <div class="ss-card-body">
+        <div class="ss-scenario-num">
+          <span>${sc.num}</span>
+          <span class="ss-selected-badge">✓ Selected</span>
+        </div>
+        <div class="ss-card-title">${sc.title}</div>
+        <div class="ss-card-desc">${sc.desc}</div>
+        <div class="ss-meta">
+          <span class="ss-tag ${diffCls}">${sc.difficultyLabel}</span>
+          <span class="ss-tag duration">⏱ ${sc.duration}</span>
+          <span class="ss-tag focus">${sc.focus}</span>
+        </div>
+        <button class="ss-card-select-btn" onclick="event.stopPropagation();selSelectCard('${sc.simId}')">
+          ${(S_selectedScenario === sc.simId) ? '✓ Selected' : 'Select Scenario'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Update footer state
+  selUpdateFooter();
+
+  // Show
+  const ov = document.getElementById('sel-overlay');
+  if(ov) { ov.style.display = 'flex'; ov.classList.add('open'); ov.classList.remove('out'); }
+}
+
+function selClose() {
+  const ov = document.getElementById('sel-overlay');
+  if(!ov) return;
+  ov.classList.add('out');
+  setTimeout(() => { ov.style.display = 'none'; ov.classList.remove('open', 'out'); }, 340);
+}
+
+function selSelectCard(simId) {
+  S_selectedScenario = simId;
+  // Update all cards visually
+  document.querySelectorAll('.ss-card').forEach(card => {
+    const id = card.id.replace('ss-card-','');
+    const isSelected = id === simId;
+    card.classList.toggle('selected', isSelected);
+    const btn = card.querySelector('.ss-card-select-btn');
+    if(btn) btn.textContent = isSelected ? '✓ Selected' : 'Select Scenario';
+    const badge = card.querySelector('.ss-selected-badge');
+    if(badge) badge.style.display = isSelected ? 'inline' : 'none';
+  });
+  selUpdateFooter();
+}
+
+function selUpdateFooter() {
+  const launchBtn = document.getElementById('sel-launch-btn');
+  const tourBtn   = document.getElementById('sel-tour-btn');
+  const lbl       = document.getElementById('sel-selected-lbl');
+  const hasSelection = !!S_selectedScenario;
+
+  if(launchBtn) launchBtn.classList.toggle('active', hasSelection);
+  if(tourBtn)   tourBtn.classList.toggle('active', hasSelection);
+
+  if(lbl) {
+    if(hasSelection) {
+      const meta = SCENARIO_META.find(s => s.simId === S_selectedScenario);
+      lbl.innerHTML = `Selected: <strong>${meta?.title || S_selectedScenario}</strong>`;
+    } else {
+      lbl.innerHTML = 'No scenario selected';
+    }
+  }
+  // Update launch button label for tour mode
+  if(launchBtn) {
+    launchBtn.textContent = _selTourMode ? 'Start with Guided Tour →' : 'Launch Scenario →';
+  }
+}
+
+function selLaunch() {
+  if(!S_selectedScenario) return;
+  selClose();
+  setTimeout(() => {
+    loadSim(S_selectedScenario);
+    if(_selTourMode) setTimeout(openTutorial, 200);
+  }, 380);
+}
+
+function selLaunchWithTour() {
+  if(!S_selectedScenario) return;
+  selClose();
+  setTimeout(() => {
+    loadSim(S_selectedScenario);
+    setTimeout(openTutorial, 200);
+  }, 380);
+}
+
+function selBack() {
+  selClose();
+  setTimeout(() => {
+    const el = document.getElementById('welcome-overlay');
+    if(el) { el.style.display = 'flex'; el.classList.remove('out'); }
+  }, 380);
+}
+
 /* ═══════════════════════════════════════════════
    GUIDED TOUR SYSTEM
    Spotlight travels across the interface.
@@ -2713,8 +3936,8 @@ let tourStep = 0;
 let tourActive = false;
 
 function openTutorial() {
-  // Make sure m01 is loaded so all elements exist
-  if(!S.activeSim) loadSim('m01');
+  // If no sim active, load the selected one or default to m01
+  if(!S.activeSim) loadSim(S_selectedScenario || 'm01');
   // Small delay to let the DOM settle after loadSim render
   setTimeout(() => {
     tourStep = 0;
@@ -2740,7 +3963,7 @@ function tourSkip()  { closeTutorial(); }
 function tourPrev()  { if(tourStep > 0) { tourStep--; renderTourStep(); } }
 function tourNext()  {
   if(tourStep < TOUR_STEPS.length - 1) { tourStep++; renderTourStep(); }
-  else { closeTutorial(); }
+  else { closeTutorial(); } // sim already loaded — just dismiss tour
 }
 
 // Also keep old names alive in case called from HTML
@@ -2940,9 +4163,547 @@ document.getElementById('trace-overlay').addEventListener('click',e=>{if(e.targe
 document.getElementById('scard-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('scard-overlay'))document.getElementById('scard-overlay').classList.remove('open');});
 
 // Load M-01 immediately so the interface is populated,
-// then open the guided tour over the live interface
+// then show the Welcome brief. Tour launches from there if requested.
 loadSim('m01');
-openTutorial();
+// (welcome overlay is visible by default via HTML; sim loads behind it)
+
+
+/* ═══════════════════════════════════════════════
+   AX-LEAD QA / DEBUG ENGINE  (dev-only)
+═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   AX-LEAD QA / DEBUG SYSTEM
+   Activate:  Ctrl+Shift+D  or  ?debug=true in URL
+   Run tests: runAXLeadStressTest()  in browser console
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── State ── */
+const QA = {
+  active: false,
+  results: [],     // { scenario, phase, test, result, detail }
+  stats: { scenarios:0, interactions:0, buttons:0, failures:0 },
+  _step: 0,        // current async step for non-blocking runner
+};
+
+/* ── Activation ── */
+function qaActivate() {
+  if(QA.active) return;
+  QA.active = true;
+  console.log('%c AX-LEAD DEBUG MODE ACTIVE ', 'background:#00cce0;color:#000;font-weight:700;padding:2px 8px;');
+  _qaInjectDashboard();
+  _qaUpdateDash();
+  console.log('Run full stress test: runAXLeadStressTest()');
+  console.log('Test single scenario: qaTestScenario("m01")');
+  console.log('Check current state: qaCheckState()');
+}
+
+function qaDeactivate() {
+  QA.active = false;
+  const d = document.getElementById('qa-dash');
+  if(d) d.remove();
+}
+
+/* ── Dashboard (floating panel) ── */
+function _qaInjectDashboard() {
+  if(document.getElementById('qa-dash')) return;
+  const d = document.createElement('div');
+  d.id = 'qa-dash';
+  d.style.cssText = `
+    position:fixed; bottom:12px; left:12px; z-index:9999;
+    background:#020a12; border:1px solid rgba(0,204,224,.5);
+    border-left:3px solid #00cce0; padding:10px 14px; min-width:220px;
+    font-family:'IBM Plex Mono',monospace; font-size:9px;
+    letter-spacing:.12em; text-transform:uppercase; color:#9cc2da;
+    pointer-events:auto; user-select:none;
+    box-shadow:0 4px 24px rgba(0,0,0,.7);
+  `;
+  d.innerHTML = `
+    <div id="qa-title" style="color:#00cce0;font-size:8px;letter-spacing:.3em;margin-bottom:8px;display:flex;align-items:center;gap:7px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:#00cce0;box-shadow:0 0 6px #00cce0;display:inline-block;animation:blink 2s infinite"></span>
+      AX-LEAD DEBUG
+    </div>
+    <div id="qa-status" style="color:#6898b8;font-size:8px;margin-bottom:8px;">Idle</div>
+    <div id="qa-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;">
+      <span style="color:#3a6a8a">Scenarios</span><span id="qas-sc" style="color:#9cc2da">0</span>
+      <span style="color:#3a6a8a">Interactions</span><span id="qas-int" style="color:#9cc2da">0</span>
+      <span style="color:#3a6a8a">Buttons</span><span id="qas-btn" style="color:#9cc2da">0</span>
+      <span id="qas-fail-lbl" style="color:#3a6a8a">Failures</span>
+      <span id="qas-fail" style="color:#9cc2da">0</span>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="runAXLeadStressTest()" style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#000;background:#00cce0;border:none;padding:5px 10px;cursor:pointer;">Run Tests</button>
+      <button onclick="qaCheckState()" style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#9cc2da;background:transparent;border:1px solid rgba(0,204,224,.3);padding:5px 8px;cursor:pointer;">State</button>
+      <button onclick="qaClearResults()" style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#6898b8;background:transparent;border:1px solid rgba(100,140,180,.2);padding:5px 8px;cursor:pointer;">Clear</button>
+    </div>
+    <div id="qa-log" style="margin-top:8px;max-height:120px;overflow-y:auto;border-top:1px solid rgba(0,204,224,.1);padding-top:6px;font-size:7.5px;line-height:1.8;"></div>
+  `;
+  document.body.appendChild(d);
+}
+
+function _qaUpdateDash() {
+  if(!QA.active) return;
+  const s = QA.stats;
+  const setText = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  setText('qas-sc',   s.scenarios);
+  setText('qas-int',  s.interactions);
+  setText('qas-btn',  s.buttons);
+  setText('qas-fail', s.failures);
+  const failEl = document.getElementById('qas-fail');
+  const failLbl = document.getElementById('qas-fail-lbl');
+  if(failEl) failEl.style.color = s.failures > 0 ? '#cc3a3a' : '#00b070';
+  if(failLbl) failLbl.style.color = s.failures > 0 ? 'rgba(204,58,58,.7)' : '#3a6a8a';
+}
+
+function _qaLog(msg, type='info') {
+  const colors = { pass:'#00b070', fail:'#cc3a3a', info:'#6898b8', warn:'#d49018', head:'#00cce0' };
+  const col = colors[type] || colors.info;
+  const logEl = document.getElementById('qa-log');
+  if(logEl) {
+    const line = document.createElement('div');
+    line.style.color = col;
+    line.textContent = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+}
+
+function _qaSetStatus(msg) {
+  const el = document.getElementById('qa-status');
+  if(el) el.textContent = msg;
+}
+
+/* ── Result recording ── */
+function _qaRecord(scenario, phase, test, passed, detail='') {
+  const r = { scenario, phase, test, result: passed?'PASS':'FAIL', detail, ts: Date.now() };
+  QA.results.push(r);
+  QA.stats.interactions++;
+  if(!passed) QA.stats.failures++;
+  const col = passed ? '\x1b[32m' : '\x1b[31m';
+  const reset = '\x1b[0m';
+  console.log(`${col}  [${r.result}]${reset} ${scenario} | ${phase} | ${test}${detail?' — '+detail:''}`);
+  _qaLog(`${passed?'✓':'✗'} ${phase}: ${test}`, passed?'pass':'fail');
+  _qaUpdateDash();
+}
+
+/* ── DOM helpers ── */
+function _qaVisible(el) {
+  if(!el) return false;
+  const r = el.getBoundingClientRect();
+  const style = window.getComputedStyle(el);
+  return r.width > 0 && r.height > 0 &&
+         style.display !== 'none' && style.visibility !== 'hidden' &&
+         parseFloat(style.opacity) > 0.05;
+}
+
+function _qaClick(el) {
+  if(!el) return false;
+  try {
+    el.click();
+    QA.stats.buttons++;
+    _qaUpdateDash();
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+/* ── Phase type detection ── */
+function _qaPhaseType(ph) {
+  if(!ph) return 'unknown';
+  if(ph === 'setup')      return 'setup';
+  if(ph === 'matrix')     return 'matrix';
+  if(ph === 'resolution') return 'resolution';
+  if(ph.startsWith('inject')) return 'inject';
+  if(ph.startsWith('dp'))     return 'decision';
+  if(ph.startsWith('con'))    return 'consequence';
+  return 'unknown';
+}
+
+/* ── Wait helper (non-blocking) ── */
+function _qaWait(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+/* ══════════════════════════════════════════════
+   CORE TEST: single scenario end-to-end
+══════════════════════════════════════════════ */
+async function qaTestScenario(simId) {
+  const sim = SIMS[simId];
+  if(!sim) {
+    console.warn(`[QA] Unknown simId: ${simId}`);
+    return { pass:0, fail:1 };
+  }
+
+  const label = sim.title;
+  console.log(`\n%c Testing: ${label} (${simId}) `, 'background:#071d2c;color:#00cce0;font-weight:700;');
+  _qaSetStatus(`Testing ${sim.code}…`);
+  _qaLog(`── ${sim.code}: ${label}`, 'head');
+
+  // Load the scenario
+  loadSim(simId);
+  await _qaWait(350);
+  QA.stats.scenarios++;
+
+  let phasePass = 0, phaseFail = 0;
+
+  // ── 1. Nav active state ──
+  const navEl = document.getElementById(`mi-${simId}`);
+  const navActive = navEl && navEl.classList.contains('active');
+  _qaRecord(label, 'Navigation', 'Active class set', navActive,
+    navActive ? '' : `mi-${simId} missing .active`);
+  if(navActive) phasePass++; else phaseFail++;
+
+  // ── 2. Title renders ──
+  const crumb = document.getElementById('tb-crumb');
+  const titleMatch = crumb && crumb.textContent.includes(sim.title.split(' ')[0]);
+  _qaRecord(label, 'Navigation', 'Title in topbar', titleMatch);
+  if(titleMatch) phasePass++; else phaseFail++;
+
+  // ── 3. ev-hdr renders ──
+  const evHdr = document.querySelector('.ev-hdr .ev-title');
+  const evMatch = evHdr && evHdr.textContent.trim() === sim.title;
+  _qaRecord(label, 'Layout', 'ev-hdr title renders', evMatch);
+  if(evMatch) phasePass++; else phaseFail++;
+
+  // ── 4. Walk phases ──
+  for(let phIdx = 0; phIdx < sim.phases.length; phIdx++) {
+    const ph = sim.phases[phIdx];
+    const phType = _qaPhaseType(ph);
+
+    // Confirm we're on the right phase
+    const phaseCorrect = S.phase === phIdx;
+    if(!phaseCorrect) {
+      _qaRecord(label, ph, 'Phase index matches S.phase', false,
+        `Expected ${phIdx} got ${S.phase}`);
+      phaseFail++;
+      continue;
+    }
+
+    /* ── Test by phase type ── */
+    if(phType === 'setup') {
+      const btn = document.querySelector('.btn-primary');
+      const visible = _qaVisible(btn);
+      _qaRecord(label, ph, 'Begin Scenario button visible', visible);
+      if(visible) { phasePass++; _qaClick(btn); await _qaWait(180); }
+      else phaseFail++;
+    }
+
+    else if(phType === 'inject') {
+      const btn = document.querySelector('.btn-adv');
+      const visible = _qaVisible(btn);
+      _qaRecord(label, ph, 'Acknowledge/Continue button visible', visible);
+      if(visible) {
+        phasePass++;
+        const phaseBefore = S.phase;
+        _qaClick(btn);
+        await _qaWait(180);
+        const advanced = S.phase > phaseBefore;
+        _qaRecord(label, ph, 'Phase advanced after acknowledge', advanced,
+          advanced ? '' : `S.phase stuck at ${phaseBefore}`);
+        if(advanced) { phasePass++; continue; } else phaseFail++;
+      } else {
+        phaseFail++;
+        // Force advance to avoid infinite loop
+        advPhase();
+        await _qaWait(120);
+      }
+    }
+
+    else if(phType === 'decision') {
+      const opts = document.querySelectorAll(`.dp-opt`);
+      _qaRecord(label, ph, `Decision options rendered (${opts.length})`, opts.length > 0);
+      if(opts.length > 0) {
+        phasePass++;
+        // Pick option A (first available)
+        const firstOpt = opts[0];
+        const optId = firstOpt.id;
+        const key = optId.split('-').pop();
+        const dpId = optId.substring(0, optId.lastIndexOf('-'));
+        const stateBefore = JSON.stringify(S.MS);
+        _qaClick(firstOpt);
+        await _qaWait(500);  // allow 340ms card animation + extra
+        const stateAfter = JSON.stringify(S.MS);
+        const stateChanged = stateBefore !== stateAfter;
+        _qaRecord(label, ph, 'Decision triggers MS state change', stateChanged,
+          stateChanged ? '' : 'MS unchanged after decision');
+        if(stateChanged) phasePass++; else phaseFail++;
+        // Wait for advPhase to run
+        await _qaWait(250);
+        continue;
+      } else {
+        phaseFail++;
+        advPhase(); await _qaWait(120);
+      }
+    }
+
+    else if(phType === 'matrix') {
+      // M02 specific — COA selection + AI toggle
+      const toggle = document.getElementById('tog-track');
+      const toggleVisible = _qaVisible(toggle);
+      _qaRecord(label, ph, 'AI toggle visible', toggleVisible);
+      if(toggleVisible) {
+        phasePass++;
+        const wasOn = S.aiOn;
+        toggleAI();
+        await _qaWait(120);
+        const toggled = S.aiOn !== wasOn;
+        _qaRecord(label, ph, 'AI toggle changes S.aiOn', toggled,
+          toggled ? '' : 'S.aiOn unchanged');
+        if(toggled) phasePass++; else phaseFail++;
+        // Toggle back
+        toggleAI();
+        await _qaWait(80);
+      } else {
+        phaseFail++;
+      }
+
+      const coas = document.querySelectorAll('.dp-opt');
+      _qaRecord(label, ph, `COA options rendered (${coas.length})`, coas.length > 0);
+      if(coas.length > 0) {
+        phasePass++;
+        const stateBefore = JSON.stringify(S.MS);
+        _qaClick(coas[0]);
+        await _qaWait(500);
+        const stateAfter = JSON.stringify(S.MS);
+        _qaRecord(label, ph, 'COA selection triggers MS change',
+          stateBefore !== stateAfter);
+        if(stateBefore !== stateAfter) phasePass++; else phaseFail++;
+        await _qaWait(250);
+        continue;
+      } else {
+        phaseFail++;
+        advPhase(); await _qaWait(120);
+      }
+    }
+
+    else if(phType === 'consequence') {
+      const btn = document.querySelector('.btn-adv');
+      const visible = _qaVisible(btn);
+      _qaRecord(label, ph, 'Consequence Continue button visible', visible);
+      if(visible) {
+        phasePass++;
+        _qaClick(btn);
+        await _qaWait(180);
+      } else {
+        phaseFail++;
+        advPhase(); await _qaWait(120);
+      }
+    }
+
+    else if(phType === 'resolution') {
+      // Just verify it rendered
+      const res = document.querySelector('.resolution');
+      _qaRecord(label, ph, 'Resolution screen renders', !!res);
+      if(res) phasePass++; else phaseFail++;
+      break; // done
+    }
+
+    else {
+      advPhase(); await _qaWait(120);
+    }
+  }
+
+  // ── 5. Timeline check ──
+  const doneNodes = document.querySelectorAll('#bot-events .done-item');
+  const currNodes = document.querySelectorAll('#bot-events .curr-item, #bot-events .be-item.done-item');
+  _qaRecord(label, 'Timeline', 'Completed phases marked done', doneNodes.length > 0);
+  if(doneNodes.length > 0) phasePass++; else phaseFail++;
+
+  console.log(`  ${label}: ${phasePass} pass, ${phaseFail} fail`);
+  return { pass: phasePass, fail: phaseFail };
+}
+
+/* ══════════════════════════════════════════════
+   BUTTON SCAN — tests every visible button
+══════════════════════════════════════════════ */
+function qaButtonScan() {
+  if(!QA.active) { console.warn('[QA] Debug mode not active. Press Ctrl+Shift+D first.'); return; }
+  console.log('\n%c Button Scan ', 'background:#071d2c;color:#00cce0;font-weight:700;');
+  _qaLog('── Button Scan', 'head');
+
+  const buttons = document.querySelectorAll(
+    'button:not([disabled]), .btn-adv, .btn-primary, .dp-opt, .tog-wrap'
+  );
+  let pass = 0, fail = 0;
+
+  buttons.forEach(btn => {
+    if(!_qaVisible(btn)) return;
+    const label = btn.textContent?.trim().substring(0,30) || btn.id || btn.className.split(' ')[0];
+    const hasHandler = btn.onclick || btn.getAttribute('onclick') ||
+                       getEventListeners?.(btn)?.click?.length > 0;
+    // The only reliable cross-browser check is onclick attribute
+    const onclickAttr = btn.getAttribute('onclick');
+    const clickable = !!onclickAttr || !!btn.onclick || btn.closest('[onclick]');
+    QA.stats.buttons++;
+    if(clickable) {
+      pass++;
+      if(QA.active) _qaLog(`✓ ${label}`, 'pass');
+    } else {
+      fail++;
+      QA.stats.failures++;
+      _qaRecord('UI', 'Button Scan', label, false, 'No onclick/listener detected');
+    }
+  });
+  _qaUpdateDash();
+  console.log(`  Button scan: ${pass} wired, ${fail} potentially unbound`);
+}
+
+/* ══════════════════════════════════════════════
+   STATE INSPECTOR
+══════════════════════════════════════════════ */
+function qaCheckState() {
+  const sim = SIMS[S.activeSim];
+  const report = {
+    activeSim:      S.activeSim,
+    phase:          S.phase,
+    currentPhase:   sim?.phases[S.phase] || 'N/A',
+    totalPhases:    sim?.phases.length || 0,
+    chosen:         S.chosen,
+    aiOn:           S.aiOn,
+    _deciding:      S._deciding,
+    timerRunning:   S.timerRunning,
+    timerSecs:      S.timerSecs,
+    MS:             {...S.MS},
+    feedItems:      document.querySelectorAll('#inj-feed .feed-item').length,
+    navActive:      document.querySelector('.mod-item.active')?.id || 'none',
+    visibleButtons: [...document.querySelectorAll('button,.btn-adv,.dp-opt')]
+                      .filter(_qaVisible).length,
+  };
+  console.table(report);
+  return report;
+}
+
+/* ══════════════════════════════════════════════
+   MODULE SWITCH TEST
+══════════════════════════════════════════════ */
+async function qaTestModuleSwitching() {
+  if(!QA.active) return;
+  console.log('\n%c Module Switch Test ', 'background:#071d2c;color:#00cce0;font-weight:700;');
+  _qaLog('── Module Switch Test', 'head');
+  const ids = Object.keys(SIMS);
+  let pass=0, fail=0;
+
+  for(const id of ids) {
+    loadSim(id);
+    await _qaWait(300);
+
+    const navCorrect = document.querySelector('.mod-item.active')?.id === `mi-${id}`;
+    const titleCorrect = document.getElementById('tb-crumb')?.textContent?.includes(SIMS[id].title.split(' ')[0]);
+    const evHdrCorrect = document.querySelector('.ev-hdr .ev-title')?.textContent.trim() === SIMS[id].title;
+    const phaseReset  = S.phase === 0;
+    const simMatch    = S.activeSim === id;
+
+    _qaRecord(SIMS[id].title, 'Switch', 'Nav active updated', navCorrect);
+    _qaRecord(SIMS[id].title, 'Switch', 'Topbar crumb updated', titleCorrect);
+    _qaRecord(SIMS[id].title, 'Switch', 'ev-hdr title updated', evHdrCorrect);
+    _qaRecord(SIMS[id].title, 'Switch', 'Phase reset to 0', phaseReset);
+    _qaRecord(SIMS[id].title, 'Switch', 'S.activeSim set', simMatch);
+
+    const checks = [navCorrect, titleCorrect, evHdrCorrect, phaseReset, simMatch];
+    pass += checks.filter(Boolean).length;
+    fail += checks.filter(v=>!v).length;
+  }
+
+  console.log(`  Module switch: ${pass} pass, ${fail} fail`);
+  return { pass, fail };
+}
+
+/* ══════════════════════════════════════════════
+   MAIN STRESS TEST RUNNER
+══════════════════════════════════════════════ */
+async function runAXLeadStressTest() {
+  if(!QA.active) qaActivate();
+
+  // Reset stats
+  QA.results = [];
+  QA.stats = { scenarios:0, interactions:0, buttons:0, failures:0 };
+  _qaLog('Test run started', 'head');
+  _qaSetStatus('Running…');
+
+  console.log('\n╔══════════════════════════════════════════╗');
+  console.log('║   AX-LEAD STRESS TEST STARTED             ║');
+  console.log('╚══════════════════════════════════════════╝\n');
+
+  let totalPass = 0, totalFail = 0;
+
+  // Phase 1: Module switching
+  console.log('PHASE 1 — Module Switch Validation');
+  const sw = await qaTestModuleSwitching();
+  totalPass += sw.pass; totalFail += sw.fail;
+  await _qaWait(400);
+
+  // Phase 2: Full scenario walks
+  console.log('\nPHASE 2 — Scenario Walk-through');
+  for(const simId of Object.keys(SIMS)) {
+    const r = await qaTestScenario(simId);
+    totalPass += r.pass; totalFail += r.fail;
+    await _qaWait(300);
+  }
+
+  // Phase 3: Button scan on final rendered state
+  console.log('\nPHASE 3 — Button Scan');
+  qaButtonScan();
+
+  // Final report
+  const total = totalPass + totalFail;
+  const pct   = total > 0 ? Math.round(totalPass/total*100) : 0;
+  const col   = totalFail === 0 ? '\x1b[32m' : '\x1b[31m';
+  const reset = '\x1b[0m';
+
+  console.log('\n╔══════════════════════════════════════════╗');
+  console.log(`║   STRESS TEST COMPLETE                    ║`);
+  console.log(`║   ${col}${totalPass}/${total} checks passed (${pct}%)${reset}                 ║`);
+  if(totalFail > 0) {
+    console.log(`║   \x1b[31m${totalFail} FAILURES detected\x1b[0m                    ║`);
+    console.log('║   Run qaGetFailures() for details         ║');
+  }
+  console.log('╚══════════════════════════════════════════╝\n');
+
+  if(totalFail > 0) {
+    console.log('%c Failures: ', 'color:#cc3a3a;font-weight:700;');
+    QA.results.filter(r=>r.result==='FAIL').forEach(r => {
+      console.log(`  ✗ [${r.scenario}] ${r.phase} — ${r.test}${r.detail?' ('+r.detail+')':''}`);
+    });
+  }
+
+  _qaSetStatus(totalFail===0 ? `✓ All ${total} checks passed` : `✗ ${totalFail} failures`);
+  _qaUpdateDash();
+
+  return QA.results;
+}
+
+/* ── Convenience exports ── */
+function qaGetFailures() {
+  return QA.results.filter(r=>r.result==='FAIL');
+}
+
+function qaClearResults() {
+  QA.results = [];
+  QA.stats = { scenarios:0, interactions:0, buttons:0, failures:0 };
+  const log = document.getElementById('qa-log');
+  if(log) log.innerHTML = '';
+  _qaSetStatus('Cleared');
+  _qaUpdateDash();
+}
+
+/* ── Keyboard + URL activation ── */
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey && e.shiftKey && e.key === 'D') {
+    e.preventDefault();
+    QA.active ? qaDeactivate() : qaActivate();
+  }
+});
+
+// URL param check on load
+(function() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('debug') === 'true') {
+      setTimeout(qaActivate, 800);
+    }
+  } catch(e) {}
+})();
+
 
 </script>
 
