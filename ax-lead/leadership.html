@@ -101,7 +101,7 @@ body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font
 
 /* ── LEFT PANEL ── */
 #lft{grid-area:lft;background:var(--deep);border-right:1px solid var(--r1);
-  display:flex;flex-direction:column;overflow:hidden}
+  display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .lft-tabs{display:flex;border-bottom:1px solid var(--r1);flex-shrink:0}
 .lft-tab{flex:1;padding:9px 6px;font-family:'IBM Plex Mono',monospace;
   font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);
@@ -166,11 +166,21 @@ body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font
 
 /* ── CENTER PANEL ── */
 #ctr{grid-area:ctr;background:var(--panel);overflow:hidden;
-  position:relative;display:flex;flex-direction:column}
+  position:relative;display:flex;flex-direction:column;min-height:0}
 #ctr::before{content:'';position:absolute;inset:0;
   background-image:linear-gradient(rgba(0,204,224,.022) 1px,transparent 1px),
   linear-gradient(90deg,rgba(0,204,224,.022) 1px,transparent 1px);
   background-size:46px 46px;pointer-events:none;z-index:0}
+
+/* ── #ctr-inner: the actual flex column inside #ctr ──
+   Without this, .scenario-scroll has no bounded parent and never scrolls */
+#ctr-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
 .ev-hdr{background:rgba(0,0,0,.45);border-bottom:1px solid var(--r1);
   padding:13px 20px;flex-shrink:0;position:relative;z-index:1}
 .ev-hdr-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
@@ -196,7 +206,7 @@ body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font
   justify-content:center;flex-shrink:0;font-weight:600}
 .ps.done .ps-n{background:var(--t3);color:var(--void)}
 .ps.active .ps-n{background:var(--cyan);color:var(--void)}
-.scenario-scroll{flex:1;overflow-y:auto;position:relative;z-index:1}
+.scenario-scroll{flex:1;overflow-y:auto;position:relative;z-index:1;min-height:0;pointer-events:auto}
 .scenario-scroll::-webkit-scrollbar{width:4px}
 .scenario-scroll::-webkit-scrollbar-thumb{background:var(--r2)}
 .scenario-body{padding:18px 20px}
@@ -304,7 +314,7 @@ body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font
 
 /* ── RIGHT PANEL ── */
 #rgt{grid-area:rgt;background:var(--deep);border-left:1px solid var(--r1);
-  display:flex;flex-direction:column;overflow:hidden}
+  display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .rgt-tabs{display:flex;border-bottom:1px solid var(--r1);flex-shrink:0}
 .rgt-tab{flex:1;padding:9px 4px;font-family:'IBM Plex Mono',monospace;
   font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);
@@ -980,7 +990,14 @@ body { font-size: 14px; }
   letter-spacing: .12em;
   margin-top: 8px;
 }
-.dp-foot { padding: 12px 18px; }
+.dp-foot {
+  padding: 12px 18px;
+  position: sticky;
+  bottom: 0;
+  background: rgba(0,5,14,.95);
+  border-top: 1px solid rgba(0,204,224,.12);
+  z-index: 5;
+}
 .dp-hint { font-size: 8px; }
 .btn-confirm { font-size: 12px; padding: 9px 26px; }
 .btn-adv { font-size: 9.5px; padding: 10px 22px; margin-top: 16px; }
@@ -3199,7 +3216,7 @@ function renderCon(sim, ph) {
 
 function renderMatrix(sim) {
   const varHTML = sim.vars.map(v=>`<div class="av-item"><div class="av-id">${v.id}</div><div class="av-name">${v.name}</div><div class="av-val">${v.val}</div><div class="av-bar"><div class="av-fill ${v.cls}" style="width:${v.w}%"></div></div></div>`).join('');
-  const coaHTML = sim.coas.map(c=>`<div class="dp-opt" id="coa-${c.id}" onclick="selectOpt('dp1','${c.id.charAt(0).toUpperCase()}')">
+  const coaHTML = sim.coas.map(c=>`<div class="dp-opt" id="coa-${c.id.charAt(0).toUpperCase()}" onclick="selectOpt('dp1','${c.id.charAt(0).toUpperCase()}')">
     <span class="opt-key" style="font-size:8px;width:52px;text-align:center">${c.label}</span>
     <div class="opt-body">
       <div class="opt-lbl">${c.name}</div>
@@ -3278,7 +3295,7 @@ function selectOpt(dpId, key) {
   // Resolve card element (handle COA variant)
   let selEl = document.getElementById(`${dpId}-${key}`);
   if(!selEl) {
-    selEl = document.getElementById(`coa-${key.toLowerCase()}`);
+    selEl = document.getElementById(`coa-${key}`);
   }
   if(!selEl) { S._deciding = false; return; }
 
@@ -3301,11 +3318,15 @@ function selectOpt(dpId, key) {
   const isMatrix = currentPhase === 'matrix';
 
   if(isMatrix) {
-    // Un-confirming the animation after it plays — keep card selected, wait for button click
     setTimeout(() => {
       S._deciding = false;
-      selEl.classList.remove('confirming');
-      // Activate the commit button
+      // Remove animation classes from ALL cards (restore interactivity)
+      document.querySelectorAll('.dp-opt').forEach(el => {
+        el.classList.remove('confirming', 'confirming-reject');
+        // Clear sel from any previously selected card
+        if(el !== selEl) el.classList.remove('sel');
+      });
+      // Activate commit button
       const btn = document.getElementById('dp1-btn');
       if(btn) btn.classList.add('on');
     }, 340);
@@ -3376,7 +3397,7 @@ function toggleAI() {
     const coaOpts = document.getElementById('coa-opts');
     if(coaOpts) {
       const chosen = S.chosen['dp1'];
-      const coaHTML = sim.coas.map(cc=>`<div class="dp-opt${chosen===cc.id.charAt(0).toUpperCase()?' sel':''}" id="coa-${cc.id}" onclick="selectOpt('dp1','${cc.id.charAt(0).toUpperCase()}')">
+      const coaHTML = sim.coas.map(cc=>`<div class="dp-opt${chosen===cc.id.charAt(0).toUpperCase()?' sel':''}" id="coa-${cc.id.charAt(0).toUpperCase()}" onclick="selectOpt('dp1','${cc.id.charAt(0).toUpperCase()}')">
         <span class="opt-key" style="font-size:8px;width:52px;text-align:center">${cc.label}</span>
         <div class="opt-body">
           <div class="opt-lbl">${cc.name}</div>
