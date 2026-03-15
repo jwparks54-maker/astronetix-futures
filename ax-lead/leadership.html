@@ -606,18 +606,125 @@ body{background:var(--void);color:var(--t1);font-family:'Barlow',sans-serif;font
 .cb-change.up{color:var(--green);border-color:rgba(0,176,112,.3);background:rgba(0,176,112,.07)}
 .cb-change.dn{color:var(--red);border-color:rgba(204,58,58,.3);background:rgba(204,58,58,.07)}
 /* ══ TUTORIAL ══ */
-.tut-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
-.tut-overlay.open{display:flex}
-.tut-box{background:var(--panel);border:1px solid var(--r2);width:min(600px,93vw);position:relative;animation:modalIn .28s ease}
-.tut-prog{height:2px;background:var(--r1);position:absolute;top:0;left:0;right:0}
-.tut-prog-fill{height:100%;background:var(--cyan);transition:width .3s ease}
-.tut-body{padding:34px 34px 20px;min-height:310px;display:flex;flex-direction:column}
-.tut-step-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:10px}
-.tut-step-tag::before{content:'';width:22px;height:1px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-.tut-heading{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;letter-spacing:.03em;color:var(--t1);margin-bottom:14px;line-height:1.1}
-.tut-text{font-size:.9rem;color:var(--t2);line-height:1.72;flex:1}
-.tut-text strong{color:var(--t1)}
-.tut-diag{background:rgba(0,0,0,.3);border:1px solid var(--r1);padding:12px;margin:14px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+/* ══ GUIDED TOUR SYSTEM ══ */
+/* Backdrop — dims everything, only exists when tour is active */
+#tour-backdrop{
+  position:fixed;inset:0;z-index:390;
+  background:rgba(0,4,12,.0);
+  pointer-events:none;
+  transition:background .35s ease;
+}
+#tour-backdrop.active{
+  background:rgba(0,4,12,.78);
+  pointer-events:auto;
+}
+/* Spotlight lens — creates the cutout over the target element */
+#tour-lens{
+  position:fixed;z-index:395;
+  border-radius:4px;
+  pointer-events:none;
+  transition:top .42s cubic-bezier(.4,0,.2,1),
+             left .42s cubic-bezier(.4,0,.2,1),
+             width .42s cubic-bezier(.4,0,.2,1),
+             height .42s cubic-bezier(.4,0,.2,1),
+             opacity .25s ease;
+  opacity:0;
+}
+#tour-lens.active{opacity:1;}
+/* Glowing outline around the spotlight */
+#tour-lens::before{
+  content:'';
+  position:absolute;inset:-3px;
+  border:1.5px solid rgba(0,204,224,.55);
+  border-radius:6px;
+  box-shadow:
+    0 0 0 1px rgba(0,204,224,.12),
+    0 0 18px rgba(0,204,224,.28),
+    0 0 40px rgba(0,204,224,.12),
+    inset 0 0 18px rgba(0,204,224,.04);
+  animation:tourGlow 2.4s ease-in-out infinite;
+}
+@keyframes tourGlow{
+  0%,100%{box-shadow:0 0 0 1px rgba(0,204,224,.12),0 0 18px rgba(0,204,224,.28),0 0 40px rgba(0,204,224,.12),inset 0 0 18px rgba(0,204,224,.04);}
+  50%{box-shadow:0 0 0 2px rgba(0,204,224,.18),0 0 26px rgba(0,204,224,.44),0 0 60px rgba(0,204,224,.18),inset 0 0 26px rgba(0,204,224,.07);}
+}
+/* Tour panel — the tooltip/content card */
+#tour-panel{
+  position:fixed;z-index:400;
+  width:310px;
+  background:var(--card);
+  border:1px solid rgba(0,204,224,.28);
+  border-left:3px solid var(--cyan);
+  pointer-events:auto;
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .28s ease .1s, transform .28s ease .1s;
+}
+#tour-panel.active{opacity:1;transform:translateY(0);}
+.tp-progress{height:2px;background:var(--r1);position:relative;}
+.tp-progress-fill{height:100%;background:var(--cyan);transition:width .35s ease;}
+.tp-step-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--cyan);opacity:.8;
+  padding:12px 16px 0;
+  display:flex;align-items:center;gap:8px;
+}
+.tp-step-tag::before{content:'';width:14px;height:1px;background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+.tp-heading{
+  font-family:'Rajdhani',sans-serif;font-size:1.18rem;font-weight:700;
+  letter-spacing:.03em;color:var(--t1);line-height:1.15;
+  padding:7px 16px 6px;
+}
+.tp-text{
+  font-size:.86rem;color:#9cc2da;line-height:1.66;
+  padding:0 16px 14px;
+}
+.tp-text strong{color:var(--t1);}
+.tp-foot{
+  border-top:1px solid var(--r1);
+  padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;
+}
+.tp-counter{
+  font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--t3);
+}
+.tp-actions{display:flex;align-items:center;gap:8px;}
+.tp-skip{
+  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--t3);cursor:pointer;
+  padding:6px 10px;border:1px solid transparent;
+  transition:color .2s,border-color .2s;
+}
+.tp-skip:hover{color:var(--t2);border-color:var(--r2);}
+.tp-prev{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--t2);cursor:pointer;
+  padding:7px 12px;border:1px solid var(--r2);
+  background:transparent;transition:all .18s;
+}
+.tp-prev:hover{color:var(--t1);border-color:var(--r3);}
+.tp-prev:disabled{opacity:.3;cursor:default;}
+.tp-next{
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.15em;text-transform:uppercase;
+  color:var(--void);background:var(--cyan);
+  border:none;padding:8px 18px;cursor:pointer;
+  clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);
+  transition:box-shadow .2s;
+}
+.tp-next:hover{box-shadow:0 0 16px var(--cglow);}
+/* Connector arrow pointing from panel toward spotlight */
+#tour-arrow{
+  position:fixed;z-index:398;
+  width:0;height:0;
+  border:8px solid transparent;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .25s ease .1s, top .42s cubic-bezier(.4,0,.2,1), left .42s cubic-bezier(.4,0,.2,1);
+}
+#tour-arrow.active{opacity:1;}
 .tdc{text-align:center;padding:6px}
 .tdc-icon{font-size:17px;margin-bottom:5px}
 .tdc-lbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--t2)}
@@ -1163,9 +1270,8 @@ body { font-size: 14px; }
 .sc-pat-text { font-size: .88rem !important; line-height: 1.68; }
 
 /* Tutorial */
-.tut-box { background: var(--panel); }
-.tut-text { font-size: .94rem !important; line-height: 1.72; color: #9cc2da; }
-.tut-heading { font-size: 1.7rem; }
+/* Tour panel fine-tuning */
+#tour-panel { background: var(--card); }
 
 /* ── CHANGED BANNER ── */
 .changed-banner {
@@ -1392,6 +1498,11 @@ body { font-size: 14px; }
       <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);margin-bottom:3px">Logged In As</div>
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--t2)">LEAD-07 // Observer</div>
     </div>
+    <div style="padding:4px 14px 12px">
+      <div onclick="openTutorial()" style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--t3);cursor:pointer;padding:7px 10px;border:1px solid var(--r1);display:flex;align-items:center;gap:7px;transition:all .2s" onmouseover="this.style.color='var(--cyan)';this.style.borderColor='var(--r3)'" onmouseout="this.style.color='var(--t3)';this.style.borderColor='var(--r1)'">
+        <span style="font-size:12px">◎</span> Replay Interface Tour
+      </div>
+    </div>
   </div>
   <div id="inj-feed">
     <div class="feed-empty" id="feed-empty">No events logged yet.<br>Begin a simulation.</div>
@@ -1451,17 +1562,21 @@ body { font-size: 14px; }
 
 </div><!-- /app -->
 
-<!-- TUTORIAL -->
-<div class="tut-overlay" id="tut-overlay">
-  <div class="tut-box">
-    <div class="tut-prog"><div class="tut-prog-fill" id="tut-prog-fill" style="width:12.5%"></div></div>
-    <div class="tut-body" id="tut-body"></div>
-    <div class="tut-foot">
-      <div class="tut-counter" id="tut-counter">Step 1 of 8</div>
-      <div class="tut-actions">
-        <div class="tut-skip" onclick="skipTutorial()">Skip Tutorial</div>
-        <button class="tut-next" id="tut-next" onclick="tutNext()">Next →</button>
-      </div>
+<!-- GUIDED TOUR SYSTEM -->
+<div id="tour-backdrop"></div>
+<div id="tour-lens"></div>
+<div id="tour-arrow"></div>
+<div id="tour-panel">
+  <div class="tp-progress"><div class="tp-progress-fill" id="tp-prog-fill" style="width:12.5%"></div></div>
+  <div class="tp-step-tag" id="tp-step-tag">Step 1</div>
+  <div class="tp-heading" id="tp-heading"></div>
+  <div class="tp-text" id="tp-text"></div>
+  <div class="tp-foot">
+    <div class="tp-counter" id="tp-counter">1 / 8</div>
+    <div class="tp-actions">
+      <span class="tp-skip" onclick="tourSkip()">Skip Tour</span>
+      <button class="tp-prev" id="tp-prev" onclick="tourPrev()" disabled>← Back</button>
+      <button class="tp-next" id="tp-next" onclick="tourNext()">Next →</button>
     </div>
   </div>
 </div>
@@ -2528,33 +2643,258 @@ function openScorecard(simId){
 /* ═══════════════════════════════════════════════
    TUTORIAL
 ═══════════════════════════════════════════════ */
-const TUT=[
-  {tag:'Welcome to AX-LEAD',heading:'Mission-Driven Leadership Training',text:'AX-LEAD places you inside live mission scenarios where <strong>your decisions determine the outcome</strong>. This is not a presentation — it is a simulation. You will receive intelligence, injects, conflicting recommendations, and time pressure. You will make real leadership decisions. The scenario will respond.'},
-  {tag:'Your Role',heading:'You Are the Mission Lead',text:'In each simulation event, you are the lead decision authority for a complex mission cell. Your team includes <strong>military operators, government civilians, and contractor specialists</strong>. They have different priorities, different risk tolerances, and different institutional loyalties. None of them report directly to you. Your authority is influence, judgment, and clarity.',diag:[{icon:'⚡',lbl:'Injects arrive'},{icon:'◈',lbl:'You decide'},{icon:'◎',lbl:'Consequences fire'},{icon:'↺',lbl:'State updates'}]},
-  {tag:'Left Panel',heading:'Event Feed & Module Navigation',text:'The <strong>left panel</strong> has two tabs. <strong>Events</strong> lists all available simulation events — select any to launch it. <strong>Feed</strong> is your live event log — every inject, decision, and consequence is recorded here in real time. Switch to it during play to review what\'s happened so far.'},
-  {tag:'Center Panel',heading:'Active Scenario Console',text:'The <strong>center panel</strong> is where the scenario runs. The phase strip shows where you are in the event sequence. Scenario events appear here sequentially: situation brief → injects → decision points → consequences → resolution. Each event requires your acknowledgment or decision to advance.'},
-  {tag:'Mission State Panel',heading:'Six Live State Variables',text:'The <strong>top of the right panel</strong> always shows six mission state variables: <strong>Mission Continuity, Timeline Margin, Platform Health, Team Alignment, Threat Confidence, and Stakeholder Trust</strong>. These numbers change after every decision. Watch for arrows indicating shifts — they tell you whether your decisions are strengthening or degrading the mission environment.'},
-  {tag:'Team Panel',heading:'Dynamic Team Members',text:'The <strong>Team tab</strong> shows your mission cell. Each member card displays their current position and three live attributes: <strong>Trust, Urgency, and Alignment</strong>. These attributes update based on how you lead. Click any member card to see their full profile — priorities, concerns, what they need from you, and the influence risk they represent.'},
-  {tag:'Decision Points',heading:'How Decisions Work',text:'When a decision point appears, you will see <strong>four options labeled A through D</strong>. Read all four before selecting — each shows a risk rating. Click to select, then confirm. Once confirmed, the consequence fires, mission state updates, and the scenario advances. <strong>You cannot undo a confirmed decision.</strong>'},
-  {tag:'Decision Trace & Scorecard',heading:'After-Action Review Tools',text:'At the end of each simulation, the <strong>Decision Trace</strong> becomes available. It shows what information you had at each decision point, what you chose, what signals you missed, how the situation evolved, and what alternate decisions would have produced. The <strong>Leadership Scorecard</strong> provides a professional assessment of your command judgment across seven categories.'}
+/* ═══════════════════════════════════════════════
+   GUIDED TOUR SYSTEM
+   Spotlight travels across the interface.
+   loadSim() runs BEFORE tour so all elements exist.
+═══════════════════════════════════════════════ */
+const TOUR_STEPS = [
+  {
+    sel: '.ev-hdr',
+    tag: 'Scenario Objective',
+    heading: 'Mission Title & Role',
+    text: 'This section shows the active mission scenario, your leadership role, and the objective. Read it carefully — your role and the objective define the context for every decision you make.',
+    side: 'bottom'
+  },
+  {
+    sel: '#lft',
+    tag: 'Event Feed',
+    heading: 'Left Panel — Live Event Feed',
+    text: 'New operational information arrives here as the scenario evolves. <strong>Injects</strong> simulate real-world updates from operators, analysts, and system telemetry. Watch this feed — it often signals a developing problem before the main scenario panel shows it.',
+    side: 'right'
+  },
+  {
+    sel: '.scenario-scroll',
+    tag: 'Decision Console',
+    heading: 'Center Panel — Active Scenario',
+    text: 'This is where the scenario plays out. Mission briefings, operational injects, and <strong>decision points</strong> appear here in sequence. When a decision point loads, select your action. <strong>There is rarely a perfect choice — every decision involves tradeoffs.</strong>',
+    side: 'left'
+  },
+  {
+    sel: '#state-strip',
+    tag: 'Mission State',
+    heading: 'Live Mission State Variables',
+    text: 'Six indicators track the health of the mission environment: <strong>Mission Continuity, Timeline Margin, Platform Health, Team Alignment, Threat Confidence,</strong> and <strong>Stakeholder Trust</strong>. Your decisions move these numbers up or down. Watch for delta arrows after each decision.',
+    side: 'left'
+  },
+  {
+    sel: '#rb-team',
+    tag: 'Team Panel',
+    heading: 'Dynamic Team Members',
+    text: 'These are your mission cell members — military operators, government civilians, and contractors. Each brings a different perspective and a different priority. Their <strong>Trust, Urgency, and Alignment</strong> attributes shift based on how you lead. Click any card to see their full profile.',
+    side: 'left'
+  },
+  {
+    sel: '#bot',
+    tag: 'Decision Timeline',
+    heading: 'Bottom Panel — Scenario Progress',
+    text: 'The timeline tracks where you are in the scenario. <strong>Completed phases</strong> turn bright cyan. The <strong>current phase</strong> pulses with a glowing ring. Upcoming phases are dimmed. After the simulation ends, use this timeline to replay and review every decision in the Decision Trace.',
+    side: 'top'
+  },
+  {
+    sel: '#app',
+    tag: 'Simulation Engine',
+    heading: 'How the Simulation Responds',
+    text: 'Every decision you make triggers a consequence. New injects arrive. Mission state indicators shift. Team members react. The scenario <strong>branches based on your choices</strong> — no two runs are identical. Your goal: maintain mission success while managing risk, team alignment, and stakeholder trust.',
+    side: 'center',
+    fullscreen: true
+  },
+  {
+    sel: '.btn-primary, .btn-adv, #scenario-body',
+    tag: 'Begin Simulation',
+    heading: 'You Are Ready',
+    text: 'The simulation is loaded and waiting. Click <strong>Begin Scenario</strong> in the center panel to start the mission run. The scenario will advance through briefing, injects, and decision points. Decisions are permanent — choose deliberately.',
+    side: 'bottom',
+    isLast: true
+  }
 ];
 
-let tutStep=0;
-function openTutorial(){tutStep=0;renderTutStep();document.getElementById('tut-overlay').classList.add('open');}
-function closeTutorial(){document.getElementById('tut-overlay').classList.remove('open');}
-function skipTutorial(){closeTutorial();if(!S.activeSim)loadSim('m01');}
-function tutNext(){
-  if(tutStep<TUT.length-1){tutStep++;renderTutStep();}
-  else{closeTutorial();loadSim('m01');}
+let tourStep = 0;
+let tourActive = false;
+
+function openTutorial() {
+  // Make sure m01 is loaded so all elements exist
+  if(!S.activeSim) loadSim('m01');
+  // Small delay to let the DOM settle after loadSim render
+  setTimeout(() => {
+    tourStep = 0;
+    tourActive = true;
+    document.getElementById('tour-backdrop').classList.add('active');
+    renderTourStep();
+  }, 80);
 }
-function renderTutStep(){
-  const st=TUT[tutStep];
-  const pct=Math.round(((tutStep+1)/TUT.length)*100);
-  document.getElementById('tut-prog-fill').style.width=`${pct}%`;
-  document.getElementById('tut-counter').textContent=`Step ${tutStep+1} of ${TUT.length}`;
-  const diagHTML=st.diag?`<div class="tut-diag">${st.diag.map(d=>`<div class="tdc"><div class="tdc-icon">${d.icon}</div><div class="tdc-lbl">${d.lbl}</div></div>`).join('')}</div>`:'';
-  document.getElementById('tut-body').innerHTML=`<div class="tut-step-tag">${st.tag}</div><div class="tut-heading">${st.heading}</div><div class="tut-text">${st.text}${diagHTML}</div>`;
-  document.getElementById('tut-next').textContent=tutStep<TUT.length-1?'Next →':'Begin Simulation →';
+
+function closeTutorial() {
+  tourActive = false;
+  const backdrop = document.getElementById('tour-backdrop');
+  const lens     = document.getElementById('tour-lens');
+  const panel    = document.getElementById('tour-panel');
+  const arrow    = document.getElementById('tour-arrow');
+  backdrop?.classList.remove('active');
+  lens?.classList.remove('active');
+  panel?.classList.remove('active');
+  if(arrow) arrow.classList.remove('active');
+}
+
+function tourSkip()  { closeTutorial(); }
+function tourPrev()  { if(tourStep > 0) { tourStep--; renderTourStep(); } }
+function tourNext()  {
+  if(tourStep < TOUR_STEPS.length - 1) { tourStep++; renderTourStep(); }
+  else { closeTutorial(); }
+}
+
+// Also keep old names alive in case called from HTML
+function skipTutorial() { tourSkip(); }
+function tutNext()      { tourNext(); }
+
+function renderTourStep() {
+  const step = TOUR_STEPS[tourStep];
+  const total = TOUR_STEPS.length;
+  const pct   = Math.round(((tourStep + 1) / total) * 100);
+
+  // Update panel content
+  document.getElementById('tp-prog-fill').style.width = pct + '%';
+  document.getElementById('tp-step-tag').textContent  = step.tag;
+  document.getElementById('tp-heading').textContent   = step.heading;
+  document.getElementById('tp-text').innerHTML        = step.text;
+  document.getElementById('tp-counter').textContent   = `${tourStep + 1} / ${total}`;
+  document.getElementById('tp-next').textContent      = step.isLast ? 'Begin Simulation' : 'Next →';
+  document.getElementById('tp-prev').disabled         = tourStep === 0;
+
+  // Find target element
+  const target = document.querySelector(step.sel);
+  positionTour(target, step);
+}
+
+function positionTour(target, step) {
+  const lens   = document.getElementById('tour-lens');
+  const panel  = document.getElementById('tour-panel');
+  const arrow  = document.getElementById('tour-arrow');
+  const PAD    = 8;   // padding around spotlight
+  const GAP    = 16;  // gap between spotlight and panel
+
+  if(!lens || !panel) return;
+
+  // Show elements
+  lens.classList.add('active');
+  panel.classList.add('active');
+
+  if(!target || step.fullscreen) {
+    // Fullscreen mode: spotlight covers whole app minus small inset
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const inset = 24;
+    Object.assign(lens.style, {
+      top:    inset + 'px',
+      left:   inset + 'px',
+      width:  (vw - inset*2) + 'px',
+      height: (vh - inset*2) + 'px',
+    });
+    // Center the panel
+    const pw = 310, ph = 280;
+    Object.assign(panel.style, {
+      top:  Math.round(vh/2 - ph/2) + 'px',
+      left: Math.round(vw/2 - pw/2) + 'px',
+    });
+    if(arrow) arrow.classList.remove('active');
+    return;
+  }
+
+  // Normal: spotlight around the target
+  const r = target.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+
+  // Set lens position with padding
+  const lTop  = Math.max(0, r.top  - PAD);
+  const lLeft = Math.max(0, r.left - PAD);
+  const lW    = Math.min(vw - lLeft, r.width  + PAD*2);
+  const lH    = Math.min(vh - lTop,  r.height + PAD*2);
+
+  Object.assign(lens.style, {
+    top:    lTop  + 'px',
+    left:   lLeft + 'px',
+    width:  lW    + 'px',
+    height: lH    + 'px',
+  });
+
+  // Determine which side has the most room
+  const side = step.side || chooseSide(r, vw, vh);
+  const pw = 310, ph = estimatePanelHeight();
+
+  let pTop, pLeft;
+  let arrowSide, arwTop, arwLeft;
+
+  if(side === 'right') {
+    pLeft = lLeft + lW + GAP;
+    pTop  = Math.max(8, Math.min(lTop, vh - ph - 8));
+    if(pLeft + pw > vw - 4) { // overflow — fallback to left
+      pLeft = lLeft - pw - GAP;
+    }
+    arrowSide = 'left';
+    arwLeft   = pLeft - 10;
+    arwTop    = pTop + 28;
+  } else if(side === 'left') {
+    pLeft = lLeft - pw - GAP;
+    if(pLeft < 4) pLeft = lLeft + lW + GAP; // overflow fallback
+    pTop  = Math.max(8, Math.min(lTop, vh - ph - 8));
+    arrowSide = 'right';
+    arwLeft   = pLeft + pw + 2;
+    arwTop    = pTop + 28;
+  } else if(side === 'bottom') {
+    pTop  = lTop + lH + GAP;
+    pLeft = Math.max(8, Math.min(lLeft, vw - pw - 8));
+    if(pTop + ph > vh - 8) pTop = lTop - ph - GAP;
+    arrowSide = 'top';
+    arwTop    = pTop - 14;
+    arwLeft   = pLeft + pw/2 - 8;
+  } else { // top
+    pTop  = lTop - ph - GAP;
+    if(pTop < 8) pTop = lTop + lH + GAP;
+    pLeft = Math.max(8, Math.min(lLeft, vw - pw - 8));
+    arrowSide = 'bottom';
+    arwTop    = pTop + ph + 2;
+    arwLeft   = pLeft + pw/2 - 8;
+  }
+
+  // Clamp panel into viewport
+  pTop  = Math.max(8, Math.min(pTop,  vh - ph - 8));
+  pLeft = Math.max(8, Math.min(pLeft, vw - pw - 8));
+
+  Object.assign(panel.style, { top: pTop + 'px', left: pLeft + 'px' });
+
+  // Arrow
+  if(arrow) {
+    const arrowColors = { left:'right', right:'left', top:'bottom', bottom:'top' };
+    arrow.className   = 'active';
+    const borderSide  = arrowColors[arrowSide];
+    arrow.style.cssText = `
+      position:fixed;z-index:398;
+      width:0;height:0;pointer-events:none;
+      top:${arwTop}px;left:${arwLeft}px;
+      border:8px solid transparent;
+      border-${borderSide}-color:rgba(0,204,224,.4);
+      opacity:1;
+      transition:opacity .25s ease .1s,
+        top .42s cubic-bezier(.4,0,.2,1),
+        left .42s cubic-bezier(.4,0,.2,1);
+    `;
+  }
+}
+
+function chooseSide(r, vw, vh) {
+  const spaceRight  = vw - r.right;
+  const spaceLeft   = r.left;
+  const spaceBottom = vh - r.bottom;
+  const spaceTop    = r.top;
+  const best = Math.max(spaceRight, spaceLeft, spaceBottom, spaceTop);
+  if(best === spaceRight)  return 'right';
+  if(best === spaceLeft)   return 'left';
+  if(best === spaceBottom) return 'bottom';
+  return 'top';
+}
+
+function estimatePanelHeight() {
+  const p = document.getElementById('tour-panel');
+  return p ? p.offsetHeight || 240 : 240;
 }
 
 /* ═══════════════════════════════════════════════
@@ -2599,6 +2939,9 @@ document.getElementById('mm-overlay').addEventListener('click',e=>{if(e.target==
 document.getElementById('trace-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('trace-overlay'))closeTrace();});
 document.getElementById('scard-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('scard-overlay'))document.getElementById('scard-overlay').classList.remove('open');});
 
+// Load M-01 immediately so the interface is populated,
+// then open the guided tour over the live interface
+loadSim('m01');
 openTutorial();
 
 </script>
